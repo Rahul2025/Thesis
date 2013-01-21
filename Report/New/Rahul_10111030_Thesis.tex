@@ -1,0 +1,166 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage[pdftex]{graphicx}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{fancyhdr}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{epsfig}
+%\def\pdfshellescape{1}
+%\usepackage{epstopdf}
+%\usepackage{ieeetran}
+%\usepackage{subfigure}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{verbatim}
+\usepackage{setspace}
+\usepackage{listings}
+%\usepackage{subfig}
+\usepackage{subfigure}
+\usepackage{multicol}
+\usepackage{framed}
+%\begin{comment}
+\usepackage[colorlinks,breaklinks=true]{hyperref}% hyperref should be the last package to be included, and perhaps there  should be one line gap between entries of bibliography 
+\hypersetup{
+	hypertexnames=false,
+	pdftitle={A BenchMarking Tool},
+	pdfauthor={Rahul Gupta},
+	pdfkeywords={},
+%	bookmarksnumbered,
+	pdfstartview={FitH},
+	colorlinks=true,
+	urlcolor=black,
+	linkcolor=black,%: Color for normal internal links
+	anchorcolor=black,%: Color for anchor text.
+	citecolor=black,%: Color for bibliographical citations in text
+	filecolor=black,%: Color for URLs which open local files
+%	pagecolor=blue,%: Color for links to other pages
+}%
+\usepackage[all]{hypcap}
+%\end{comment}
+
+\usepackage{fancyvrb}
+\DefineVerbatimEnvironment{code}{Verbatim}{fontsize=\small}
+\DefineVerbatimEnvironment{example}{Verbatim}{fontsize=\small}
+
+\usepackage{geometry}
+
+\setlength{\topmargin}{-13mm}
+\setlength{\headheight}{6mm}
+\setlength{\headsep}{7mm}
+\setlength{\textheight}{245mm}
+%\setlength{\oddsidemargin}{0.37in}
+\newpage
+%\setlength{\evensidemargin}{0in}
+\setlength{\textwidth}{150mm}
+\setlength{\marginparwidth}{0.5in}
+\renewcommand{\baselinestretch}{1.15}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength\fboxsep{1pt}
+\setlength\fboxrule{0.25pt}
+%\theoremstyle{definition}
+\newtheorem{mydef}{Definition}[chapter]
+
+\renewcommand\lstlistingname{Program}%                     default is Listing
+\renewcommand\lstlistlistingname{List of Programs}%        default is Listings
+\addtolength{\evensidemargin}{-.875in}
+\begin{document}
+\pagenumbering{roman}
+\fancyfoot[CO]{\thepage}
+\cleardoublepage
+%*******************************************************************************
+%\begin{comment}
+\input{FirstFewPages/MyCover}		% First Inner Page
+\newpage
+\lstset{language=[ANSI]C}
+\lstset{% general command to set parameter(s)
+basicstyle=\footnotesize\tt, % print whole listing small
+identifierstyle=, % nothing happens
+commentstyle=\color{blue}, % white comments
+showstringspaces=false, % no special string spaces
+lineskip=1pt,
+captionpos=b,
+frame=single,
+breaklines=true
+}
+\lstset{classoffset=0,
+morekeywords={},keywordstyle=\color{black},
+classoffset=1,
+classoffset=0}% restore default
+
+\input{FirstFewPages/MyTitle}		% First Inner Page
+\newpage
+%\phantomsection\addcontentsline{toc}{chapter}{Certificate}
+\setcounter{page}{2}
+\input{FirstFewPages/MyCertificate}	
+\newpage
+%\phantomsection\addcontentsline{toc}{chapter}{Abstract}
+%\phantomsection\addcontentsline{toc}{chapter}{Acknowledgements}
+
+\input{FirstFewPages/MyAcknowledgement}
+\newpage
+
+\input{FirstFewPages/MyDedication}
+
+\newpage
+\input{FirstFewPages/MyAbstract}
+
+\tableofcontents
+%\phantomsection\addcontentsline{toc}{chapter}{List of Figures}
+\listoffigures
+%\phantomsection\addcontentsline{toc}{chapter}{List of Tables}
+\listoftables
+%\lstlistoflistings
+
+
+%\end{comment}
+\newpage
+\pagenumbering{arabic}
+\fancyhead[RO]{\thepage}
+\fancyhead[LO]{\slshape \leftmark}
+\fancyfoot[CO]{}
+\renewcommand{\headrulewidth}{0.5pt}
+\noindent
+%*********************************************************************
+\chapter{Introduction\label{intro}}
+%\input{Chapters/Introduction}
+
+\chapter{Background\label{intro}}
+\input{Chapters/Background}
+
+\chapter{The Problem\label{intro}}
+\input{Chapters/Problem}
+
+\chapter{Approach\label{intro}}
+\input{Chapters/Approach}
+
+\chapter{Implementation Details\label{intro}}
+\input{Chapters/details}
+
+\chapter{Experimentation Results\label{intro}}
+\input{Chapters/results}
+
+\chapter{Conclusion\label{intro}}
+\input{Chapters/Conclusion}
+
+%********bib***********
+\newpage
+\phantomsection\addcontentsline{toc}{chapter}{Bibliography}
+\begin{spacing}{1.5}
+\nocite{*}
+\bibliographystyle{plain}
+%\bibliographystyle{acm}
+\bibliography{References}
+\end{spacing}
+
+
+%***************************************************************************
+
+
+\end{document}
+%*******************************************************************************

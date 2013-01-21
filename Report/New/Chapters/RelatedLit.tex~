@@ -1,0 +1,333 @@
+Text Information Retrieval refers to techniques for retrieving the most relevant from a set of text documents corresponding to user queries. In this chapter we discuss the basics of this extremely mature field.
+\section{Vector Space Model}
+The Vector Space Model, discussed at a length in \cite{Salton}, is the basic algebraic model for representing text documents, which lays much of the foundation upon which modern information retrieval stands.
+\subsection{Document Representation}
+A text document is represented as a vector over its term occurrences. Each term encountered in the entire set of documents corresponds to a dimension.\\
+Thus, if there are t distinct terms seen overall, the $i^{th}$ document in the document set is represented as a t-dimensional vector.\\
+$D_i $ $=(d_{i1},d_{i2},...,d_{it})$, where $d_{ij}$ stands for the weight corresponding to $j^{th}$ term based on its occurrences in the $i^{th}$ document.
+\subsection{Similarity between Documents}
+Under the vector space representation, similarity between two documents can be formulated as dot product $($cosine similarity$)$ between the two vectors. 
+\begin{equation}
+\label{eqCosSim}
+ S(D_i,D_j) = \dfrac{\vec{D_i}\cdot\vec{D_j}}{||\vec{D_i}|| ||\vec{D_j}||} = \dfrac{\sum_{k=1}^{t}d_{ik}d_{jk}}{\sqrt{\sum_{k=1}^{t}d_{ik}^2} \sqrt{\sum_{k=1}^{t}d_{jk}^2}}
+\end{equation}
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=100mm]{diagrams/CosineSimilarity}}
+\caption{Cosine Similarity Between Documents}
+\label{figCosSim}
+\end{center}\end{figure}
+
+Figure \ref{figCosSim} shows a graphical representation of the same in 3 dimensions.
+
+Usually, common words like 'a','an','on' etc are ignored and not used as term dimensions. This is termed as \textit{stopword removal}. \\
+Likewise inflected words can be reduced to their root word, which is termed as \textit{stemming}. For e.g. "dogs","doglike","doggy" are all based on the root word "dog". Porter Stemmer (\cite{Porter80}) is a popular word stemmer.
+
+\subsection{TF-IDF weighting scheme}
+The TF-IDF is a commonly used \textit{term weighting} scheme in information retrieval.\\
+The relevance of a term t to a document d is calculated as a product of two factors:\\ \\
+Term Frequency, which measures the importance of term t internal to document d is given as:
+\begin{equation}
+\label{eqTF}
+%tf(t,d) = \dfrac{number \;of \;occurrences \;of \;t \;in \;d}{\;total \;number \;of \;occurrences \;of \;all \;terms \;in \;d}
+tf(t,d) = number \;of \;occurrences \;of \;t \;in \;d
+\end{equation}
+This is usually normalized by the total number of terms in the document $d$ to
+avoid a bias towards longer documents. That is:
+\[tf(t,d)=\frac{\text{number of occurrences of $t$ in $d$}}
+{\text{Total number of terms in $d$}}\]
+
+Inverse Document Frequency, a measure attributed to \cite{SparckJones1972Statistical} which measures the relevance of the term itself in the document set is given as:
+\begin{equation}
+\label{eqIDF}
+Idf(t) \;= lg(1+\dfrac{number \;of \;documents \;in \;store}{1\;+\;number \;of \;documents \;containing \;t})
+\end{equation}
+The TF-IDF weight corresponding to each term t in the document d is calculated as:
+\begin{equation}
+\label{eqTFIDF}
+tfIdf(t,d) = tf(t,d)*Idf(t)
+\end{equation}
+The document vector is then represented using TF-IDF weights for each term\\
+$D_i$ = $(w_{i1},w_{i2},...,w_{it})$ \\
+$w_{ik} = tfIdf(t_k,d_i)$, the TF-IDF measure for $k^{th}$ term in $i^{th}$ document.
+
+\subsection{Relevance Ranking}
+\label{secRelRanking}
+\textit{Relevance} refers to how well does a document meet the information need of a user expressed as a query.\\
+Given a set of text documents D, the aim is to obtain a list of documents from D corresponding to a user query q, sorted in descending order of their relevance scores.
+
+A user query is typically a short string of keywords about which the user wishes to seek information. Thus the user query itself can be represented as a term vector.
+
+Typically, the relevance scoring of a document with respect to a user query is computed as a cosine similarity between the query and document vectors.\\
+The relevance score (using TF-IDF weighting) for a document d corresponding to user query q is given as:
+\begin{equation}
+\label{eqRelevScore}
+score(d,q) = NF(d)*\sum_{t \,\epsilon\, q}tfIdf(t,d)*TBF(t)
+\end{equation}
+where:\\
+$NF(d)$ is Normalizing Factor for document d  \\
+$TBF(t)$ is Term Boost Factor for term t
+
+Both the factors are mainly implementation dependent, typically the document normalizing factor being dependent on document length (overall term occurrences in the document) and term boost factor just a provision to emphasize $``$key$``$ terms. 
+
+\section{Inverted Indexes}
+\subsection{Basic Data Structure}
+The biggest drawback of vector space models is the very high dimensionality (owing to large number of distinct terms even in small corpuses) of the document vectors.\\
+Document vectors tend to be sparse which calls upon ways to reduce the storage requirements. Given the large scale of text corpuses in general, this is more of a necessity.
+
+The Inverted Index is a commonly used index data-structure in document retrieval systems, which meets this requirement of reducing storage requirements while also allowing fast full text searches.
+
+Following stop-word removal and stemming, the document to be added to the index is first converted into a stream of term \textit{tokens}. Each of the tokens is mapped to a list of its occurrences over all the documents. The occurrence lists are also called \textit{token postings} or \textit{posting lists}.
+An example is shown in figure \ref{}.
+
+The posting lists for a term  is a list of document numbers and number of occurrences of the term. The actual positions of those terms may be optionally stored in the position information. So, basically the inverted index treats term tokens extracted from documents as search keys instead of using document-ids as keys as in the case of vector space models.
+
+It is also a standard practice to maintain other important information such as document length, document title, inverse document frequency for terms etc. which can be used separately as required.
+
+Query Processing using inverted indexes can be best explained using examples.
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=130mm]{diagrams/marathaEmpire.png}}
+\caption{Boolean Intersection of Result Postings}
+\label{figBool}
+\end{center}\end{figure}
+
+\subsection{Boolean Queries}
+The most basic form of query is the \textit{Boolean Query} where the user specifies the combination of words that should or should not be present in the to be retrieved document sets.
+\\ As seen in figure \ref{figBool}, the user enters the query "maratha AND empire"; thereby the postings for both the terms are easily obtainable using the inverted index , and the score set would just be intersection of the postings obtained.
+
+Likewise the user could enter various combinations of keywords using other Boolean operators like OR,NOT and the result set would just be a corresponding combination of the keyword postings.
+
+The combination of postings is typically linear over all of the covered postings. That is, if the combined length of all of the individual keyword postings is $N$, then combining all those posting lists takes time in $\Theta(N)$.
+
+\subsection{Relevance Ranked Retrieval of Documents}
+Simple boolean query processing only fetches documents based on the mere presence or absence of query keywords, and needless to say, is not enough to score documents for their relevance to the query.\\
+Using TF-IDF based scoring methods discussed in section \ref{secRelRanking} has become a universal practice followed virtually in all Information Retrieval Systems today.
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=140mm]{diagrams/marathaEmpireTFIDF}}
+\caption{Merging TF-IDF scores}
+\label{figRelRanking}
+\end{center}\end{figure}
+
+As seen in figure \ref{figRelRanking}, the user enters a free text query ''maratha empire". The retrieved term postings comprise of document ids and frequency of the term in the document. Since the final TF-IDF based relevance score for a document is a linear combination of TF-IDF weights of individual terms, each of the term postings is used to construct partial TF-IDF scores for each document corresponding to the term.
+
+Likewise, in general, a query can be divided into several clauses. A \textit{clause} can be a simple term or a \textit{span} of multiple terms (discussed in section \ref{secPosBasedQueries} as Span Queries). The final ranked list is obtained by combining the results for each of the clauses .
+Those in turn are combined to obtain the final score list.
+
+\begin{algorithm}[ht]
+ \begin{algorithmic}[1]
+  \STATE ScoreLists sl
+  \FOR{each clause c in  q}
+        \STATE//\textit{Add a score list for each query clause and merge the score lists}
+	\STATE ClauseScoreList sp
+        \STATE//\textit{To indicate if the clause MUST be present in the document (typically indicated by some operator)}
+	\STATE sp.MUST = c.MUST
+        \label{lineMust}
+	\FOR{each document d in Index.getPosting(c)}
+	\IF{c is a TermClause}
+	  \STATE sp = ScoreDocumentTermwise(c)
+	\ELSE
+              \IF{c is a SpanClause}
+		\STATE sp = ScoreDocumentSpanwise(c)
+	      \ENDIF 
+        \ENDIF
+	\ENDFOR
+	\STATE sl.addClauseScoreList(sp)
+        \label{combineLine}
+  \ENDFOR
+  \STATE ScoreHits = sl.CombineClauseScoreLists()
+  \end{algorithmic}
+  \caption{GeneralScoringMergeAlgorithm(Query q)}
+ \label{algoGenScoreMerge} 
+\end{algorithm}
+
+The general relevance scoring scheme over inverted index postings is shown in algorithm \ref{algoGenScoreMerge}. 
+Details of combining the different score lists (line \ref{combineLine}) for each clause are avoided for the sake of simplicity. Note that the user can specify whether the occurrence of the clause in the document is compulsory or not (line \ref{lineMust}).
+
+\begin{comment}As mentioned earlier, user queries may also be a combination of simple queries with such span queries.\end{comment}
+Figure \ref{figCombinedQuery} illustrates muliple clause query processing for the user query: \textit{maratha empire "education policy"}. The query has three clauses two term clauses for the terms 'maratha' and 'empire' ad one phrase clause 'education policy'. The result sets for terms 'maratha' and 'empire' be combined using the TF-IDF based score and this list be merged with documents containing the phrase 'education policy' scored using spanwise scoring. Spanwise Scoring is discussed in section \ref{secPosBasedQueries}. Moreover, the double quotes around 'education policy' means that this phrase MUST be contained in the result set documents. Thereby, the combined result set is a Boolean intersection of the two result sets. Each document in the combined result set is assigned a linear combination of both scores.
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=130mm]{diagrams/CombinedQuery}}
+\caption{Processing of Query Containing Multiple Clauses}
+\label{figCombinedQuery}
+\end{center}\end{figure}
+\subsection{Term Position based Queries}
+\label{secPosBasedQueries}
+A special class of queries which is commonly called \textit{Proximity Queries} caters to scoring documents based on the relative proximity of the positions of the query terms in the document. 
+
+\textit{Phrase Queries} are a special case of these proximity queries, where the terms occurrences are expected to be in consecutive order. For e.g a query "hakuna matata", where the user expects the occurrence of the terms as a phrase, typically implied by enclosing the terms in quotes (read as these terms MUST occur in order in the documents).
+
+Likewise, typical \textit{Proximity Queries} involve the use of NEAR operator, specifying the terms to be present near each other. e.g "maratha NEAR empire", whereby the term position occurrences are expected to be within an allowed range. Queries involving multiple terms could be constructed by nesting NEAR operators. e.g "tactics NEAR (maratha NEAR empire)" which expects the terms 'maratha' and 'empire' to be near each other and the term 'tactics' to be near such occurrences of 'maratha' and 'empire'.
+
+Apache Lucene \footnote{\href{http://lucene.apache.org/}{http://lucene.apache.org/}} provides a general proximity query mechanism called \textit{Span Queries}, wherein the user can specify terms to be present near each other. 
+Henceforth, proximity queries will be referred to as \textit{Span Queries} in this document.
+
+In absence of this span based scoring, documents would be scored only on the basis of term occurrence frequency regardless of whether those terms are related or not, which is the motivation behind having span based (that is, proximity) scoring of documents.
+
+\begin{algorithm}[ht]
+ \begin{algorithmic}[1]
+   \STATE Read all individual term occurence postings
+   \STATE Initialize spans
+   \WHILE{currSpan NOT NULL}
+     \IF{currSpan.slop $<=$ AllowedSlop}
+	\STATE score $+= \dfrac{1}{currSpan.slop + 1}$
+     \ENDIF 
+     \STATE currSpan = spans.next()
+   \ENDWHILE
+   \STATE return score
+ \end{algorithmic}
+ \caption{ScoreDocumentSpanwise(Query q, Document d)}
+ \label{algoSpanScoring}  
+\end{algorithm}
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=130mm]{diagrams/SpanQueryPosting}}
+\caption{Example for illustrating span query processing}
+\label{figSpanQueryExample}
+\end{center}\end{figure}
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=130mm]{diagrams/SpanQuerySpans}}
+\caption{Spans in the example document}
+\label{figSpanQuerySpans}
+\end{center}\end{figure}
+
+A simplified scheme for spanwise scoring of a document is shown in algorithm \ref{algoSpanScoring}. \\
+First of all, term occurrence postings are obtained for the document to be scored. The document is then divided into \textit{spans} , i.e start and end positions within a document which contain all of the terms in the query. 
+
+Figure \ref{figSpanQuerySpans} illustrates the spans for the example in figure \ref{figSpanQuerySpans} for the span query "nehru education policy". Positions 1 to 14 mark the first span and positions 13 to 31 mark the second span. The \textit{slop} factor is a measure of \textit{nearness} of the words, typically maximum separation between a pair of terms in a span. For both the spans, the maxslop separates the terms 'nehru' and 'education'; the slops being 12 and 18 respectively. 
+
+\begin{table}[!ht]
+\centering
+\begin{tabular}{||c|c|c|c|c|c||}
+ \hline
+ \textbf{Span}& \multicolumn{3}{|c|}{\textbf{Term Occurrence Positions}}&\multicolumn{2}{|c|}{\textbf{Span Metrics}}\\
+ \hline
+ \textbf{Sr. No.} & nehru & education &policy &\textbf{MaxSlop}&\textbf{SlopFactor}\\
+ \hline
+ 1 & 1&13&14&12&0.077 \\
+ 2 & 31&13&14&18&0.052\\
+ \hline
+ \end{tabular}
+\caption{Spanwise Score Calculation for the example in figure \ref{figSpanQueryExample} }
+\label{tabSpanScoringIllus}
+\end{table}
+
+
+\textit{Score} for a span is the reciprocal of the slop factor, so nearer the query terms to each other, greater is the spanwise score for the document. The individual scores for all such spans are summed up to obtain the overall score for a document (similar to the term frequency notion, one could consider this summation as span frequency). The slop factor and spanwise calculation is illustrated in table \ref{tabSpanScoringIllus}. 
+Thus span 2 gets a greater score than span 1  since it shows greater \textit{nearness} of terms than span 1, and the total score of the text shown in the example is 0.129.
+
+\begin{comment}
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=140mm]{diagrams/nehruEducationPolicySpanQ}}
+\caption{Term Position Postings}
+\label{figPos}
+\end{center}\end{figure}
+
+Figure \ref{figPos} shows an example for a span query over the terms "nehru", "education", "policy". As seen in the figure, the term position postings are similar to document occurrence postings.
+The slop factor scoring for each span is shown in the table \ref{tabSpanScoring}. Assuming a max permissible slop of 5 positions, there are 2 spans containing the above terms.
+
+\begin{table}[!ht]
+\centering
+\begin{tabular}{||c|c|c|c|c|c||}
+ \hline
+ \textbf{Span}& \multicolumn{3}{|c|}{\textbf{Term Occurrence Positions}}&\multicolumn{2}{|c|}{\textbf{Span Metrics}}\\
+ \hline
+ \textbf{Sr. No.} & nehru & education &policy &\textbf{MaxSlop}&\textbf{SlopFactor}\\
+ \hline
+ 1 & 15&17&18&2&0.333 \\
+ 2 & 25&30&27&3&0.25\\
+ \hline
+ \end{tabular}
+\caption{Spans for the example in figure \ref{figPos} }
+\label{tabSpanScoring}
+\end{table}
+\end{comment}
+\subsubsection{Analysis}
+\label{SpanQueryAnalysis}
+The complexity of the spanwise scoring of a document is subject to its implementation. Typical implementations involve a single pass algorithm linear over the length of all of the term postings combined for one span.
+Complex span near queries are framed by combining different span queries together, so the aggregate cost of the scoring algorithm involves \underline{multiple passes} over the postings for each combination of span.
+
+We shall revisit this spanwise scoring of documents later in Chapter \ref{contextSeg}.
+
+\section{Anaphora Resolution Overview}
+
+\textit{Anaphora Resolution} is arguably one of the most challenging problems in Natural Language Processing and has seen many approaches being followed for tackling the same \cite{mitkov}. \begin{comment} presents probably the most comprehensive survey of such approaches. \end{comment}
+In this section we provide an overview of some of the anaphora resolution literature as relevant to our work.
+
+\subsection{Terminology}
+The roots of the word \textit{anaphora} can be traced to Ancient Greece and literally means "the act of carrying back upstream". \cite{mitkov}. In other words, anaphora is a (concise) alias pointing back to some previous item, in a text. The (concise) alias is termed as an \textit{anaphor} and item it points to \textit{antecedent}, and the process of resolving an anaphor to its correct antecedent is called \textit{anaphora resolution}.
+
+Example : Nehru and his colleagues had been released as the British Cabinet Mission arrived to propose plans for transfer of power.
+
+In the above sentence the pronoun 'his' is an anaphor referring to the antecedent 'Nehru'.
+
+\subsection{Pronominal Anaphora}
+Amongst the most widespread anaphora are pronominal anaphora, an example of which we saw just above.
+The example was an instance of an \textit{intra-sentential anaphor}, likewise, we could also have \textit{inter-sentential anaphors}, where the anaphor and antecedent occur in different sentences. Needless to say, the intersentential anaphora are more challenging to resolve.
+
+The most common occurrences of pronominal anaphora include third person pronouns ('he','she', 'they' etc).
+Some of the pronoun instances could be non-anaphoric as well. For e.g in "It is said that ...", the pronoun 'it' does not refer to any antecedent.
+
+\textit{Relative pronouns} (like 'who','which') form a relatively less studied form of pronominal anaphora.
+
+Example : Bhabha was the nephew of Meherbai Hormusji, who was married to Dorab Tata.
+
+In the above sentence, 'who' refers to 'Meherbai Hormusji'.
+\subsection{Key Pronominal Anaphora Resolution Approaches}
+Typically the anaphora resolution problem reduces to selecting an antecedent from a list of candidates. The latest trend in anaphora resolution is to avoid using any domain knowledge of the corpus in choosing from the candidates.
+We briefly describe some of the key knowledge-poor approaches here:
+\subsubsection{Lappin and Leass' RAP algorithm}
+The Resolution of Anaphora Procedure (RAP) by Lappin and Leass was one of the first knowledge poor anaphora resolution algorithms with a high rate of correct analyses. The algorithm computes salience scores for each of the candidate antecedents  using in-depth full grammatical parsing of the text.
+
+The candidate antecedents are noun phrases identified using the parsing of the text. Some of the key parameters(or salience weights) used by the RAP algorithm for computing those salience scores are:
+\begin{itemize}
+ \item[]{\textit{Grammatical Role} : whereby higher salience weights are assigned to (i) subject over non-subject candidate noun phrases (ii) direct objects over other complements (iii)arguments of a verb over its adjuncts (iv) head nouns over complements of the head nouns}
+\item[]{\textit{Proximity} : number of terms separating the pronominal anaphor from the candidate noun phrase}
+\item[]{\textit{Sentence Recency} : number of sentences between the anaphor and the candidate noun phrase.}
+\item[]{\textit{Morphological Agreement} : whereby unsuitable candidate noun phrases are filtered out based on gender,number and person agreement between the anaphor and the candidate noun phrase.}
+\end{itemize}
+The candidate having the maximum salience score is chosen as the antecedent referred to by the pronoun occurrence.
+The details can be found in \cite{lappin}. The authors tested the algorithm on a computer manual text containing 360 pronoun occurrences which the authors claim  to successfully resolved to their correct antecedents in 86\% of the cases. 
+\subsubsection{Kennedy and Boguraev's approach without a Parser}
+This algorithm is largely based on the RAP algorithm just discussed above except that it requires the output of a Part-of-Speech Tagger instead of using a Parser.
+
+In the absence of syntactic configurational information, the salience weights are then computed using only the grammatical function annotations from the part of speech tagger. The salience weights are computed using candidate noun phrase proximity. As in the case of RAP, unsuitable candidates are filtered out based on gender, number, person non-agreement. 
+
+The details can be found in \cite{KennedyB96}. The authors claim 75\% accuracy on a diverse set of documents.
+
+\subsubsection{Mitkov's Robust Knowledge Poor Approach}
+This is yet another salience based approach which requires the output of a part of speech tagger, and employs antecedent indicators similar to the salience weights discussed in the above two approaches. However the approach is far more exhaustive having identified several antecedent indicators on the basis of empirical studies. Each of those indicators is assigned a score (-1,0,1,2) and the candidate with  the maximum aggregate score is identified as the antecedent for the anaphor.\begin{comment}Moreover it also takes into account the typical behaviour of common verbs thereby penalizing or boosting the salience of its preceeding/following noun phrases. For e.g  'discuss', 'illustrate', 'present' whereby \end{comment}
+
+Evaluation reports an accuracy of 89.7\%, which is probably amongst the highest. The details can be obtained in \cite{Mitkov98}. MARS \footnote{\href{http://clg.wlv.ac.uk/demos/MARS/index.php}{http://clg.wlv.ac.uk/demos/MARS/index.php}} (Mitkov's Anaphora Resolution System) incorporates the schemes of the approach and is available for an online demo.
+
+\subsubsection{Charniak and Elsner's Expectation Maximization Approach}
+%This approach is one of the latest, followed in a digression from the salience based approaches discussed earlier. 
+Unlike the salience based approaches discussed above, this approach uses the Expectation Maximization technique.
+The authors claim results comparable to other openly available Anaphora Resolution Systems, reporting an accuracy of 68.6\% on the dataset annotated by Niyu Ge \cite{geCharniak}.
+
+The algorithm relies on the output of a grammatical parser and chooses the antecedent based on a probabilistic model, the parameters of which are almost all learnt using Expectation Maximization. 
+
+Some of the key parameters are:
+
+\begin{itemize}
+ \item[]\underline{p(antecedent$|$context)}: Probability of selecting a candidate antecedent given the syntactic context obtained from the parser annotations. The context information taken into account include position of the pronoun, position 
+\item[]\underline{p(person$|$antecedent)}: Probability of predicting whether the to-be-resolved pronoun is first, second or third person given the antecedent, for a certain antecedent.
+\item[]\underline{p(gender$|$antecedent)}: Probability that a given antecedent will generate a masculine or feminine pronoun.
+\item[]\underline{p(number$|$antecedent)}: Probability that a given antecedent will generate a plural or singular pronoun.
+\end{itemize}
+%Since Expectation Maximization has not had success in most NLP tasks like Part-Of-Speech Tagging, Named Entity Recognition 
+The details can be obtained in \cite{CharniakE09}. The details of Expectation Maximization can be found in \cite{Dempster77}.
+
+\subsection{Openly Available Anaphora Resolution Systems}
+There are only a handful of openly available Anaphora Resolution Systems. 
+
+\textit{JavaRAP} \footnote{\href{http://aye.comp.nus.edu.sg/~qiu/NLPTools/JavaRAP.html}{http://aye.comp.nus.edu.sg/~qiu/NLPTools/JavaRAP.html}} is an implementation of the Lappin and Leass' RAP algorithm
+
+\textit{GuiTAR} \footnote{\href{http://cswww.essex.ac.uk/Research/nle/GuiTAR/}{http://cswww.essex.ac.uk/Research/nle/GuiTAR/}} borrows heavily from Mitkov's Robust Knowledge Poor Approach. 
+
+Charniak and Elsner have implemented their Expectation Maximization approach and made it available openly as \textit{emPronoun} \footnote{\href{http://bllip.cs.brown.edu/download/}{http://bllip.cs.brown.edu/download/}}.
+which we chose as the Anaphora Resolution Component in our proposed system prototype which will discussed in Chapter \ref{propSys}.
+

@@ -1,0 +1,107 @@
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
+import java.util.*;
+
+class i
+{
+	public static void main(String args[]) throws Exception
+	{
+		PrintWriter pw = new PrintWriter(System.out, true);
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		int t=Integer.parseInt(br.readLine());
+		int i,j,k,l,a,b,sum;
+		for(i=0;i<t;i++)
+		{
+			String s[]=br.readLine().split(" ");
+			a=Integer.parseInt(s[0]);
+			b=Integer.parseInt(s[1]);
+			String st[]=br.readLine().split(" ");
+			int arr[]=new int[a];
+			for(j=0;j<a;j++)
+			{
+				arr[j]=Integer.parseInt(st[j]);
+			}
+			Arrays.sort(arr);
+			Stack<Integer> stack = new Stack<Integer>();
+			k=0;sum=0;
+			boolean found=false,end=false;
+			stack.push(k);
+			sum=arr[k];			
+			if(sum==b)
+			{
+				pw.println("1");				
+				continue;
+			}
+			while(true)
+			{				
+				if(k+1<a)
+				{
+					if((sum+arr[k+1])<b)
+					{
+						sum+=arr[++k];						
+						stack.push(k);
+					}
+					else if((sum+arr[k+1])==b)
+					{
+						found=true;
+						break;
+					}
+					else
+					{
+						if(!stack.empty())
+						{
+							try
+							{
+									k=stack.pop();
+									sum-=arr[k];									
+							}
+							catch(Exception e){}
+						}
+						else 
+							break;
+					}
+				}
+				else				
+				{
+					if(sum<b)
+					{
+						try
+						{
+							if(!stack.empty())
+							{
+								k=stack.pop();							
+								sum-=arr[k];
+								
+								if(!stack.empty())
+								{
+									k=stack.pop();							
+									sum-=arr[k];
+									
+								}
+								else
+									break;
+							}				
+						}
+						catch(Exception e){}
+					}
+					else
+						break;
+				}				
+			}
+			if(found)
+			{
+				pw.println("1");
+				
+			}
+			else
+				pw.println("0");
+		}
+	}
+};
+// pw.println("Pop: "+arr[k]+"\tSum: "+sum);
+// pw.println(arr[k+1]);
+				// while(!stack.empty())
+				// {
+					// pw.println(arr[stack.pop()]);
+				// }

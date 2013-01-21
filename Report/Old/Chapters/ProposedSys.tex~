@@ -1,0 +1,174 @@
+The proposed system is built using the context based processing discussed in the previous chapter whereby we attempt to improve over the limitations of \textit{spanwise} scoring of documents discussed in section \ref{secSpanScorRevisited}. 
+\section{System Design}
+The system design shown in figure \ref{figSysDesign}. The components include:
+
+\subsubsection{Preprocessing Chain}
+A text document is first passed through the \textit{Preprocessing Chain} which leaves it annotated with sufficient information useful for resolving anaphors in the text. The details of the chain depend on the implementation as will be discussed later.
+\subsubsection{Context-Based Segmentation}
+ The  annotated document obtained through the Preprocessing Chain is then subjected to \textit{Contextual Segmentation} breaking the document into context blocks.
+
+\begin{figure}[ht]\begin{center}
+ \fbox{\includegraphics[width=80mm]{diagrams/SysDesign}}
+ \caption{System Design}
+ \label{figSysDesign}
+\end{center}\end{figure}
+\subsubsection{Indexing}
+This involves the construction of basic and context-based postings using the contextually segmented document as obtained above.
+\subsubsection{Scoring}
+Score for each document can be computed as a linear combination of old score and context-based score obtained:
+\begin{center}
+ $\textit{CombinedScore} = \alpha*\dfrac{\textit{OldScore}}{\textit{MaxOldScore}} + (1-\alpha)*\textit{ContextBasedScore}$
+\end{center}
+where\\
+ \textit{CombinedScore} is the new score of the document,\\
+ \textit{OldScore} is the original score of the document computed using existing system,\\
+ \textit{MaxOldScore} being the topmost score of the original scoring results, and \\
+ \textit{ContextBasedScore} is the context-based score computed using algorithm \ref{contextScoringAlgo} on the modified index.\\
+$\alpha$ is the mixing factor, $0 <\alpha < 1$ 
+
+Since the \textit{ContextBasedScore} is a fraction less than 1, division of the first term by \textit{MaxOldScore} ensures that the \textit{CombinedScore} is normalized between 0 and 1.
+
+One of the challenge in implementing the proposed system was the integration of diverse components as will be discussed in the next section.
+\newpage
+\section{Implementation}
+\subsection{Preprocessing}
+The pre-processing chain (for a HTML document) is shown in figure \ref{figPreprocessChain}.
+
+\subsubsection{Jericho HTML Parser}
+The text content of HTML documents is extracted using Java based Jericho HTML Parser  \footnote{\href{http://jerichohtml.sourceforge.net/}{http://jerichohtml.sourceforge.net/}}.  Relying on stream-based parsing instead of DOM tree based hierarchical parsing makes Jericho Parser memory efficient and capable of coping with badly formed html texts.
+
+This component is optional: the work concentrates on using the content of documents; plain text documents do not need the additional parsing of HTML tags.
+
+\begin{figure}[ht]\begin{center}
+ \fbox{\includegraphics[width=150mm, height=35mm]{diagrams/PreprocessChain}}
+ \caption{Preprocessing Chain}
+ \label{figPreprocessChain}
+\end{center}\end{figure}
+
+\subsubsection{Charniak Parser}
+The content of the document is parsed grammatically using Charniak Parser \footnote{\href{ftp://ftp.cs.brown.edu/pub/nlparser/}{ftp://ftp.cs.brown.edu/pub/nlparser/}}, which is a Maximum Entropy based statistical parser. It leaves the text document annotated with grammatical function tags.
+\subsubsection{emPronoun} 
+The parse-tagged document is then subjected to anaphora resolution using emPronoun \footnote{\href{http://bllip.cs.brown.edu/download/}{http://bllip.cs.brown.edu/download/}}, which is an unsupervised Expectation Maximization based anaphora resolver. \begin{comment}Being an unsupervised method, there is no need for training data tagged with anaphora information, constructing which is a very laborious process, as needed by supervised methods like BART.\end{comment}
+\subsubsection{FormatTransform}
+The \textit{FormatTransform}s are mainly used to convert data to the formats needed by their following components and were implemented in Java.
+
+\subsection{Indexing and Scoring}
+The preprocessed documents are indexed using Apache Lucene \footnote{\href{http://lucene.apache.org/}{http://lucene.apache.org/}}, which is an open source text search engine implemented in Java. 
+
+Documents are first subjected to \textit{analysis} such as stopword-removal,stemming,case conversion and then converted into a stream of tokens which are passed to the indexing module and further scored. To incorporate the context based processing discussed in Chapter \ref{contextSeg}, context-based analyzer and scorer modules were added to the existing system.
+\newpage
+\section{Evaluation of  the system}
+The system was evaluated in two different setups, the datasets being collected to suit the needs of the experiments.
+Of all the queries  tried on the datasets, \textit{span queries} were sampled out so as to better demonstrate the effect of spanwise scoring of documents. Search results were obtained using standard TF-IDF based scoring, spanwise scoring and context based scoring (both simple and weighted) methods discussed in Chapters \ref{relatedLit} and \ref{contextSeg} respectively. The search results were then evaluated by 7 users. 
+
+\subsection{Experiment 1: Ranked Retrieval Evaluation}
+\subsubsection{Experimental Setting}
+The first dataset is a collection of 200 biographical articles, including articles from multiple sources for each personality. 25 \textit{span queries} were sampled out for user evaluation. The search result rankings over those queries obtained by the proposed system were then compared with those obtained with standard methods.
+
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{||c|c|c||}
+ \hline
+ \textbf{Scoring Method} & \textbf{Precision at 5} & \textbf{Precision at 3}\\
+ \hline
+ \hline
+ Standard TF-IDF & 0.51&0.33 \\
+ \hline
+ Spanwise  &0.56 &0.43\\
+ \hline
+ Simple Context Based &0.64 &0.71\\
+ \hline
+ Weighted Context Based & 0.66&0.73\\
+ \hline
+\end{tabular}
+\caption{Precision measures for different scoring methods}
+\label{tabPrecisionComparison}
+\end{table}
+
+\begin{comment}
+Basically, precision at 5 with all context based methods slightly exceed  0.6, which indicates 3 of the top 5 results are relevant on the average. which show a marginal gain over standard TF-IDF and spanwise scoring methods.
+The gain is more prominent for precision at 3 values, where context based values exceed 0.67 indicating 2 of the top 3 results are relevant on the average as compared to standard and spanwise scoring which have values slightly exceeding 0.33 which indicates that 1 of the top 3 results is relevant.
+\end{comment}
+Basically, the context based methods show a performance gain over the standard TF-IDF  and spanwise scoring of documents. The gain is more prominent in the precision at 3 figures than precision at 5 figures which means that the more relevant results get placed in the top 3 ranks with context based scoring methods than with other methods.
+
+\begin{figure}[ht]\begin{center}
+  \fbox{\includegraphics[width=90mm]{diagrams/PrecisionComparison}}
+  \caption{Comparative Precision Values}
+  \label{figComparativePrecision}
+\end{center}\end{figure}
+
+\textit{Discounted Cumulative Gain} (DCG) measures the effectiveness of ranked retrieval of documents. It measures the relevance or \textit{gain} of a document based on its position in the search results. 
+
+For a ranked retrieval list of length $L$, the DCG is calculated as:
+\begin{equation}
+ DCG(L) = relevance_1 + \sum_{k=2}^{L}\dfrac{relevance_k}{log_2k}
+\end{equation}
+
+Where $relevance_k$ is the user assigned relevance score (on a scale of 0 to 4) for a search result.
+The length of the result lists being variable, this measure is normalized do that results for various queries can be compared easily. The result list is sorted based on relevance of the results. The DCG for those ideal result lists is calculated, let us call it $iDCG$.\\ \textit{Normalized DCG} for a result list of length $L$ is then calculated as:
+
+ \begin{center}
+$NDCG(L) = DCG(L)/iDCG(L)$ \end{center}
+
+\begin{table}[!ht]
+\centering
+\begin{tabular}{||c|c||}
+ \hline
+ \textbf{Scoring Method} & \textbf{NDCG} \\
+ \hline
+ \hline
+ Standard TF-IDF & 0.854 \\
+ \hline
+ Spanwise  &0.883\\
+ \hline
+ Simple Context Based &0.912\\
+ \hline
+ Weighted Context Based & 0.913\\
+ \hline
+\end{tabular}
+\caption{Comparative NDCG Measures}
+\label{tabNDCGComp}
+\end{table}
+The comparative average Normalized DCG values obtained over result lists for all the queries is shown in table \ref{tabNDCGComp}. Both the context based scoring methods provide almost the same performance. The context based scoring methods show a 6.7$\%$ NDCG improvement  over standard TF-IDF based scoring and 3.2$\%$ NDCG improvement over spanwise scoring method. 
+\begin{figure}[ht]\begin{center}
+  \fbox{\includegraphics[width=65mm]{diagrams/NDCGComparison}}
+  \caption{Comparative NDCG Measures}
+  \label{figComparativeNDCG}
+\end{center}\end{figure}
+
+
+\subsection{Experiment 2: Episodic Hits Evaluation}
+\subsubsection{Experimental Setting}
+The second dataset was generated by splitting 5 English novels (downloaded from Project Gutenberg \footnote{\href{http://www.gutenberg.org}{http://www.gutenberg.org}}) into small fixed length parts (each representing an incident in the novel), effectively obtaining 1115 documents. 40 queries mainly comprising of incidents between novel characters, were sampled for evaluation.
+
+\begin{table}[!ht]
+\centering
+\begin{tabular}{||c|c||}
+ \hline
+ \textbf{Scoring Method} & \textbf{Episodic Hits} \\
+ \hline
+ \hline
+ Standard TF-IDF & 0.53 \\
+ \hline
+ Spanwise  &0.63\\
+ \hline
+ Simple Context Based &0.83\\
+ \hline
+ Weighted Context Based & 0.85\\
+ \hline
+\end{tabular}
+\caption{Comparative Episodic Hits}
+\label{tabEpisodicHits}
+\end{table}
+
+\begin{figure}[ht]\begin{center}
+  \fbox{\includegraphics[width=70mm]{diagrams/EpisodicHits}}
+  \caption{Comparative Episodic Hits}
+  \label{figEpisodicHits}
+\end{center}\end{figure}
+\subsubsection{Results}
+The setup is a digression from the typical information retrieval scenario. Since the queried incident/situation between characters would typically occur in one of the document parts of the novel, we chose precision at 1 to evaluate results for this setup.
+In other words the first result should be the correct episode containing the queried incident, so we choose to call the precision at 1 measures as \textit{episodic hits}.
+
+The comparative episodic hits obtained is shown in table \ref{tabEpisodicHits}. Again we see that both the context based methods approach almost the same performance, both showing an improvement upon the Standard TF-IDF as well as Spanwise scoring methods. 

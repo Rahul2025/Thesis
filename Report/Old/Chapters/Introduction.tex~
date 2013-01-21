@@ -1,0 +1,32 @@
+\section{Background}
+From an idea of automatic access to large stores of information in Vannevar Bush's "As We may Think" in 1945 to today's web search engines, information technology has matured to a point where knowledge of any kind is just fingertips away. The fundamental principles lying beneath this great accomplishment have evolved over a period of time.
+
+The key ideas developed by Gerard Salton and his students when working on the SMART system, in 1960, lays much of the foundation for modern information retrieval. Salton et. al. describe a vector space model for representing text documents in \cite{Salton}. Researchers experimented with the weights of this vector representation of text documents through the next two decades and the laborious efforts resulted in term-weighting schemes like TF-IDF (term frequency- inverse term frequency). IDF is attributed to Karen Spark Jones \cite{SparckJones1972Statistical}.
+
+\newpage
+With the vector representation of text documents more or so established, one needed to concentrate on scalability of the technology. The last two decades has seen a lot of techniques developed for specialized information needs. Most notable amongst these is Google by Larry Page and Sergey Brin \cite{Brin98} which virtually established web search engine technology. Most of these efforts build upon on an inverted index data-structure which has stood the test of time. 
+
+\section{Motivation}
+In general, information retrieval (IR) systems retrieve a  list of documents in response to a user query ranked by schemes based on frequency of occurrences of the terms in the user query.
+
+Typically user queries are simple text terms, although most IR systems usually allow users to improve their query by using several operators. One such operator is the NEAR operator which helps to specify whether those terms should be closer to each other in the result documents, and the queries are called \textit{proximity queries}. Typically, however, this term proximity requirement is understood implicitly. For e.g corresponding to a query "homi bhabha married", it is understood that the user expects a set of documents which have information regarding Homi Bhabha's marriage.
+
+Due to the commercial nature of most IR systems, much of their subtle details remain largely confidential. Apache Lucene is an open source text retrieval engine aimed at 'demystifying' those guarded secrets of IR. \cite{Gospodnetic04} describes a special class of queries called \textit{Span Queries} integrated into Lucene, which have been designed to meet the term proximity requirement described above. There is enough reason to believe that contemporary IR systems do not diverge substantially from the techniques used therein. 
+
+The extent of query term proximity in the indexed documents is, however, simply based on the term occurrences in the documents. Segmenting a document into fixed length parts has been suggested in the past with limited success in exploiting term proximity. Previous attempts include \cite{UematsuIFKO08} which proposes segmenting a document at the sentence level and \cite{CaiYWM04} which studies the results of segmenting a document into fixed length blocks or visually. Those schemes, however, are independent of the textual content, and hence we felt the need to experiment with alternate ways to exploit the term proximity requirement
+
+\section{Our Contribution}
+In this work we suggest a modification to the simple inverted indexing of text documents by segmenting documents into \textit{context blocks} using anaphoric links in the text document, and a scoring algorithm to exploit term proximity information from this modified index, without any severe performance loss. 
+
+However, the work is focussed on ranking documents purely on their textual content, without considering the cross-linking between documents exploited by web search engines for ranking their results.
+
+\section{Organization of the Thesis}
+The following chapters discuss the development of our ideas and experiments based on them.
+
+Chapter \ref{relatedLit} describes the background literature for this work wherein we discuss the fundamental techniques of Information Retrieval. Also described is a survey of Anaphora Resolution Techniques found as relevant to our work.
+
+Chapter \ref{contextSeg} describes the \textit{Context Based Processing} of documents, which is the central idea on which the thesis work is based. The chapter begins with a motivation behind proposing the scheme and then describing the different parts of the scheme.
+
+Chapter \ref{propSys} describes the prototype system incorporating the context based processing of documents, and the experimental results. The system was tested in two distinct experimental setups.
+
+Finally, in Chapter \ref{conclusion}, we summarize the work done and conjecture future possibilities.

@@ -1,0 +1,68 @@
+\section{Revisiting the problem}
+Despite the confidential nature of document scoring schemes used by popular search engines, there is sufficient reason to believe that
+As mentioned in chapter (motivation), 
+Dividing a document into blocks has been tried as mentioned in \cite{CaiYWM04}
+\section{Block Diagram}
+\section{Contextual Segmentation of a Document}
+Despite the confidential nature of 
+\section{Contextual Scoring Algorithm}
+The scheme followed for scoring a document contextually is given in \ref{contextScoringAlgo}
+
+\begin{algorithm}[ht]
+ \caption{ScoreDocumentContextually()}
+ \label{contextScoringAlgo}
+ \textbf{Input}: Document doc, Query q\\
+ %\textbf{Output}: double score\\
+ \textbf{Begin}:
+ \begin{algorithmic}[1]
+ 
+ \STATE PositionQueryMinHeap qpHeap
+ \STATE ContextNoter contextNoter 
+ \STATE ScoreBoard scoreBoard 
+ %\STATE ContextNoter contextNoter
+ %\STATE ScoreBoard scoreBoard
+ \STATE
+ \STATE{\textit{//Initialize qpHeap and postings}:}
+ 
+ \FOR{each keyword w in q}
+   \STATE posting[w] $\leftarrow$ Index.getPosting(doc, w)
+   \STATE qpHeap.insert(posting[w].nextOccurrence) 
+ \ENDFOR 
+ 
+ %\FOR{each }
+ \STATE
+ \STATE{\textit{//Update ScoreBoard for scoring}:}
+ \WHILE{qpHeap is NOT EMPTY}
+ \STATE contextNoter.mark(qpHeap, posting)
+ \STATE scoreBoard.update(contextNoter)
+ \STATE contextNoter.clear()
+ \ENDWHILE
+ \STATE
+ \STATE \textit{//Score using ScoreBoard}:
+ \STATE doc.score$\leftarrow$scoreBoard.score()
+ %\ENDFOR 
+
+ \end{algorithmic}
+
+\end{algorithm}
+
+\begin{algorithm}[ht]
+ \label{markAlgo}
+ \caption{contextNoter :: mark()}
+ \textit{Marking the contextual noter}\\
+ \textbf{Input}:PositionQueryMinHeap qpHeap, Posting posting\\
+ \textbf{Begin}:
+ \begin{algorithmic}[1]
+  \STATE \textit{//qpHeap's head gives the context to be marked}:
+  \STATE currentHead$\leftarrow$qpHeap.pop()
+  \STATE contextNoter[currentHead.queryWord]$\leftarrow$\textit{true}
+  \STATE qpHeap.insert(posting[currentHead.queryWord].nextOccurrence)
+  \STATE
+  \WHILE{qpHeap.top() is at currentHead.position}
+   \STATE currentEntry$\leftarrow$qpHeap.pop()
+   \STATE contextNoter[currentEntry.queryWord]$\leftarrow$\textit{true}
+   \STATE qpHeap.insert(posting[currentEntry.queryWord].nextOccurrence)
+  \ENDWHILE  
+ \end{algorithmic}
+\end{algorithm}
+

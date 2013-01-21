@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#input directory
+cd /home/Rahul/Desktop/Thesis/Scripts/Sample
+
+
+for i in *.py
+{
+	#interpret 'Python' program
+	/usr/bin/time -f "%e\t%M " python $i >op4
+	echo $i
+}

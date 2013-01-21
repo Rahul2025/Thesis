@@ -1,0 +1,1 @@
+Write a program to find the median value of a vector of floating-point numbers. The program need not handle the case where the vector is empty, but must handle the case where there are an even number of elements.

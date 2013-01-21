@@ -1,0 +1,57 @@
+#include<stdio.h>
+int main()
+{
+	int n,i,j,num,cnt,s,arr[1001],cycle[1001];
+	scanf("%d",&n);
+	for(i=1;i<=n;i++)
+	{
+		scanf("%d",&arr[i]);
+	}
+	for(i=1;i<=n;i++)
+	{
+		cycle[i]=0;
+	}
+	j=1;
+	num=1;
+	s=j;
+	cycle[j]=num;
+	while(1)
+	{
+		while(arr[j]!=s)
+		{
+			j=arr[j];
+			cycle[j]=num;
+		}
+		for(j=1;j<=n;j++)
+		{
+			if(cycle[j]==0)
+			break;
+		}
+		if(j>n)
+			break;
+		s=j;
+		num++;
+		cycle[j]=num;
+	}
+printf("\n%d",num);
+cnt=1;
+while(cnt<=num)
+{
+for(j=1;j<=n;j++)
+{
+if(cycle[j]==cnt)
+break;
+}
+s=j;
+printf("\n%d",s);
+while(arr[j]!=s)
+{
+j=arr[j];
+printf("\t%d",j);
+}
+printf("\t%d",s);
+cnt++;
+}
+	
+	return 0;
+}

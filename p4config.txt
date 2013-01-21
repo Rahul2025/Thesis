@@ -1,0 +1,4 @@
+P4PORT=perforce.assembla.com:1666
+P4HOST=BoPL
+P4USER=Rahul2025
+P4CLIENT=<workspace name>

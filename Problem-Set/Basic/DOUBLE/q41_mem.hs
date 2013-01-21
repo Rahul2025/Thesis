@@ -1,0 +1,33 @@
+{-# LANGUAGE BangPatterns #-}
+import Control.Monad
+import qualified Data.ByteString.Char8 as B
+readInt :: IO Int
+readInt = do
+    Just (n,_) <- fmap B.readInt B.getLine
+    return n 
+digitToChar :: Int -> Char
+digitToChar n = toEnum (n + fromEnum '0')
+digits :: Int -> [Int]
+digits n = reverse $ digits' n
+    where digits' n = let (d,m) = divMod n 10 in m:digits' d
+printInt :: Int -> IO ()
+printInt n = if n > 9
+             then do
+                printInt d
+                putChar $ digitToChar m
+             else
+                putChar $ digitToChar m
+    where (d,m) = divMod n 10
+printInt2 :: Int -> IO ()
+printInt2 n = f [] n
+    where f !s 0 = putStr s
+          f !s !n = let (d,m) = divMod n 10 in f (digitToChar m : s) d
+main = do
+    n <- readInt
+    replicateM_ n $ do
+        m <- readInt
+        printInt $ (2*(m `div` 2))
+        putChar '\n'
+main2 = do
+    forM [1..1000] $ \n->do
+        printInt2 n

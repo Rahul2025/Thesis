@@ -1,0 +1,7 @@
+Implement a FIFO queue. Elements are added at one side and popped from the other in the order of insertion.
+Operations:
+push (aka enqueue) - add element
+pop (aka dequeue) - pop first element
+empty - return truth value when empty
+Errors:
+handle the error of trying to pop from an empty queue (behavior depends on the language and platform)

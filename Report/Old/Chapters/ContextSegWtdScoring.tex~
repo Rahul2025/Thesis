@@ -1,0 +1,54 @@
+
+\subsubsection{Weighted Query-Term Combinations}
+The  queryterm pairwise contextual agreement does not take into account the size of query term combination co-occurring in a context block. 
+
+For e.g, again referring to the Context Based Scoring algorithm illustration in table \ref{tabContextScorIllus}, a document with all of the query terms ('nehru','education','policy') co-occuring in a context block would be scored same as a document having the term pairs ('nehru','education'),('nehru','policy'),('education','policy') co-occuring in different context blocks. ($n_q=t_q=$3 in both cases). The former document should get a higher score actually. This happens because the scoreboard scoring relies merely on query-term pairs co-occurring in the same context block. 
+
+Although such incidences are exceptional, one felt the need for a general scoreboard taking into account the co-occuring term combination size. 
+
+Extending marks for queryword pairs,the scoreboard is a vector of marks for each queryword combination (of size greater than 2), weighted by the size of the combination. The context-based score is calculated as:
+\begin{equation}
+ \textit{ContextBasedScore} = \sum_{r=2}^{k}\sum_{i=1}^{{k}\choose{r}}m_{ri}*W_r
+\end{equation}
+where:\\
+$k$ : Number of querywords\\
+$r$ : Size of queryword combination\\
+$m_{ri}$ : Indicator for contextual co-occurrence of $i^{th}$  $r-$combination of querywords\\
+$W_r$: weight for each queryword combination of size $r$\\
+$W_r$ = $w_r$$/$${k}\choose{r}$
+
+such that 
+
+$w_j$ = $j^2*w_{j-1}$ ,( $j >$ 2 )
+
+$\displaystyle\sum_{j=2}^{k}w_j = 1$\\
+
+Note that the above equation is easily solvable by direct substitution of the recurrence in terms of $w_2$.
+
+Updating both scoreboards is straightforward; updating the marks corresponding to query noter marks, thereby taking O(1) time.
+
+Going back to the example described just above, the weights for the query "nehru education policy" are calculated as:\\
+$
+ k=3\\
+ w_3 = 9w_2\\
+ w_2+w_3=1 \implies w_2 = 0.1 \implies w_3 = 0.9\\
+ Hence,\\
+ W_2 = w_2/{{3}\choose{2}} = 0.1/3\\
+ W_3 = w_3/{{3}\choose{3}} = 0.9
+$
+
+The document having ('nehru','education','policy') all co-occuring in the same context block is then scored as:\\
+$
+m_{31} = 1\\
+m_{2j} = 0 ,(1 \le j \le 3)\\
+\implies \textit{ContextBasedScore} = W_3 = 0.9
+$
+
+And the document having ('nehru','education'), ('nehru','policy') and ('education','policy') co-occuring in different context blocks is scored as:\\
+$
+m_{2j} = 1 ,(1 \le j \le 3)\\
+m_{31} = 0 \\
+\implies \textit{ContextBasedScore} = 3*W_2 = 0.1\\
+$
+
+The prototype system incorporating this Context Based Processing is discussed in the next chapter.

@@ -1,0 +1,328 @@
+This chapter discusses the context-based modifications to the basic indexing and scoring of documents.
+
+
+\section{Spanwise Scoring Revisited}
+\label{secSpanScorRevisited}
+In general, a user expects the terms in a query to be related in some way in a document. So, most information retrieval systems take into account the proximity of term positions into account while ranking documents implicitly using the same spanwise scoring techniques discussed in section \ref{secPosBasedQueries}, even when the user does not explicitly mention using proximity queries. The final score for a document is typically a linear combination of different scoring factors including TF-IDF based and spanwise scoring discussed in Chapter \ref{relatedLit} and other system specific scoring factors.
+
+Let us revisit the spanwise scoring of documents discussed in section \ref{secPosBasedQueries} using an illustration (figure \ref{figContextProcMotiv}).
+
+
+\newpage
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=130mm]{diagrams/ContextProcMotivation}}
+\caption{A close look at Spanwise Document Processing}
+\label{figContextProcMotiv}
+\end{center}\end{figure}
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=130mm]{diagrams/ContextProcMotivationSpansDoc0}}
+\caption{Spans in Document 0}
+\label{figSpanDoc0}
+\end{center}\end{figure}
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=130mm]{diagrams/ContextProcMotivationSpansDoc1}}
+\caption{Spans in Document 1}
+\label{figSpanDoc1}
+\end{center}\end{figure}
+\newpage
+
+\subsection{Observations}
+The term position postings are illustrated for the query "nehru education policy" over the documents Document 0 and Document 1. The spans in the documents are illustrated in the figures \ref{figSpanDoc0} and \ref{figSpanDoc1}. It is clear that the user is looking for a document about nehru's education policy.
+
+The first observation is that a span is built simply from term positions, wherein the terms need not even be related. For e.g in Span 2 of Document 1(figure \ref{figSpanDoc1}), "nehru" and "education policy" appear in consecutive sentences and are not connected to each other in any way whatsoever. 
+The spanwise scoring for the same is described in table \ref{tabSpanScoring}. It is clear that Document 1 is inferred as the more relevant document owing to large slop factor contributed by the span just described.
+
+\begin{table}[!ht]
+\centering
+\begin{tabular}{||c|c|c|c|c|c||}
+ \hline
+ \textbf{Span}& \multicolumn{3}{|c|}{\textbf{Term Occurrence Positions}}&\multicolumn{2}{|c|}{\textbf{Span Metrics}}\\
+ \hline
+ \textbf{Sr. No.} & nehru & education &policy &\textbf{MaxSlop}&\textbf{SlopFactor}\\
+ \hline
+ \multicolumn{6}{|c|}{Document 0}\\
+ \hline
+ 1 & 1&13&14&12&0.077 \\
+ 2 & 31&13&14&18&0.052\\
+ \hline
+ \multicolumn{6}{|c|}{Document 1}\\
+ \hline
+ 1 & 34&25&37&12&0.077\\
+ 2 & 34&36&37&2&0.333\\
+ \hline
+ \end{tabular}
+\caption{Spans for the example in figure \ref{figPos} }
+\label{tabSpanScoring}
+\end{table}
+
+A second observation is that pronouns hide a wealth of information. For e.g in Span 2 of Document 0, the ``his" in "His education policy" refers to nehru. If pronouns were to be resolved to their correct antecedents, then clearly Document 1 would have shown the maximum proximity between query terms and rightly be inferred as the more relevant document.
+
+\subsection{Inferences}
+As a result of the limitations of Spanwise Scoring of Documents, we propose an alternative way of scoring documents on the basis of term position proximity. 
+
+First of all, the valuable term proximity information lost to pronouns can be exploited by resolving those pronouns to their correct antecedents.
+
+Secondly, even after resolving anaphors, irrelevant spans could still be considered while scoring; so, a document is to be segmented into \textit{contextual blocks}. Previous attempts have been made at segmenting a document for this very purpose. \cite{UematsuIFKO08} suggests segmenting a document at the sentence level. \cite{CaiYWM04} discusses experiments with segmenting a document into fixed length blocks. Also it studies the effects of segmenting a document visually into distinct parts. We felt sentence level or fixed length block segmentation was not appropriate, segmentation was needed at a finer grain. 
+
+This can be illustrated by a sample sentence :\\ \textit{"Once elected, Nehru headed an interim government, which was impaired by outbreaks of communal violence and political disorder, and the opposition of the Muslim League led by Muhammad Ali Jinnah, who were demanding a separate Muslim state of Pakistan"}
+
+Suppose the user query is "nehru violence". The query terms are in the same segment (i.e. sentence) if we opt for sentence level segmentation, whereby the document is incorrectly indicated with high term proximity.
+
+If instead the document is segmented at the clause level: \\
+1) \textit{Once elected, Nehru headed an interim government}\\
+2) \textit{which (interim government) was impaired by outbreaks of communal violence and political disorder, and the opposition of the Muslim League led by Muhammad Ali Jinnah}\\
+3) \textit{who (Muslim League) were demanding a separate Muslim state of Pakistan.}
+
+Here, 'nehru' and 'violence' appear in different segments (i.e. clauses) which could be correspondingly used in indicating a lower term proximity than with sentence level segmentation. Antecedents corresponding to the relative pronouns 'which' and 'who' are shown in the parantheses.
+
+In general, we feel document segmentation at the clause level is more appropriate in scoring term proximity. The context-based index built to support the same idea is described in section \ref{sectionContextBasedIndex}.
+
+\newpage
+\section{Context-Based Indexing}
+\label{sectionContextBasedIndex}
+A document is segmented into contextual blocks and this segmented document is used to build the modified index.
+\subsection{Document Segmentation}
+Segmentation of a document is illustrated in figure \ref{figDocSeg}. Usually, a clause in a sentence is about a single entity.
+So the idea is to break a document into such clauses, and resolve the anaphors in the document.
+
+First, pronominal anaphors in the document are resolved to their most likely antecedents (using anaphor resolvers). Then the document is segmented into \textit{contextual blocks}: a contextual block being either a complete sentence or the terms between successive anaphors in the original document , whichever is smaller.
+
+As  seen in figure \ref{figDocSeg}, in Document 0, the contextual blocks 12 and 13 correspond to two different sentences.
+In Document 1, however, the first sentence gets split into 2 contextual blocks (6 and 7 here).
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=140mm]{diagrams/NehruEduPolicy}}
+\caption{Document Segmentation}
+\label{figDocSeg}
+\end{center}\end{figure}
+
+\subsection{Inverted Indexing}
+The only modification to the basic inverted index is the addition of context-based postings which store the context block occurrences of terms instead of mere token positions; these context-based postings are then used to compute the context-based score.
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=130mm]{diagrams/InvertedIndex}}
+\caption{Context Based Postings}
+\label{figInvIndex}
+\end{center}\end{figure}
+
+Figure \ref{figInvIndex} represents partial postings for the documents as segmented in figure \ref{figDocSeg}, the term 'nehru' appears in context block 13 in Document 0 (apart from the obvious occurrence in block 12) through anaphoric linking.
+
+These are used by the context-based scoring algorithm. 
+
+\section{Context-Based Scoring}
+\subsection{Explanation of the Algorithm}
+The general scheme followed for the context-based scoring of a document is given in Algorithm \ref{contextScoringAlgo}.  This score can then be combined with the other scores obtained for the document using techniques from Chapter \ref{relatedLit}. The working of the algorithm on the context-based postings in figure \ref{figContextScorAlgoIllus} is illustrated in table \ref{tabContextScorIllus}.\\
+\begin{comment}
+posting[w] is a list of contextual occurrences for query word w.
+qpHeap is a min-heap of (QueryWord,ContextOccurrence) pairs ordered on ContextOccurrence of the query word.
+contextNoter is a boolean vector over each query word to mark their presence in the context being analyzed currently.
+\end{comment}
+
+\begin{algorithm}[ht]
+  \caption{ScoreDocumentContextually()}
+ \label{contextScoringAlgo}
+ \textbf{Input}: \textbf{Document} doc, \textbf{Query} q\\
+ \textbf{Begin}:
+
+ \begin{algorithmic}[1] 
+ \STATE //\textit{To store the next occurrence of each query term}
+ \STATE \textbf{QueryTermOccurrenceHeap} qpHeap
+ \STATE
+ \STATE //\textit{To mark the occurrence of query terms in next occupied context block}
+ \STATE \textbf{ContextNoter} contextNoter
+ \STATE
+ \STATE //\textit{A vector of metrics used to score document}\begin{comment}, updated using query term occurrences at every iteration\end{comment}
+ \STATE \textbf{ScoreBoard} scoreBoard 
+ %\STATE ContextNoter contextNoter
+ %\STATE ScoreBoard scoreBoard
+ \STATE
+ \STATE{\textit{//Initialize qpHeap and postings}:}
+ 
+ \FOR{each keyword w in q} \label{initScoreDocStart}
+   \STATE posting[w] $\leftarrow$ Index.getPosting(doc, w)
+   \STATE qpHeap.insert(posting[w].nextOccurrence) 
+ \ENDFOR \label{initScoreDocEnd}
+ 
+ %\FOR{each }
+ \STATE
+ \STATE{\textit{//Update ScoreBoard for scoring}:}
+ \WHILE{qpHeap is NOT EMPTY}\label{scoringBegin}
+ \STATE contextNoter.mark(qpHeap, posting)
+ \STATE scoreBoard.update(contextNoter)
+ \STATE contextNoter.clear()
+ \ENDWHILE \label{scoringEnd}
+ \STATE
+ \STATE \textit{//Score using ScoreBoard}:
+ \STATE doc.score $\leftarrow$ scoreBoard.score()
+ %\ENDFOR 
+ \end{algorithmic}
+\end{algorithm}
+
+\begin{figure}[!ht]\begin{center}
+\fbox{\includegraphics[width=130mm]{diagrams/ContextScoringAlgoIllus}}
+\caption{Example for illustration of context based scoring algorithm}
+\label{figContextScorAlgoIllus}
+\end{center}\end{figure}
+
+
+\begin{table}[!ht]
+\centering
+\begin{tabular}{||c|c|c|c|c|c|c|c||}
+ \hline
+ \textbf{Iter}& \multicolumn{3}{|c|}{\textbf{qpHeap State}}&\textbf{qpHeap Top}&\multicolumn{3}{|c|}{\textbf{ContextNoter}}\\
+ \hline
+  & nehru & education &policy &&nehru&education&policy\\
+ \hline
+ 1 & 1&5&2&1&1&0&0 \\
+ 2 & 3&5&2&2&0&0&1 \\
+ 3 & 3&5&3&3&1&0&1 \\
+ 4 & 5&5&5&5&1&1&1 \\
+ 5 & 7&7&12&7&1&1&0\\
+ 6 &12&12&12&12&1&1&1\\
+ 7 &15&  &13&13&0&0&1\\
+ 8 &15&  &  &15&1&0&0\\
+ \hline
+ \end{tabular}
+\caption{Illustration of context based scoring algorithm }
+\label{tabContextScorIllus}
+\end{table}
+
+\textit{qpHeap} stores the next occurrence of each query term. The qpHeap State column in table \ref{tabContextScorIllus} indicates the same. Moreover, so as to obtain next occupied context block, it is implemented as a min-heap over the context block numbers. At every iteration, the qpHeap Top is this next context block which is occupied by at least one query term. The Context Noter column indicates which of the query terms are occupied in this next occupied context block.
+
+Lines \ref{initScoreDocStart}-\ref{initScoreDocEnd} in Algorithm \ref{contextScoringAlgo} initialize  \textit{posting} with query word postings and \textit{qpHeap} with first occurrence of each query term. This is seen in iteration 1 in table \ref{tabContextScorIllus}, where the qpHeap stores the first occurrence of each of the query terms, namely 1, 5 and 2 respectively for the terms 'nehru', 'education' and 'policy'. Thus qpHeap Top points to context block 1 in this case. 
+
+Lines \ref{scoringBegin}-\ref{scoringEnd} in Algorithm \ref{contextScoringAlgo} show the procedure for marking the occurrence of query terms in the following context blocks at each iteration, which is used in updating the scoreboard.
+
+\begin{algorithm}[ht]
+ \textit{Marking the contextual noter}\\
+ \textbf{Input}:\textbf{QueryTermOccurrenceHeap} qpHeap, \textbf{Posting} posting\\
+ \textbf{Begin}:
+ \begin{algorithmic}[1]
+  \STATE \textit{//qpHeap's head gives the context to be marked}:
+  \STATE currentHead $\leftarrow$ qpHeap.pop()
+  \STATE contextNoter[currentHead.queryWord] $\leftarrow$ \textit{true}
+  \STATE qpHeap.insert(posting[currentHead.queryWord].nextOccurrence)
+  \STATE
+  \WHILE{qpHeap.top() is at currentHead.position}
+   \STATE currentEntry$\leftarrow$qpHeap.pop()
+   \STATE contextNoter[currentEntry.queryWord] $\leftarrow$ \textit{true}
+   \STATE qpHeap.insert(posting[currentEntry.queryWord].nextOccurrence)
+  \ENDWHILE  
+ \end{algorithmic}
+ \caption{contextNoter :: mark()}
+ \label{markAlgo}
+\end{algorithm}
+
+\begin{comment}At every point, the top of \textit{qpHeap} gives the next occupied context block,\end{comment}
+The marking procedure as given in Algorithm \ref{markAlgo}, pops \textit{qpHeap} query terms at the same context block and marks their presence in the \textit{contextNoter}, which is a boolean indicator vector for each query-term. The column contextNoter in table \ref{tabContextScorIllus} indicates the contextNoter marks at every iteration. For e.g at iteration 5, the query terms 'nehru' ,'education' and 'policy' are respectively in context blocks 7,7 and 12 so that block 7 gets marked for query terms 'nehru' and 'education', and the next context block entries for both these terms (obtained from context based postings) get loaded into qpHeap. Thus, at iteration 6, all the query terms are in context block 12 and the process continues. 
+
+The \textit{scoreBoard} mainly makes use of the context noter marks and updates metrics used for computing the context-based score. Two promising scoreboard variants are discussed later in section \ref{sectionScoreBoard}.
+
+\subsection{Analysis of the scoring algorithm}
+Let a query Q be composed of k query-words.\\
+Since \textit{qpHeap} stores a contextual occurrence per query term, \textit{qpHeap} stores at most k items.
+\begin{itemize}
+ \item[]{qpHeap.size() $ \le $ k}
+\end{itemize}
+
+\textit{qpHeap} being a min-heap, the time costs of its different operations are given as:\\
+Initializing qpHeap with first query term occurrences requires O(k) time.
+\begin{itemize}
+ \item[]{top() and pop() both require O(1) time.}
+ \item[]{insert() takes O(lg k) time.}
+\end{itemize}
+The marking procedure mark() of \textit{contextNoter} basically marks the occurrence of each of the query words in the next contextual block, thereby taking a worst case O(klg k) time.
+
+Let a document be composed of n contextual blocks. (n $>$$>$ k) The context-based scoring of the document involves a \underline{single pass} over the occurrence postings of each query word, marking for the current contextual block and then updating scoreboard using the mark.\\
+ScoreBoard costs depend on the variant being used. As we will see later, updating the scoreboard takes O(1) time. 
+
+Thus the context-based scoring of document is a \underline{single-pass} O((klg k)n) time procedure, linear over the number of contextual blocks in the document.
+
+In the next section, we discuss the scoreboard variants that were tried.
+\newpage
+\subsection{Scoreboard Variants}
+\label{sectionScoreBoard}
+The limitations of spanwise scoring of documents were discussed in section \ref{secSpanScorRevisited}, which arise mainly due to considering inappropriate spans. Instead of relying on spans built simply from term position postings, we try to rely on co-occurrence of terms in a context block for scoring documents. The idea is that there is a better chance of terms co-occuring in one context block of being related to each other. 
+
+A scoreboard-based approach was used for the context based scoring of documents. a scoreboard is basically a list of different scores, which is updated in steps, and the final score is the aggregate of all of the scores in the scoreboard.
+
+\subsubsection{Simple QueryTerm-Pairwise Contextual Agreement}
+The scoreboard is just a vector of marks for each pair of querywords to indicate co-occurrence in a context block.
+Every pair of query-terms for query \textit{q} occurring in the same context block is marked and the context-based score is computed as:
+\begin{equation}
+\textit{ContextBasedScore} = \dfrac{n_q}{t_q}
+\end{equation}
+where:\\
+$n_q$ : Number of query-term pairs occurring in the same context block\\
+$t_q$ : Total number of query-term pairs = ${k}\choose{2}$, (where \textit{k}: number of query terms)
+
+For e.g referring to the Context Based Scoring algorithm illustration in table \ref{tabContextScorIllus}, all of the query terms ('nehru','education','policy') (k=3) occur in the same context block as seen in iteration 4 and 6.\\ Thereby $n_q=t_q=$3, hence \textit{ContextBasedScore} = 1.
+
+If we ignore iterations 4 and 6,  then the term pairs co-occurring in a context block are ('nehru','policy') and ('nehru','education') happening in iterations 3 and 5 respectively. \\Thereby  $n_q=2, t_q=3$, hence \textit{ContextBasedScore} = 0.67.
+
+%\subsection{Weighted Queryword-Pairwise Contextual Agreement}
+
+\subsubsection{Weighted Query-Term Combinations}
+The  queryterm pairwise contextual agreement does not take into account the size of query term combination co-occurring in a context block. 
+
+For e.g, again referring to the Context Based Scoring algorithm illustration in table \ref{tabContextScorIllus}, a document with all of the query terms ('nehru','education','policy') co-occuring in a context block would be scored same as a document having the term pairs ('nehru','education'),('nehru','policy'),('education','policy') co-occuring in different context blocks. ($n_q=t_q=$3 in both cases). The former document should get a higher score actually. This happens because the scoreboard scoring relies merely on query-term pairs co-occurring in the same context block. 
+
+Although such incidences are exceptional, one felt the need for a general scoreboard taking into account the co-occuring term combination size. 
+
+Extending marks for queryword pairs,the scoreboard is a vector of marks for each queryword combination (of size greater than 2), weighted by the size of the combination. The context-based score is calculated as:
+\begin{equation}
+ \textit{ContextBasedScore} = \sum_{r=2}^{k}\sum_{i=1}^{{k}\choose{r}}m_{ri}*W_r
+\end{equation}
+where:\\
+$k$ : Number of querywords\\
+$r$ : Size of queryword combination\\
+$m_{ri}$ : Indicator for contextual co-occurrence of $i^{th}$  $r-$combination of querywords\\
+$W_r$: weight for each queryterm combination of size $r$\\
+$W_r$ = $w_r$$/$${k}\choose{r}$
+
+such that 
+
+$w_j$ = $j^2*w_{j-1}$ ,( $j >$ 2 )
+
+$\displaystyle\sum_{j=2}^{k}w_j = 1$\\
+
+Note that the above equation is easily solvable by direct substitution of the recurrence in terms of $w_2$.
+Moreover, it assigns monotonously increasing weights to each queryterm combination in order of the combination size.
+
+Updating both scoreboards is straightforward; updating the marks corresponding to query noter marks, thereby taking O(1) time.
+
+Going back to the example described just above, the weights for the query "nehru education policy" are calculated as:\\
+$
+ k=3\\
+ w_3 = 9w_2\\
+ w_2+w_3=1 \implies w_2 = 0.1 \implies w_3 = 0.9\\
+ Hence,\\
+ W_2 = w_2/{{3}\choose{2}} = 0.1/3\\
+ W_3 = w_3/{{3}\choose{3}} = 0.9
+$
+
+The document having ('nehru','education','policy') all co-occuring in the same context block is then scored as:\\
+$
+m_{31} = 1\\
+m_{2j} = 0 ,(1 \le j \le 3)\\
+\implies \textit{ContextBasedScore} = W_3 = 0.9
+$
+
+And the document having ('nehru','education'), ('nehru','policy') and ('education','policy') co-occuring in different context blocks is scored as:\\
+$
+m_{2j} = 1 ,(1 \le j \le 3)\\
+m_{31} = 0 \\
+\implies \textit{ContextBasedScore} = 3*W_2 = 0.1\\
+$
+
+Note that the recurrence relation used in the scoreboard scoring ensures that $w_k >> w_{k-1} , $(k > 2) .
+Thus , in general, the size of the  queryterm combination is given the necessary weight by this scoreboard.
+
+\subsubsection{Combining Context Based Score with other scores}
+The context based score obtained can be combined with other scores using a linear combination with the normal TF-IDF based score. This is discussed in section \ref{secSysDesign}. In this work, the aim was to compare the results of this context based scoring with that obtained by spanwise scoring of documents. 
+
+The context based score could also be used to filter out the results which do not have enough contextual proximity between query terms.
+
+The prototype system incorporating this Context Based Processing is discussed in the next chapter, where the experimetal results are compared with that obtained by spanwise scoring.

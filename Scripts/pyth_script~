@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#input filename.py
+file_name=sample1.py
+
+#run the program
+python $filename >op

@@ -1,0 +1,55 @@
+%\vspace*{\fill}
+\vspace*{0.5in}
+\begin{center}
+\begin{large}
+{\bf Abstract}
+\end{large}
+\end{center}
+
+''{{\textit{Lots of emerging startups who are basing their code on Python today are going to resort on this when the scaling pain begins, or simply to attempt making things run a bit faster. Generally, people avoid C completely because of hidden pitfalls every novice has to go through, but may be Cython will slowly change that}.}}\\''
+                                                          By Anonymous \\
+
+We already know that Python is very powerful and dynamic programming language. It is used in large no. of applications and variety of domains.Some of its key distinguishing features includes very clear and readable syntax, strong introspection capabilities, very high level dynamic data types, extensive standard libraries and third party modules for virtually every task etc. But after benchmarking various programs, we came to a conclusion that Python is much slower than other languages like C, C++, java etc. So we thought of reducing the time taken by Python programs by converting it to Cython i.e. C version of Python.\\
+
+According to cython.org, an official website of Cython language, 
+\\''{{\textit{Cython is a language that makes writing C extensions for the Python language as easy as Python itself. It is based on the well-known Pyrex, but supports more cutting edge functionality and optimizations. The Cython language is very close to the Python language, but Cython additionally supports calling C functions and declaring C types on variables and class attributes. This allows the compiler to generate very efficient C code from Cython code, which makes Cython the ideal language for wrapping external C libraries, and for fast C modules that speed up the execution of Python code}.}}''\\
+	
+	So we are building an Python-2-Cython translator which will automatically convert the whole of python code to Cython. Actually the main reason why python is taking so much time is it's feature called dynamic type checking, in which it has to check type of each variable, every time Python encounters it. So, reducing this time will reduce the overall time by a large extent.\\
+\pagebreak
+
+For eg. Consider the following code:
+
+
+\begin{code}
+
+import time
+start = (time.time()) * 1000000 
+for i in xrange(100000): 
+            if i==100000 : 
+                        print i 
+end = (time.time()) * 1000000 
+print 'Time taken = \%s' \%(end-start)
+\end{code}
+
+OUTPUT :-  “ Time taken = 20357.0 ”
+\\
+
+Now, when the above code is run, python interpreter will check the type of x each type in encounters it. That means 1,00,000 times in line 1 and same no. of time in line 2. Thus, it is wasting time in checking the same variable again and again.
+Now, consider the following cython code:
+\begin{code}
+
+import time
+cdef int i
+start = (time.time()) * 1000000 
+for i in xrange(100000): 
+            if i==100000 : 
+                        print i 
+end = (time.time()) * 1000000 
+print 'Time taken = \%s' \%(end-start)
+OUTPUT :-  “ Time taken = 22.0 ”
+\end{code}
+
+So, it is clear from the example that just by adding a small code we have reduce the time 1000 times approx. So, basically we aim at adding that small code automatically rather than manually adding it.
+For that we are going to use Python's dynamic type checking feature. Using that we can know the type of variable, when it is used for the first time and save it. But when the same variable appears again, instead of checking for it's type again, we would use it's type from the saved data.
+
+\vspace*{\fill}

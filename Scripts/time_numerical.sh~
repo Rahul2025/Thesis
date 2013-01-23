@@ -2,7 +2,11 @@
 
 #input directory
 cd /home/Rahul/Desktop/Thesis/Problem-Set/Numerical_Computing
+rm /home/Rahul/Desktop/Thesis/Scripts/c_cmp
+rm /home/Rahul/Desktop/Thesis/Scripts/c_run
 rm /home/Rahul/Desktop/Thesis/Scripts/c_time
+rm /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
+rm /home/Rahul/Desktop/Thesis/Scripts/cpp_run
 rm /home/Rahul/Desktop/Thesis/Scripts/cpp_time
 rm /home/Rahul/Desktop/Thesis/Scripts/java_time
 rm /home/Rahul/Desktop/Thesis/Scripts/pyth_time

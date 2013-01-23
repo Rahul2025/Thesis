@@ -4,12 +4,13 @@
 /* pre defined*/
 //#define ROWS 24
 //#define COLS 2
-#define LANG 4
+#define LANG 5
 #define PROG 75
 #define C 0
 #define CPP 1
-#define JAVA 2
-#define PYTH 3
+#define HASK 2
+#define JAVA 3
+#define PYTH 4
 
 /*Globals*/
 //float mat[PROG][LANG];
@@ -124,22 +125,25 @@ int make_table()
 int main()
 {
 	FILE *op;
-	int i,j,prog0,prog1,prog2,prog3;
-	float tot_cmp_tim[LANG]={0,0,0,0},ratio_cmp_tim[LANG],mod_tot_cmp_tim[LANG]={0,0,0,0},pen_mod_tot_cmp_tim[LANG]={0,0,0,0};
-	float tot_cmp_mem[LANG]={0,0,0,0},ratio_cmp_mem[LANG],mod_tot_cmp_mem[LANG]={0,0,0,0},pen_mod_tot_cmp_mem[LANG]={0,0,0,0};
-	float tot_run_tim[LANG]={0,0,0,0},ratio_run_tim[LANG],mod_tot_run_tim[LANG]={0,0,0,0},pen_mod_tot_run_tim[LANG]={0,0,0,0};
-	float tot_run_mem[LANG]={0,0,0,0},ratio_run_mem[LANG],mod_tot_run_mem[LANG]={0,0,0,0},pen_mod_tot_run_mem[LANG]={0,0,0,0};
+	int i,j,prog0,prog1,prog2,prog3,prog4;
+	float tot_cmp_tim[LANG]={0,0,0,0,0},ratio_cmp_tim[LANG],mod_tot_cmp_tim[LANG]={0,0,0,0,0},pen_mod_tot_cmp_tim[LANG]={0,0,0,0,0};
+	float tot_cmp_mem[LANG]={0,0,0,0,0},ratio_cmp_mem[LANG],mod_tot_cmp_mem[LANG]={0,0,0,0,0},pen_mod_tot_cmp_mem[LANG]={0,0,0,0,0};
+	float tot_run_tim[LANG]={0,0,0,0,0},ratio_run_tim[LANG],mod_tot_run_tim[LANG]={0,0,0,0,0},pen_mod_tot_run_tim[LANG]={0,0,0,0,0};
+	float tot_run_mem[LANG]={0,0,0,0,0},ratio_run_mem[LANG],mod_tot_run_mem[LANG]={0,0,0,0,0},pen_mod_tot_run_mem[LANG]={0,0,0,0,0};
 	
 	prog0=make_cmp_tim("c_time",C);
 	prog1=make_cmp_tim("cpp_time",CPP);
-	prog2=make_cmp_tim("java_time",JAVA);
-	prog3=make_cmp_tim("pyth_time",PYTH);
+	prog2=make_cmp_tim("hs_time",HASK);
+	prog3=make_cmp_tim("java_time",JAVA);
+	prog4=make_cmp_tim("pyth_time",PYTH);
 	
-	if(prog0 && prog1 && prog2 && prog3)
+	
+	
+	if(prog0 && prog1 && prog2 && prog3 && prog4)
 	{	
 		op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_ranks","a");
-		printf("\n\n\tC\t\tCPP\t\tJAVA\t\tPYTHON\n");
-		printf("\t-\t\t---\t\t----\t\t------");
+		printf("\n\n\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------");
 		for(i=0;i<prog0;i++)
 		{
 			printf("\n");
@@ -185,8 +189,8 @@ int main()
 					pen_mod_cmp_tim[i][j] = mod_cmp_tim[i][j] = cmp_tim[i][j];							
 			}
 		}
-		printf("\tC\t\tCPP\t\tJAVA\t\tPYTHON\n");
-		printf("\t-\t\t---\t\t----\t\t------\n");
+		printf("\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
 			for(j=0;j<LANG-1;j++)
@@ -202,13 +206,14 @@ int main()
 		}
 		
 		printf("\t----\t\t----\t\t----\t\t----\n");
+	//	printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<LANG-1;i++)	
 		{
 			//ratio[i] = total[0];
 			printf("\t%f",mod_tot_cmp_tim[i]);
 		}		
 		printf("\n");
-		printf("\t-\t\t---\t\t----\t\t------\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
 			for(j=0;j<LANG-1;j++)
@@ -224,6 +229,7 @@ int main()
 		}
 		
 		printf("\t----\t\t----\t\t----\t\t----\n");
+		//printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<LANG-1;i++)	
 		{
 			//ratio[i] = total[0];
@@ -233,8 +239,8 @@ int main()
 		printf("\n");
 		
 		
-	printf("\n\n\tC\t\tCPP\t\tJAVA\t\tPYTHON\n");
-		printf("\t-\t\t---\t\t----\t\t------");
+	printf("\n\n\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{
 			printf("\n");
@@ -244,7 +250,7 @@ int main()
          	   tot_cmp_mem[j] = tot_cmp_mem[j] + cmp_mem[i][j];
          }
       }
-      printf("\n\t----\t\t----\t\t----\t\t----\n");
+      printf("\n\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<LANG;i++)	
 		{
 			ratio_cmp_mem[i] = tot_cmp_mem[0];
@@ -262,7 +268,7 @@ int main()
 			printf("\t%f",ratio_cmp_mem[i]);
 		}	
 		printf("\n");
-		printf("\t-\t\t---\t\t------\t\t------\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{
 			for(j=0;j<LANG-1;j++)
@@ -280,8 +286,8 @@ int main()
 					pen_mod_cmp_mem[i][j] = mod_cmp_mem[i][j] = cmp_mem[i][j];							
 			}
 		}
-		printf("\tC\t\tCPP\t\tJAVA\t\tPYTHON\n");
-		printf("\t-\t\t---\t\t----\t\t------\n");
+		printf("\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
 			for(j=0;j<LANG-1;j++)
@@ -303,7 +309,7 @@ int main()
 			printf("\t%f",mod_tot_cmp_mem[i]);
 		}		
 		printf("\n");
-		printf("\t-\t\t---\t\t----\t\t------\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
 			for(j=0;j<LANG-1;j++)
@@ -376,8 +382,8 @@ int main()
 					pen_mod_run_tim[i][j] = mod_run_tim[i][j] = run_tim[i][j];							
 			}
 		}
-		printf("\tC\t\tCPP\t\tJAVA\t\tPYTHON\n");
-		printf("\t-\t\t---\t\t----\t\t------\n");
+		printf("\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
 			for(j=0;j<LANG;j++)
@@ -399,7 +405,7 @@ int main()
 			printf("\t%f",mod_tot_run_tim[i]);
 		}		
 		printf("\n");
-		printf("\t-\t\t---\t\t----\t\t------\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
 			for(j=0;j<LANG;j++)
@@ -424,7 +430,7 @@ int main()
 		printf("\n");	
 		
 		
-	printf("\n\n\tC\t\tCPP\t\tJAVA\t\tPYTHON\n");
+	printf("\n\n\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
 		printf("\t-\t\t---\t\t----\t\t------");
 		for(i=0;i<prog0;i++)
 		{
@@ -471,8 +477,8 @@ int main()
 					pen_mod_run_mem[i][j] = mod_run_mem[i][j] = run_mem[i][j];							
 			}
 		}
-		printf("\tC\t\tCPP\t\tJAVA\t\tPYTHON\n");
-		printf("\t-\t\t---\t\t----\t\t------\n");
+		printf("\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
 			for(j=0;j<LANG;j++)
@@ -494,7 +500,7 @@ int main()
 			printf("\t%f",mod_tot_run_mem[i]);
 		}		
 		printf("\n");
-		printf("\t-\t\t---\t\t----\t\t------\n");
+		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
 			for(j=0;j<LANG;j++)

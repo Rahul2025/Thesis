@@ -1,8 +1,8 @@
 main::IO() 
 main = do 
-  t &lt;- getLine 
+  t <- getLine 
   sequence_ $ take (read t) $ repeat $ do 
-    li &lt;- getLine 
+    li <- getLine 
     let (a,b) =  solve (read li :: Integer) 
     putStrLn $ show a ++ " " ++ show b
 solve :: Integer -> (Int, Integer) 
@@ -12,7 +12,7 @@ palindromeTest :: Integer -> Bool
 palindromeTest num = pt [] [] num 
   where 
     pt [] [] 0 = True 
-    pt (x:xs) (y:ys) 0 = (x == y) &amp;& pt xs ys 0 
+    pt (x:xs) (y:ys) 0 = (x == y) && pt xs ys 0 
     pt xs ys n = pt (xs++[b]) (b:ys) a where (a,b) = quotRem n 10
 reverseDigit :: Integer -> Integer 
 reverseDigit x = rd 0 x 

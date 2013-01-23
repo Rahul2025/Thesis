@@ -1,5 +1,5 @@
 choose _ 0 = 1
-choose n k | k &lt;= n-k   = choose (n-1) (k-1) * n `div` k
+choose n k | k <= n-k   = choose (n-1) (k-1) * n `div` k
            | otherwise = choose n (n-k)
 solve::Integer->Integer->Integer
 solve n k = choose (n - 1) (n - k)

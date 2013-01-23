@@ -58,16 +58,16 @@ findBestHandFromOne cs = hand sortedCards
 findBestHandFromMany cs = maximum $ map findBestHandFromOne (possibleCards cs)
 -- It's critical they be sorted highest rank first, when passed to hand
 hand :: [(Rank, Suit)] -> HandType
-hand ((14,x1):(13,x2):(12,x3):(11,x4):(10,x5):[]) | x1==x2 &amp;& x2==x3 &amp;& x3==x4 &amp;& x4==x5  = RoyalFlush
-hand ((n1,x1):(n2,x2):(n3,x3):(n4,x4):(n5,x5):[]) | areStraight (n1:n2:n3:n4:n5:[]) &amp;& x1==x2 &amp;& x2==x3 &amp;& x3==x4 &amp;& x4==x5  = StraightFlush
-hand ((n1,_):(n2,_):(n3,_):(n4,_):(_,_):[])       | n1==n2 &amp;& n2==n3 &amp;& n3==n4 = FourOfAKind
-hand ((_,_):(n1,_):(n2,_):(n3,_):(n4,_):[])       | n1==n2 &amp;& n2==n3 &amp;& n3==n4 = FourOfAKind
-hand ((n1,_):(n2,_):(n3,_):(n4,_):(n5,_):[])      | n1==n2 &amp;& n2==n3 &amp;& n4==n5 || n1==n2 &amp;& n3==n4 &amp;& n4==n5 = FullHouse
-hand ((_,x1):(_,x2):(_,x3):(_,x4):(_,x5):[])      | x1==x2 &amp;& x2==x3 &amp;& x3==x4 &amp;& x4==x5  = Flush
+hand ((14,x1):(13,x2):(12,x3):(11,x4):(10,x5):[]) | x1==x2 && x2==x3 && x3==x4 && x4==x5  = RoyalFlush
+hand ((n1,x1):(n2,x2):(n3,x3):(n4,x4):(n5,x5):[]) | areStraight (n1:n2:n3:n4:n5:[]) && x1==x2 && x2==x3 && x3==x4 && x4==x5  = StraightFlush
+hand ((n1,_):(n2,_):(n3,_):(n4,_):(_,_):[])       | n1==n2 && n2==n3 && n3==n4 = FourOfAKind
+hand ((_,_):(n1,_):(n2,_):(n3,_):(n4,_):[])       | n1==n2 && n2==n3 && n3==n4 = FourOfAKind
+hand ((n1,_):(n2,_):(n3,_):(n4,_):(n5,_):[])      | n1==n2 && n2==n3 && n4==n5 || n1==n2 && n3==n4 && n4==n5 = FullHouse
+hand ((_,x1):(_,x2):(_,x3):(_,x4):(_,x5):[])      | x1==x2 && x2==x3 && x3==x4 && x4==x5  = Flush
 hand ((n1,_):(n2,_):(n3,_):(n4,_):(n5,_):[])      | areStraight (n1:n2:n3:n4:n5:[]) = Straight
-hand ((n1,_):(n2,_):(n3,_):_:_:[])                | n1==n2 &amp;& n2==n3 = ThreeOfAKind
-hand (_:_:(n1,_):(n2,_):(n3,_):[])                | n1==n2 &amp;& n2==n3 = ThreeOfAKind
-hand (_:(n1,_):(n2,_):(n3,_):_:[])                | n1==n2 &amp;& n2==n3 = ThreeOfAKind
+hand ((n1,_):(n2,_):(n3,_):_:_:[])                | n1==n2 && n2==n3 = ThreeOfAKind
+hand (_:_:(n1,_):(n2,_):(n3,_):[])                | n1==n2 && n2==n3 = ThreeOfAKind
+hand (_:(n1,_):(n2,_):(n3,_):_:[])                | n1==n2 && n2==n3 = ThreeOfAKind
 hand cs                                           | hasTwoPairs cs = TwoPairs
 hand cs                                           | hasPair cs = Pair
 hand cs                                                     = HighCard
@@ -96,7 +96,7 @@ possibleCards cs = map reunite (possibles origRanks)
 areStraight :: [Rank] -> Bool
 areStraight [] = True
 areStraight (x:[]) = True
-areStraight (x:xs) = adjacent x (head xs) &amp;& areStraight xs
+areStraight (x:xs) = adjacent x (head xs) && areStraight xs
 adjacent :: Int -> Int -> Bool
 adjacent x y = 1 == abs (x-y)
 -- some test data...
@@ -126,11 +126,11 @@ makeTestData = do
       putStrLn $ unlines $ map (unwords . fst) testData
       putStrLn $ unlines $ map (show . snd) testData
 main = do
-  numTests &lt;- (readLn::IO Int)
+  numTests <- (readLn::IO Int)
   processTest numTests
 processTest 0 = return ()
 processTest n = do
-cardsStr &lt;- getLine
+cardsStr <- getLine
 let cards = map readCard (words cardsStr)
 let answer = show $ findBestHandFromMany cards
 putStrLn answer

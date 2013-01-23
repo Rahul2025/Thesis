@@ -1,8 +1,8 @@
 main :: IO ()
 main = do
-	(t:input) &lt;- lines `fmap` getContents
-	let cases = makeCase [ readInt x | x &lt;- input ]
-	let output = unlines [ show( solve x ) | x &lt;- cases ]
+	(t:input) <- lines `fmap` getContents
+	let cases = makeCase [ readInt x | x <- input ]
+	let output = unlines [ show( solve x ) | x <- cases ]
 	putStr output
 readInt :: String -> Int
 readInt = read	
@@ -11,7 +11,7 @@ makeCase (a:b:c:[]) = [(a, b, c)]
 makeCase (a:b:c:xs) = (a, b, c):( makeCase xs )
 solve :: (Int, Int, Int) -> Int
 solve (a, b, c)
-	| a &lt; c &amp;& b &lt; c = -1
+	| a < c && b < c = -1
 	| c `mod` g /= 0 = -1
 	| otherwise = minimum [ pours (x0 + k * (b `div` g)) (y0 - k * (a `div` g)) a b c, pours (x0 + (k + i) * (b `div` g)) (y0 - (k + i) * (a `div` g)) a b c ]
 	where
@@ -39,5 +39,5 @@ pours x y a b c
 	| otherwise = 2 * (y + out y b a c)
 out :: Int -> Int -> Int -> Int -> Int
 out x a b c
-	| a &lt; c &amp;& ((a * x) `mod` b) == c = (a * x) `div` b
+	| a < c && ((a * x) `mod` b) == c = (a * x) `div` b
 	| otherwise = (a * x - c - 1) `div` b

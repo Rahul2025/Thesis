@@ -15,7 +15,7 @@ data NumberType = AllNines
 -- cases, and so is useless; skip it and pass the rest of the
 -- input, as a list of lines, for further processing.
 main :: IO ()
-main = do input &lt;- B.getContents
+main = do input <- B.getContents
           hSetBuffering stdout (BlockBuffering Nothing)
           mapM_ process_one_line $ tail $ B.lines input
 -- Process a single line of (actual) input.
@@ -78,7 +78,7 @@ singleDigit number = B.pack $ show nextDigit
 oddDigits ::  B.ByteString -> B.ByteString
 oddDigits number
   | greater reversePrefix suffix = B.append prefixPlus reversePrefix
-  | middleValue &lt; 9 = B.append (B.snoc prefix (intToDigit $ middleValue + 1) ) reversePrefix
+  | middleValue < 9 = B.append (B.snoc prefix (intToDigit $ middleValue + 1) ) reversePrefix
   | otherwise = let (nines, rest) = B.span (\a -> a == '9') reversePrefix
                     zeros = B.map (\_ -> '0') nines
                     Just(changed, unchanged) = B.uncons rest

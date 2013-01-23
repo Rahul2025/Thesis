@@ -6,7 +6,7 @@ import Data.List
 -- cases, and so is useless; skip it and pass the rest of the
 -- input, as a list of lines, for further processing.
 main :: IO ()
-main = do input &lt;- B.getContents
+main = do input <- B.getContents
           hSetBuffering stdout (BlockBuffering Nothing)
           mapM_ process_one_line $ tail $ B.lines input
 -- Process a single line of (actual) input.
@@ -24,9 +24,9 @@ process_one_line line  = computeAndPrint m n
 --computeAndPrint :: Integer -> Integer -> IO()
 computeAndPrint :: Int -> Int -> IO()
 computeAndPrint m n = let primeList = case m of
-                                           1 -> 2 : (takeWhile (&lt;= n) $ primesFrom 3)
-                                           2 -> 2 : (takeWhile (&lt;= n) $ primesFrom 3)
-                                           _ -> takeWhile (&lt;= n) $ primesFrom m
+                                           1 -> 2 : (takeWhile (<= n) $ primesFrom 3)
+                                           2 -> 2 : (takeWhile (<= n) $ primesFrom 3)
+                                           _ -> takeWhile (<= n) $ primesFrom m
                           in do
                       B.putStrLn $ B.unlines $ map (B.pack . show) primeList 
 primes    = 2: oddprimes
@@ -35,9 +35,9 @@ oddprimes = 3: sieve oddprimes 3 0
 -- [x+2, x+4, ...., p^2 -2] such that the first k odd primes do
 -- not divide n
 sieve (p:ps) x k
-          = [n | n &lt;- [x+2,x+4..p*p-2]
-                 , and [rem n p/=0 | p &lt;- take k oddprimes]]
+          = [n | n <- [x+2,x+4..p*p-2]
+                 , and [rem n p/=0 | p <- take k oddprimes]]
             ++ sieve ps (p*p) (k+1)
 primesFrom m   = sieve ps (m `div` 2 * 2 - 1) (length h)
     where
-      (h,(_:ps)) = span (&lt;= (floor.sqrt.fromIntegral) m) primes
+      (h,(_:ps)) = span (<= (floor.sqrt.fromIntegral) m) primes

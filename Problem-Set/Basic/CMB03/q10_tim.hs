@@ -1,8 +1,8 @@
 main::IO() 
 main = do 
-  t &lt;- getLine 
+  t <- getLine 
   sequence_ $ take (read t) $ repeat $ do 
-    s &lt;- getLine 
+    s <- getLine 
     let [str, prt] = words s 
     putStrLn $ if isSublist str prt then "1\n" else "0\n"
 isSublist :: (Eq a) => [a] -> [a] -> Bool 

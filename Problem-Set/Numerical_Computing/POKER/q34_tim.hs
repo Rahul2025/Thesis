@@ -79,10 +79,10 @@ cardToInt Ace = 14
 --Hand functions
 ----------------
 evalHandDist :: [Card] -> [(CValue, [CValue])]
-evalHandDist xs = [(s, eval s xs) | s &lt;- options]
+evalHandDist xs = [(s, eval s xs) | s <- options]
 	where
 		options :: [CValue]
-		options =  [Ace, King, Queen, Jack, Ten] ++ [Number n | n &lt;- [2..9]]
+		options =  [Ace, King, Queen, Jack, Ten] ++ [Number n | n <- [2..9]]
 		eval :: CValue -> [Card] -> [CValue]
 		eval c cs = filter (==c) $ map cval cs
 parseHand :: String -> Hand
@@ -90,16 +90,16 @@ parseHand = th . map parseCard . words
 	where
 		th :: [Card] -> Hand
 		th cs = Hand cs $ evalHandDist cs
-isStraight xs = (nums == [h, h+1, h+2, h+3, h+4]) || ((init nums == [h, h+1, h+2, h+3]) &amp;& last nums == 14)
+isStraight xs = (nums == [h, h+1, h+2, h+3, h+4]) || ((init nums == [h, h+1, h+2, h+3]) && last nums == 14)
 	where
 		h = head nums
 		nums = map cardToInt $ sort xs
 evalHand :: Hand -> HandCombination
 evalHand hand
-	| isSameSuit &amp;& (sort values) == [Ten, Jack, Queen, King, Ace] = RoyalFlush
-	| isSameSuit &amp;& straight = StraightFlush
+	| isSameSuit && (sort values) == [Ten, Jack, Queen, King, Ace] = RoyalFlush
+	| isSameSuit && straight = StraightFlush
 	| isSame 4 = FourOfAKind
-	| isSame 3 &amp;& isSame 2 = FullHouse
+	| isSame 3 && isSame 2 = FullHouse
 	| isSameSuit = Flush
 	| straight = Straight
 	| isSame 3 = ThreeOfAKind

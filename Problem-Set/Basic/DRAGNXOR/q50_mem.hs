@@ -11,5 +11,4 @@ onesInSol :: Int -> Int -> Int -> Int
 onesInSol n a b = let ones = numOnes a + numOnes b
 					in if ones <= n then ones else 2 * n - ones
 numOnes :: Int -> Int
-numOnes a = foldl (\acc x -> if (a .&amp;. (1 `shiftL` x)) == 0
-										then acc else acc + 1) 0 [0..29]
+numOnes a = foldl (\acc x -> if (a .&. (1 `shiftL` x)) == 0 then acc else acc + 1) 0 [0..29]

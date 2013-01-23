@@ -14,7 +14,7 @@ parse other = Nothing
 parsePos :: (Char, Char) -> Maybe Pos
 parsePos (c,r)
   |    c `elem` ['a'..'h']
-    &amp;& r `elem` ['1'..'8'] = Just (cToI, dToI)
+    && r `elem` ['1'..'8'] = Just (cToI, dToI)
   | otherwise                                  = Nothing
   where dToI = 1 + fromEnum r - fromEnum '1'
         cToI = 1 + fromEnum c - fromEnum 'a'

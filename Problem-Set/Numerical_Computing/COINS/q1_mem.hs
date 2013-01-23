@@ -18,10 +18,10 @@ run m n
         in  (r, M.insert n r m3)
     where lookup = M.lookup n m
 main = do
-    ms &lt;- B.lines &lt;$> B.getContents
-    imap &lt;- newIORef M.empty
+    ms <- B.lines <$> B.getContents
+    imap <- newIORef M.empty
     forM_ ms $ \m -> do
-        im &lt;- readIORef imap
+        im <- readIORef imap
         let Just (n,_)  = B.readInteger m
             (res, im') = run im n
         writeIORef imap im'

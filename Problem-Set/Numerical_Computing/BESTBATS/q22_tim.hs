@@ -8,13 +8,13 @@ solve scores k = occurences splitAt scores `c` occurences splitAt (drop (length 
     occurences a xs = length $ filter (== a) xs
     splitAt = (sort scores) !! (length scores - k)
 solveLine caseNumber = do
-  input &lt;- getLine
+  input <- getLine
   let scores = map read $ words input
-  input &lt;- getLine
+  input <- getLine
   let k = read input
   let answer = solve scores k
   putStrLn $ show answer
 main = do
-  input &lt;- getLine
+  input <- getLine
   let cases = read input
   mapM_ solveLine [1..cases]

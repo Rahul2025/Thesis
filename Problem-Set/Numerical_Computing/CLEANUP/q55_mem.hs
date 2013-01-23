@@ -8,4 +8,4 @@ main = readLn >>= flip replicateM_ (intf >>= \[n, _] -> intf >>= \d -> putStr $ 
 f (x:y:zs) = (x:xs, y:ys) where (xs, ys) = f zs
 f v = (v, [])
 cute (schmo, ass) = intercalate " " (map show schmo) ++ "\n" ++ intercalate " " (map show ass) ++ "\n"
-intf = unfoldr (B.readInt . B.dropWhile isSpace) &lt;$> B.getLine
+intf = unfoldr (B.readInt . B.dropWhile isSpace) <$> B.getLine

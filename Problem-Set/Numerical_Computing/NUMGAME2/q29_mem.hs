@@ -11,4 +11,3 @@ win :: Int -> String
 win n
     |n `mod` 4 == 1 = "ALICE"
     |otherwise      = "BOB"
-

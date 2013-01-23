@@ -1,6 +1,6 @@
 import Data.Char
 import qualified Data.ByteString.Char8 as C
-isPrime p = p > 1 &amp;& (all (\n -> p `mod` n /= 0 ) $ takeWhile (\n -> n*n &lt;= p) (2:[3,5..]))
+isPrime p = p > 1 && (all (\n -> p `mod` n /= 0 ) $ takeWhile (\n -> n*n <= p) (2:[3,5..]))
 nextP str
      |C.reverse next == next = next
      |otherwise =if odd len then npalo next next else npalo (C.pack (show (10^(len)))) (C.pack (show (10^len)))
@@ -28,8 +28,8 @@ npale str glob = let l = (C.length str) `div` 2
                  in if (new>glob) then new else npale ( cpy (incdigit str (l-1)) l) glob
 conver bstring = read (C.unpack bstring)::Integer
 nextPr str
-     | str==C.reverse str &amp;& (isPrime ( conver str)) = str
+     | str==C.reverse str && (isPrime ( conver str)) = str
      |otherwise =  nextPr (nextP str) 
 main = do
-       k&lt;-C.getLine
+       k<-C.getLine
        C.putStrLn (nextPr  k)

@@ -10,7 +10,7 @@ change' m n = let (c1, m') = change' m (n `div` 2)
                   r = max (toInteger n) (c1 + c2 + c3)
               in (r, insert n r m''')
 change = fst . change' empty
-main = catch (do n &lt;- getLine
+main = catch (do n <- getLine
                  putStrLn $ show $ change (read n :: Int)
                  main)
              (\_ -> return ())

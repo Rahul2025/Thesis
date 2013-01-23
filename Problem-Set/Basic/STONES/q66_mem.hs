@@ -3,6 +3,6 @@ import Control.Monad
 main = readLn >>= flip replicateM_ runOneCase
 runOneCase :: IO ()
 runOneCase = do
-	jewels &lt;- getLine
-	stones &lt;- getLine
+	jewels <- getLine
+	stones <- getLine
 	putStrLn . show $ length $ filter (flip elem jewels) stones

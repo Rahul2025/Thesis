@@ -1,3 +1,10 @@
+/*
+ * The Computer Language Benchmarks Game
+ * http://shootout.alioth.debian.org/
+ *
+ * Contributed by Oleg Mazurov, June 2010
+ *
+ */
 
 import java.util.concurrent.atomic.AtomicInteger;
 

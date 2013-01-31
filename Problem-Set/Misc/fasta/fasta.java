@@ -1,7 +1,15 @@
+/*
+ * The Computer Language Benchmarks Game
+ * http://shootout.alioth.debian.org/
+ *
+ * modified by Mehmet D. AKIN
+ * modified by Rikard Mustajärvi
+ */
+
 import java.io.IOException;
 import java.io.OutputStream;
 
-class fasta {
+class fasta_4 {
    static final int IM = 139968;
    static final int IA = 3877;
    static final int IC = 29573;
@@ -46,12 +54,12 @@ class fasta {
                 0.3015094502008d}
           );
 
-   static final void makeRandomFasta(String id, String desc,
+   static final void makeRandomfasta_4(String id, String desc,
          FloatProbFreq fpf, int nChars, OutputStream writer)
          throws IOException
    {
-      final int LINE_LENGTH = fasta.LINE_LENGTH;
-      final int BUFFER_SIZE = fasta.BUFFER_SIZE;
+      final int LINE_LENGTH = fasta_4.LINE_LENGTH;
+      final int BUFFER_SIZE = fasta_4.BUFFER_SIZE;
       byte[] buffer = new byte[BUFFER_SIZE];
 
       if (buffer.length % (LINE_LENGTH + 1) != 0) {
@@ -87,15 +95,15 @@ class fasta {
       writer.write(buffer, 0, bufferIndex);
    }
 
-    static final void makeRepeatFasta(
+    static final void makeRepeatfasta_4(
           String id, String desc, String alu,
           int nChars, OutputStream writer) throws IOException
     {
        final byte[] aluBytes = alu.getBytes();
        int aluIndex = 0;
 
-       final int LINE_LENGTH = fasta.LINE_LENGTH;
-       final int BUFFER_SIZE = fasta.BUFFER_SIZE;
+       final int LINE_LENGTH = fasta_4.LINE_LENGTH;
+       final int BUFFER_SIZE = fasta_4.BUFFER_SIZE;
        byte[] buffer = new byte[BUFFER_SIZE];
 
        if (buffer.length % (LINE_LENGTH + 1) != 0) {
@@ -145,9 +153,9 @@ class fasta {
       }
 
         OutputStream out = System.out;
-        makeRepeatFasta("ONE", "Homo sapiens alu", ALU, n * 2, out);
-        makeRandomFasta("TWO", "IUB ambiguity codes", IUB, n * 3, out);
-        makeRandomFasta("THREE", "Homo sapiens frequency", HOMO_SAPIENS, n * 5, out);
+        makeRepeatfasta_4("ONE", "Homo sapiens alu", ALU, n * 2, out);
+        makeRandomfasta_4("TWO", "IUB ambiguity codes", IUB, n * 3, out);
+        makeRandomfasta_4("THREE", "Homo sapiens frequency", HOMO_SAPIENS, n * 5, out);
         out.close();
     }
 

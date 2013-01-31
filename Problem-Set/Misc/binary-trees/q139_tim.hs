@@ -1,3 +1,9 @@
+--
+-- The Computer Language Benchmarks Game
+-- http://shootout.alioth.debian.org/
+--
+-- Contributed by Don Stewart
+-- Parallelized by Louis Wasserman
 
 import System.Environment
 import Control.Monad

@@ -1,7 +1,12 @@
+/**
+ * The Computer Language Benchmarks Game
+ * http://shootout.alioth.debian.org/
+ * contributed by Klaus Friedel
+ */
 
 import java.util.concurrent.locks.LockSupport;
 
-public class threadring {
+public class threadring_3 {
   static final int THREAD_COUNT = 503;
 
   public static class MessageThread extends Thread {

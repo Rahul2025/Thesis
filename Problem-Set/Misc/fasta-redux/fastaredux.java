@@ -1,6 +1,14 @@
+/*
+ * The Computer Language Benchmarks Game
+ * http://shootout.alioth.debian.org/
+ *
+ * modified by Enotus
+ *
+ */
+
 import java.io.*;
 
-public class fastaredux {
+public class fastaredux_3 {
 
     static final int LINE_LENGTH = 60;
     static final int OUT_BUFFER_SIZE = 256*1024;

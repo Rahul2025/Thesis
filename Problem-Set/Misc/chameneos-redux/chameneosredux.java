@@ -1,3 +1,8 @@
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+
+   contributed by Michael Barker
+*/
 
 
 import java.util.concurrent.ArrayBlockingQueue;

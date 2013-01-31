@@ -1,3 +1,11 @@
+#    The Computer Language Benchmarks Game
+#    http://shootout.alioth.debian.org/
+
+#    contributed by Isaac Gouy
+#    converted to Java by Oleg Mazurov
+#    converted to Python by Buck Golemon
+#    modified by Justin Peel
+
 def fannkuch(n):
     maxFlipsCount = 0
     permSign = True

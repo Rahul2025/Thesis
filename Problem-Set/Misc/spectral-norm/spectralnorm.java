@@ -1,8 +1,17 @@
+/*
+The Computer Language Benchmarks Game
+http://shootout.alioth.debian.org/
+ 
+Based on C# entry by Isaac Gouy
+contributed by Jarkko Miettinen
+Parallel by The Anh Tran
+ */
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.concurrent.CyclicBarrier;
 
-public class spectralnorm
+public class spectralnorm_2
 {
     private static final NumberFormat formatter = new DecimalFormat ("#.000000000");
     
@@ -11,11 +20,11 @@ public class spectralnorm
         int n = 1000;
         if (args.length > 0) n = Integer.parseInt (args[0]);
         
-        System.out.println (formatter.format (spectralnormGame (n)) );
+        System.out.println (formatter.format (spectralnorm_2Game (n)) );
     }
     
     
-    private static final double spectralnormGame (int n)
+    private static final double spectralnorm_2Game (int n)
     {
         // create unit vector
         double[] u = new double[n];

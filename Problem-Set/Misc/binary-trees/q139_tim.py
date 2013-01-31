@@ -1,3 +1,8 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+#
+# contributed by Antoine Pitrou
+# modified by Dominique Wahli and Daniel Nanz
 
 from __future__ import print_function
 

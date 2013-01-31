@@ -1,82 +1,78 @@
-import Control.Monad
-import Foreign
+--
+-- The Computer Language Benchmarks Game
+-- http://shootout.alioth.debian.org/
+--
+-- Contributed by Sterling Clover
+-- Heavily inspired by contribution from Don Stewart
+-- Inlining improvements by Don Stewart.
+--
+
+import qualified Data.ByteString.Char8 as S
 import Data.ByteString.Internal
-import System.IO
+import Data.ByteString.Unsafe
+import Foreign
+import Control.Arrow
+import GHC.Base
+import GHC.Ptr
+import GHC.IO
 
-data Buf = Buf !Int !Int !(Ptr Word8) 
+main = uncurry proc =<< clines `fmap` S.getContents
 
-withBuf run = run . Buf 0 ini =<< mallocBytes ini
-  where ini = 1024
+proc [] _ = return ()
+proc (h:hs) (b:bs) = S.putStrLn h >> revcomp b >> writeFasta b >> proc hs bs
 
-newSize len sz
-  | len <= sz  = sz
-  | otherwise  = newSize len (2 * sz)
+writeFasta t
+    | S.null t  = return ()
+    | otherwise = S.putStrLn l >> writeFasta r
+    where (l,r) = S.splitAt 60 t
 
-{-# INLINE putBuf #-}
-putBuf pS lS (Buf lD szD pD) run
-  | lD' > szD  = do
-    let szD' = newSize lD' szD
-    pD' <- reallocBytes pD szD'
-    copyArray (pD' +* lD) pS lS
-    run (Buf lD' szD' pD')
-  | otherwise  = do
-    copyArray (pD +* lD) pS lS
-    run (Buf lD' szD pD)
-  where lD' = lD + lS
-
-findChar p n c zero one = do
-    q <- memchr p c (fromIntegral (n :: Int))
-    if q == nullPtr then zero else one $! q `minusPtr` p
-
-clearBuf (Buf _ lB pB) = Buf 0 lB pB
-
-main = allocaArray 82 $ \ line ->
-  let go !buf = do
-      !m <- hGetBuf stdin line 82
-      if m == 0 then revcomp buf else do
-        findChar line m (c2w '>') 
-          (putBuf line m buf go)
-          (\ end -> do
-            putBuf line end buf revcomp
-            putBuf (line +* end) (m - end) (clearBuf buf)
-              go)
-    in withBuf go
-
-(+*) = advancePtr
+clines :: ByteString -> ([ByteString],[ByteString])
+clines ps = clines' ps ([],[])
+    where
+      {-# INLINE clines' #-}
+      clines' ps accum@(f,s)
+          | otherwise = case S.elemIndex '\n' ps of
+                          Just n  -> clines'' (S.drop (n+1) ps) (f++[S.take n ps],s)
+      clines'' ps accum@(f,s)
+          | otherwise = case S.elemIndex '>' ps of
+                      Nothing -> (f,s++[S.filter (/='\n') ps])
+                      Just n  -> clines' (S.drop n ps) (f,s++[S.filter (/='\n') . S.take n $ ps])
 
 {-# INLINE comps #-}
-comps = Prelude.zipWith (\ a b -> (fromEnum a, c2w b)) "AaCcGgTtUuMmRrYyKkVvHhDdBb" 
-  "TTGGCCAAAAKKYYRRMMBBDDHHVV"
+comps = map (ord *** c2w) [
+    ('A' , 'T'), ( 'a' , 'T'), ( 'C' , 'G'), ( 'c' , 'G'), ( 'G' , 'C'),
+    ('g' , 'C'), ( 'T' , 'A'), ( 't' , 'A'), ( 'U' , 'A'), ( 'u' , 'A'),
+    ('M' , 'K'), ( 'm' , 'K'), ( 'R' , 'Y'), ( 'r' , 'Y'), ( 'Y' , 'R'),
+    ('y' , 'R'), ( 'K' , 'M'), ( 'k' , 'M'), ( 'V' , 'B'), ( 'v' , 'B'),
+    ('H' , 'D'), ( 'h' , 'D'), ( 'D' , 'H'), ( 'd' , 'H'), ( 'B' , 'V'), ( 'b' , 'V')]
 
 ca :: Ptr Word8
 ca = inlinePerformIO $ do
-       !a <- mallocArray 200
-       mapM_ (\ i -> pokeByteOff a (fromIntegral i) i ) [0..199::Word8]
+       a <- mallocArray 200
+       mapM_ (uncurry (pokeByteOff a)) $ zip [0..199::Int] [0..199::Word8]
        mapM_ (uncurry (pokeByteOff a)) comps
        return a
 
-revcomp (Buf lBuf _ pBuf) = when (lBuf > 0) $ ca `seq`
-  findChar pBuf lBuf (c2w '\n') undefined $ \ begin -> let
-    begin' = begin + 1
-    rc :: Ptr Word8 -> Ptr Word8 -> IO ()
-    rc !i !j | i < j = do
-      x <- peek i
-      if x == c2w '\n' then let !i' = i +* 1 in rc1 j i' =<< peek i'
-        else rc1 j i x
-    rc i j = when (i == j) (poke i =<< comp =<< peek i)
-    
-    rc1 !j !i !xi = do
-      y <- peek j
-      if y == c2w '\n' then let !j' = j +* (-1) in rc2 i xi j' =<< peek j'
-        else rc2 i xi j y
-    
-    comp = peekElemOff ca . fromIntegral
-    
-    rc2 !i !xi !j !xj = do
-      poke j =<< comp xi
-      poke i =<< comp xj
-      rc (i +* 1) (j +* (-1))
-    in do
-      hPutBuf stdout pBuf begin'
-      rc (pBuf +* begin') (pBuf +* (lBuf - 1))
-      hPutBuf stdout (pBuf +* begin') (lBuf - begin - 1)
+comp :: Word# -> Word#
+comp c = rw8 ca (word2Int# c)
+
+revcomp (PS fp s (I# l)) = withForeignPtr fp $ \p -> rc (p `plusPtr` s) 0# (l -# 1#)
+  where
+    rc :: Ptr Word8 -> Int# -> Int# -> IO ()
+    rc p i j  = rc' i j
+        where
+          rc' i j
+              | i <# j = do
+                          let x = rw8 p i
+                          ww8 p i (comp (rw8 p j))
+                          ww8 p j (comp x)
+                          rc' (i +# 1#) (j -# 1#)
+              | i ==# j = ww8 p i (comp (rw8 p i))
+              | otherwise =  return ()
+
+rw8 :: Ptr Word8 -> Int# -> Word#
+rw8 (Ptr a) i = case readWord8OffAddr# a i realWorld#  of (# _, x #) ->  x
+{-# INLINE rw8 #-}
+
+ww8 :: Ptr Word8 -> Int# -> Word# -> IO ()
+ww8 (Ptr a) i x  = IO $ \s -> case writeWord8OffAddr# a i x s of s2 -> (# s2, () #)

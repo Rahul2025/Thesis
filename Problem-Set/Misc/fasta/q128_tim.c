@@ -1,3 +1,9 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+ *
+ *  contributed by Mr Ledrug
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

@@ -1,6 +1,6 @@
 import java.io.*;
 
-public class fastaredux_mem {
+public class fastaredux {
 
     static final int LINE_LENGTH = 60;
     static final int OUT_BUFFER_SIZE = 256*1024;

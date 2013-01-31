@@ -1,93 +1,43 @@
-import Control.Concurrent
-import Control.Monad
+{-  The Computer Language Benchmarks Game
+    http://shootout.alioth.debian.org/
+    contributed by Miha Vučkovič
+-}
+
 import System.Environment
-import Foreign hiding (rotate)
-import Data.Monoid
+import Control.Applicative
 
-type Perm = Ptr Word8
+flop (2:x1:t) = x1:2:t
+flop (3:x1:x2:t) = x2:x1:3:t
+flop (4:x1:x2:x3:t) = x3:x2:x1:4:t
+flop (5:x1:x2:x3:x4:t) = x4:x3:x2:x1:5:t
+flop (6:x1:x2:x3:x4:x5:t) = x5:x4:x3:x2:x1:6:t
+flop (7:x1:x2:x3:x4:x5:x6:t) = x6:x5:x4:x3:x2:x1:7:t
 
-data F = F {-# UNPACK #-} !Int {-# UNPACK #-} !Int
+flop lst@(h:_) = r where
+	(t, r) = flop' h (lst, t)
+	flop' 0 (t, r) = (t, r)
+	flop' n ((h:t), r) = flop' (n-1) (t, h:r)
 
-instance Monoid F where
-	mempty = F 0 0
-	F s1 m1 `mappend` F s2 m2 = F (s1 + s2) (max m1 m2)
+flopS (1:_) = 0
+flopS lst = 1 + flopS (flop lst)
 
-incPtr = (`advancePtr` 1)
-decPtr = (`advancePtr` (-1))
+rotate n (h:t) = rotate' (n-1) t where
+	rotate' 0 l = h:l
+	rotate' n (f:t) = f:(rotate' (n-1) t)
 
-flop :: Int -> Perm -> IO ()
-flop k xs = flopp xs (xs `advancePtr` k)
- where flopp i j = when (i < j) $ swap i j >> flopp (incPtr i) (decPtr j)
-       swap i j = do
-	a <- peek i
-	b <- peek j
-	poke j a
-	poke i b
+checksum i f
+   | mod i 2 == 0 = f
+   | True = -f
 
-flopS :: Perm -> (Int -> IO a) -> IO a
-flopS !xs f = do
-	let go !acc = do
-		k <- peekElemOff xs 0
-		if k == 0 then f acc else flop (fromIntegral k) xs >> go (acc+1)
-	go 0
+pfold r [] = r
+pfold (ac, af) ((c, f):t)  = seq sc $ seq sf $ pfold (sc, sf) t where 
+	sc = ac+c
+	sf = max af f
 
-increment :: Ptr Word8 -> Ptr Word8 -> IO ()
-increment !p !ct = do
-	first <- peekElemOff p 1
-	pokeElemOff p 1 =<< peekElemOff p 0
-	pokeElemOff p 0 first
-	
-	let go !i !first = do
-		ci <- peekElemOff ct i
-		if fromIntegral ci < i then pokeElemOff ct i (ci+1) else do
-			pokeElemOff ct i 0
-			let !i' = i + 1
-			moveArray p (incPtr p) i'
-			pokeElemOff p i' first
-			go i' =<< peekElemOff p 0
-	go 1 first  
-
-genPermutations :: Int -> Int -> Int -> Ptr Word8 -> Ptr Word8 -> IO F
-genPermutations !n !l !r !perm !count = allocaArray n $ \ destF -> do
-	let upd j !f run = do
-		p0 <- peekElemOff perm 0
-		if p0 == 0 then increment perm count >> run f else do
-			copyArray destF perm n
-			increment perm count
-			flopS destF $ \ flops -> 
-				run (f `mappend` F (checksum j flops) flops)
-	let go j !f = if j >= r then return f else upd j f (go (j+1))
-	go l mempty
- where checksum i f = if i .&. 1 == 0 then f else -f
-
-facts :: [Int]
-facts = scanl (*) 1 [1..12]
-
-unrank :: Int -> Int -> (Ptr Word8 -> Ptr Word8 -> IO a) -> IO a
-unrank !idx !n f = allocaArray n $ \ p -> allocaArray n $ \ count ->
-  allocaArray n $ \ pp -> do
-	mapM_ (\ i -> pokeElemOff p i (fromIntegral i)) [0..n-1]
-	let go i !idx = when (i >= 0) $ do
-		let fi = facts !! i
-		let (q, r) = idx `quotRem` fi
-		pokeElemOff count i (fromIntegral q)
-		copyArray pp p (i+1)
-		let go' j = when (j <= i) $ do
-			let jq = j + q
-			pokeElemOff p j =<< peekElemOff pp (if jq <= i then jq else jq - i - 1)
-			go' (j+1)
-		go' 0
-		go (i-1) r
-	go (n-1) idx
-	f p count
+permut n = foldr perm [[1..n]] [2..n] where
+   perm x lst = concat [take x $ iterate (rotate x) l | l <- lst]
 
 main = do
-   n <- fmap (read.head) getArgs
-   let fact = product [1..n]
-   let bk = fact `quot` 4
-   vars <- forM [0,bk..fact-1] $ \ ix -> do
-   	var <- newEmptyMVar
-   	forkIO (unrank ix n $ \ p -> genPermutations n ix (min fact (ix + bk)) p >=> putMVar var)
-   	return var
-   F chksm mflops <- liftM mconcat (mapM takeMVar vars)
+   n <- read.head <$> getArgs
+   let (chksm, mflops) = pfold (0,0) $ map (\(i, p) -> let flops = flopS p in (checksum i flops, flops)) $ zip [0..] (permut n)
    putStrLn $ (show chksm) ++ "\nPfannkuchen(" ++ (show n) ++ ") = " ++ (show $ mflops)

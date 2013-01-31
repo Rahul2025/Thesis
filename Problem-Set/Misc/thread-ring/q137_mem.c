@@ -1,3 +1,8 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+ *
+ * contributed by Ricardo Garcia
+ */
 
 #include <assert.h>
 #include <pthread.h>

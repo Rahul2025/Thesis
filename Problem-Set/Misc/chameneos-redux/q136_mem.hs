@@ -1,3 +1,13 @@
+{-# LANGUAGE CPP #-}
+{- The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+   Written by Tom Pledger, 13 Nov 2006. modified by Don Stewart
+   Updated for chameneos-redux by Spencer Janssen, 27 Nov 2007
+   Modified by Péter Diviánszky, 19 May 2010
+   Modified by Louis Wasserman, 14 June 2010
+
+   Should be compiled with -O2 -threaded -fvia-c -optc-O3 and run with +RTS -N<number of cores>.
+   -}
 
 import Control.Concurrent
 import Control.Monad

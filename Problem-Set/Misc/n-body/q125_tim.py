@@ -1,3 +1,11 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+#
+# originally by Kevin Carson
+# modified by Tupteq, Fredrik Johansson, and Daniel Nanz
+# modified by Maciej Fijalkowski
+# 2to3
+
 import sys 
 
 def combinations(l):

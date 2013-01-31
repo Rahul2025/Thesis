@@ -1,63 +1,82 @@
+/**
+ * The Computer Language Benchmarks Game
+ * http://shootout.alioth.debian.org/
+ *
+ * contributed by Fabien Le Floc'h
+ *
+ * This implementation cheats by adapting closely to the benchmark specifications. 
+ * We use only 1 thread to process messages, we don't use a blocking queue but 
+ * instead a linked list. The Nodes don't map directly to a thread, even though
+ * they are processed in a different thread (the consumer). This is probably this kind
+ * of scheme that more advanced languages like Haskell do behind the scenes.
+ * 
+ * I say it is a bit cheating because we don't use here a concurrent queue, because 
+ * we know everything is processed in 1 thread: the consumer except the first message.
+ */
 
-import java.util.concurrent.locks.LockSupport;
 
-public class threadring_mem {
-  static final int THREAD_COUNT = 503;
+import java.util.LinkedList;
+import java.util.Queue;
 
-  public static class MessageThread extends Thread {
-    MessageThread nextThread;
-    volatile Integer message;
 
-    public MessageThread(MessageThread nextThread, int name) {
-      super(""+name);
-      this.nextThread = nextThread;
+public class threadring_6 {
+    public static void main(String[] args) {
+        Node[] ring = new Node[503];
+        for (int i=0; i<ring.length; i++) {
+            ring[i] = new Node(i+1);
+        }
+        for (int i=0; i<ring.length; i++) {
+            int nextIndex = (ring[i].label % ring.length);
+            ring[i].next = ring[nextIndex];            
+        }
+        int nHops = Integer.parseInt(args[0]);
+        new Thread(new Consumer()).start();
+        ring[0].sendMessage(nHops);
     }
 
-    public void run() {
-      while(true) nextThread.enqueue(dequeue());
+    private static Queue<Node> q = new LinkedList<Node>();
+
+    static class Consumer implements Runnable {
+
+        public void run() {
+            while (true) {
+                try {
+                    Node node;
+                    node = q.poll();
+                    if (node == null) {
+                        //ignore, wait for some element
+                        Thread.sleep(100);
+                    } else {
+                        node.run();
+                    } 
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
+    static class Node implements Runnable {
+        private final int label;
+        private Node next;
+        private int message;
 
-    public void enqueue(Integer hopsRemaining) {
-      if(hopsRemaining == 0){
-        System.out.println(getName());
-        System.exit(0);
-      }
-      // as only one message populates the ring, it's impossible
-      // that queue is not empty
-      message = hopsRemaining - 1;
-      LockSupport.unpark(this); // work waiting...
+        public Node(int label) {
+            this.label = label;
+        }
+
+        public void sendMessage(int message) {
+            this.message=message;
+            q.add(this);            
+        }
+
+        public void run() {
+            //                System.out.println("after lock");
+            if (message == 0) {
+                System.out.println(label);
+                System.exit(0);
+            } else {
+                next.sendMessage(message - 1);
+            }
+        }
     }
-
-    private Integer dequeue(){
-      while(message == null){
-        LockSupport.park();
-      }
-      Integer msg = message;
-      message = null;
-      return msg;
-    }
-  }
-
-  public static void main(String args[]) throws Exception{
-    int hopCount = Integer.parseInt(args[0]);
-
-    MessageThread first = null;
-    MessageThread last = null;
-    for (int i = THREAD_COUNT; i >= 1 ; i--) {
-      first = new MessageThread(first, i);
-      if(i == THREAD_COUNT) last = first;
-    }
-    // close the ring:
-    last.nextThread = first;
-
-    // start all Threads
-    MessageThread t = first;
-    do{
-      t.start();
-      t = t.nextThread;
-    }while(t != first);
-    // inject message
-    first.enqueue(hopCount);
-    first.join(); // wait for System.exit
-  }
 }

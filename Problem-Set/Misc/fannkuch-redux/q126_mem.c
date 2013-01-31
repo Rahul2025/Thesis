@@ -1,87 +1,82 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+ *
+ * converted to C by Joseph Piché
+ * from Java version by Oleg Mazurov and Isaac Gouy
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
-/* this depends highly on the platform.  It might be faster to use
-   char type on 32-bit systems; it might be faster to use unsigned. */
-
-typedef int elem;
-
-elem s[16], t[16];
-
-int maxflips = 0;
-int max_n;
-int odd = 0;
-int checksum = 0;
-
-int flip()
+inline static int max(int a, int b)
 {
-   register int i;
-   register elem *x, *y, c;
-
-   for (x = t, y = s, i = max_n; i--; )
-      *x++ = *y++;
-   i = 1;
-   do {
-      for (x = t, y = t + t[0]; x < y; )
-         c = *x, *x++ = *y, *y-- = c;
-      i++;
-   } while (t[t[0]]);
-   return i;
+    return a > b ? a : b;
 }
 
-inline void rotate(int n)
+int fannkuchredux(int n)
 {
-   elem c;
-   register int i;
-   c = s[0];
-   for (i = 1; i <= n; i++) s[i-1] = s[i];
-   s[n] = c;
+    int perm[n];
+    int perm1[n];
+    int count[n];
+    int maxFlipsCount = 0;
+    int permCount = 0;
+    int checksum = 0;
+
+    int i;
+
+    for (i=0; i<n; i+=1)
+        perm1[i] = i;
+    int r = n;
+
+    while (1) {
+        while (r != 1) {
+            count[r-1] = r;
+            r -= 1;
+        }
+
+        for (i=0; i<n; i+=1)
+            perm[i] = perm1[i];
+        int flipsCount = 0;
+        int k;
+
+        while ( !((k = perm[0]) == 0) ) {
+            int k2 = (k+1) >> 1;
+            for (i=0; i<k2; i++) {
+                int temp = perm[i]; perm[i] = perm[k-i]; perm[k-i] = temp;
+            }
+            flipsCount += 1;
+        }
+
+        maxFlipsCount = max(maxFlipsCount, flipsCount);
+        checksum += permCount % 2 == 0 ? flipsCount : -flipsCount;
+
+        /* Use incremental change to generate another permutation */
+        while (1) {
+            if (r == n) {
+                printf("%d\n", checksum);
+                return maxFlipsCount;
+            }
+
+            int perm0 = perm1[0];
+            i = 0;
+            while (i < r) {
+                int j = i + 1;
+                perm1[i] = perm1[j];
+                i = j;
+            }
+            perm1[r] = perm0;
+            count[r] = count[r] - 1;
+            if (count[r] > 0) break;
+            r++;
+        }
+        permCount++;
+    }
 }
 
-/* Tompkin-Paige iterative perm generation */
-void tk(int n)
+int main(int argc, char *argv[])
 {
-   int i = 0, f;
-   elem c[16] = {0};
-
-   while (i < n) {
-      rotate(i);
-      if (c[i] >= i) {
-         c[i++] = 0;
-         continue;
-      }
-
-      c[i]++;
-      i = 1;
-      odd = ~odd;
-      if (*s) {
-         f = s[s[0]] ? flip() : 1;
-         if (f > maxflips) maxflips = f;
-         checksum += odd ? -f : f;
-      }
-   }
-}
-
-int main(int argc, char **v)
-{
-   int i;
-
-   if (argc < 2) {
-      fprintf(stderr, "usage: %s number\n", v[0]);
-      exit(1);
-   }
-
-   max_n = atoi(v[1]);
-   if (max_n < 3 || max_n > 15) {
-      fprintf(stderr, "range: must be 3 <= n <= 12\n");
-      exit(1);
-   }
-
-   for (i = 0; i < max_n; i++) s[i] = i;
-   tk(max_n);
-
-   printf("%d\nPfannkuchen(%d) = %d\n", checksum, max_n, maxflips);
-
-   return 0;
+    int n = argc > 1 ? atoi(argv[1]) : 7;
+    printf("Pfannkuchen(%d) = %d\n", n, fannkuchredux(n));
+    return 0;
 }

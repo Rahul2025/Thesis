@@ -1,829 +1,494 @@
-import java.util.*;
+/* The Computer Language Shootout
+   http://shootout.alioth.debian.org/
 
-public final class meteor_mem
-{
-    static final int X = 0;
-    static final int Y = 1;
-    static final int N_DIM = 2;
+   contributed by Tony Seebregts
+   modified by 
+*/
 
-    static final int EVEN = 0;
-    static final int ODD = 1;
-    static final int N_PARITY = 2;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
-    static final int GOOD = 0;
-    static final int BAD = 1;
-    static final int ALWAYS_BAD = 2;
+/** First hack at a Java solver for the meteor puzzle - just the IBM 
+  * developerWorks article algorithm optimized with precalculated shapes 
+  * and bitmasks. Should be possible to optimize it some more to take 
+  * advantage of reflections but its turning out to be less obvious 
+  * than expected :-).
+  * <p>
+  * Notes:
+  * <ul>
+  * <li>Seems to run faster without the -server switch.
+  * <li>Testing for islands seems to be slower than just fitting pieces.
+  * </ul>
+  * 
+  * @author Tony Seebregts
+  *
+  */
+  
+public class meteor
+   { // CONSTANTS
+       
+     private static final int[]    SHIFT = { 0,6,11,17,22,28,33,39,44,50 };
+     private static final long[][] MASK  = { { 0x01L,      0x02L,      0x04L,      0x08L,      0x10L   },
+                     { 0x01L << 6, 0x02L << 6, 0x04L << 6, 0x08L <<  6,0x10L << 6  },
+                     { 0x01L << 11,0x02L << 11,0x04L << 11,0x08L << 11,0x10L << 11 },
+                     { 0x01L << 17,0x02L << 17,0x04L << 17,0x08L << 17,0x10L << 17 },
+                     { 0x01L << 22,0x02L << 22,0x04L << 22,0x08L << 22,0x10L << 22 },
+                     { 0x01L << 28,0x02L << 28,0x04L << 28,0x08L << 28,0x10L << 28 },
+                     { 0x01L << 33,0x02L << 33,0x04L << 33,0x08L << 33,0x10L << 33 },
+                     { 0x01L << 39,0x02L << 39,0x04L << 39,0x08L << 39,0x10L << 39 },
+                     { 0x01L << 44,0x02L << 44,0x04L << 44,0x08L << 44,0x10L << 44 },
+                     { 0x01L << 50,0x02L << 50,0x04L << 50,0x08L << 50,0x10L << 50 }
+                       };
+     
+     private static final boolean DEBUG = false;
 
-    static final int OPEN    = 0;
-    static final int CLOSED  = 1;
-    static final int N_FIXED = 2;
+     // CLASS VARIABLES
+     
+     // INSTANCE VARIABLES
+     
+     private SortedSet<String> solutions = new TreeSet<String>();
+     private Entry[]       solution  = new Entry[10];
+     private int       depth     = 0;
+     private Piece[]       pieces    = { new Piece(PIECE0),
+                     new Piece(PIECE1),
+                     new Piece(PIECE2),
+                     new Piece(PIECE3),
+                     new Piece(PIECE4),
+                     new Piece(PIECE5),
+                     new Piece(PIECE6),
+                     new Piece(PIECE7),
+                     new Piece(PIECE8),
+                     new Piece(PIECE9)
+                       };
+       
+     // CLASS METHODS
 
-    static final int MAX_ISLAND_OFFSET = 1024;
-    static final int N_COL = 5;
-    static final int N_ROW = 10;
-    static final int N_CELL = N_COL * N_ROW;
-    static final int N_PIECE_TYPE = 10;
-    static final int N_ORIENT = 12;
+     /** Application entry point.
+       * 
+       * @param args  Command line arguments:
+       *      <ul>
+       *      <li> solution limit
+       *      </ul>
+       */
+     
+     public static void main(String[] args)
+        { int N = 2098;
+        
+          // ... parse command line arguments
+        
+          if (args.length > 0)
+         if (args[0].matches("\\d+"))
+            N = Integer.parseInt(args[0]);
+            
+          // ... solve puzzle
+          
+          meteor        puzzle = new meteor ();
+          Date      start;
+          Date      end;
+          long      time;
+          SortedSet<String> solutions;
+          
+          start     = new Date();
+          solutions = puzzle.solve();
+          end   = new Date();
+          time      = end.getTime() - start.getTime();      
+          
+          // ... print result
+            
+          if (solutions.size() > N)
+         System.out.println("ERROR");
+         else if (solutions.size() < N)
+         System.out.println("TIMEOUT");
+         else
+         { if (DEBUG)
+              { System.out.println("START    : " + start);
+            System.out.println("END      : " + end);
+            System.out.println("TIME     : " + time);
+            System.out.println("SOLUTIONS: " + solutions.size ());
+            System.out.println("FIRST    : " + solutions.first());
+            System.out.println("LAST     : " + solutions.last ());
+            System.out.println();
+              }
+           
+           System.out.print(solutions.size () + " solutions found\n\n");
+           print(solutions.first());
+           System.out.print("\n");
+           print(solutions.last ());
+           System.out.print("\n");
+         }
+        }
 
+     /** Prints out the puzzle.
+       * 
+       * 
+       */
+    
+     private static void print (String solution)
+         { System.out.print(solution.replaceAll("(\\d{5})(\\d{5})","$1 $2")
+                    .replaceAll("(\\d{5})","$1\n")
+                    .replaceAll("(\\d)","$1 "));
+         }
 
-//-- Globals -------------------------
+     // CONSTRUCTORS
+     
+     /** Initialises the puzzle.
+       * 
+       */
 
-    static IslandInfo[] g_islandInfo = new IslandInfo [MAX_ISLAND_OFFSET];
-    static int g_nIslandInfo = 0;
-    static OkPieces[][] g_okPieces = new OkPieces [N_ROW][N_COL];
+     public meteor ()
+        { for (int i=0; i<10; i++)
+          solution[i] = new Entry();
+        }
+     
+     // INSTANCE METHODS
+     
+     /** Initialises the puzzle and solution set at [0,0]
+       *
+       * @return Sorted list of solution strings.
+       */ 
+     
+     private SortedSet<String> solve()
+         { solve(0x0002004008010020L,0,0);
+         
+           return solutions;
+         }
+     
+     /** Recursively solves the puzzle by fitting pieces into the 
+       * next available hexagon.
+       * 
+       * @param puzzle  Current puzzle bitmask.
+       * @param row     Row of next available hexagon. 
+       * @param col     Column next available hexagon. 
+       * 
+       */
+      
+     private void solve (long puzzle,int row,int col)
+         { for (int ix=0; ix<pieces.length; ix++)
+           { Piece   piece;
+             Shape[] list;
+ 
+             // ... find shapes that fit
+             
+             if ((piece = pieces[ix]) == null)
+            continue;
+            else
+            list  = pieces[ix].shapes(row,col);
+               
+             for (Shape shape: list)
+             { // ... fits badly ?
+          
+               if ((shape.bitmap & puzzle) != 0)
+                  continue;
+               
+               // ... try piece in puzzle
+ 
+               long clone = puzzle | shape.bitmap;
+ 
+               // ... find next position
+                
+               int irow = row;
+               int icol = col/2 + 1;
+                
+               next:
+               while (irow < 10)
+                 { while (icol < 5)
+                     { if ((clone & MASK[irow][icol]) == 0)
+                      break next;
+                              
+                       icol++;
+                     }
+                         
+                   irow++;
+                   icol = 0;
+                 }
+                 
+               // ... solve next
+               
+               Entry entry;
+                 
+               pieces[ix]  = null;
+               entry   = solution[depth++];
+               entry.row   = row;
+               entry.col   = col;
+               entry.shape = shape;
+ 
+               if (depth == 10)
+                  solutions.add(serialize(solution));
+                  else
+                  solve (clone,irow,2*icol + (irow % 2));
+                
+               depth--;
+               pieces[ix] = piece;
+             }
+           }
+         }
+      
+     /** Serializes the current solution to a string.
+       * 
+       */
+      
+     private String serialize (Entry[] solution)
+         { char[] puzzle = new char[50];
+           Shape   shape;
+           int     row;
+           int     col;
+           
+           for (Entry entry: solution)
+           { shape = entry.shape;
+             row   = entry.row;
+             col   = entry.col;
+             
+             for (int[] xy: shape.vector)
+             puzzle[5 * (row + xy[0]) + (col + xy[1])/2] = shape.symbol;
+           }
+      
+           return new String(puzzle);
+         }
+    
+     // INNER CLASSES
+     
+     /** Container class for a solution set entry.
+       * 
+       */
+     
+     private static class Entry
+         { public int   row;
+           public int   col;
+           public Shape shape; 
+         }
+     
+     /** Container class for the shapes for a single puzzle piece.
+       * 
+       * 
+       */
+     
+     private static class Piece
+         { private Shape[][][] shapes = new Shape[10][10][];
+         
+           @SuppressWarnings("unchecked")
+           private Piece (Shape[] list)
+               { // ... initialise
+               
+             ArrayList[][] array = new ArrayList[10][10];
+             
+             for (int i=0; i<10; i++)
+                 for (int j=0; j<10; j++)
+                 array[i][j] = new ArrayList<Shape>();
+             
+             // ... generate list
+             
+             for (Shape mutant: list)
+                 for (int row=0; row<=mutant.maxRow; row++)
+                 for (int col=mutant.minCol; col<=mutant.maxCol; col++)
+                     { if (!mutant.islet)
+                      array[row][col].add(new Shape(mutant,row,col));
+                      else if ((row != 0) || (col != 0))
+                      array[row][col].add(new Shape(mutant,row,col));
+                     }
+             
+             for (int row=0; row<10; row++)
+                 for (int col=0; col<10; col++)
+                 shapes[row][col] = (Shape[]) array[row][col].toArray(new Shape[0]);
+               }
+           
+           @SuppressWarnings("unchecked")
+           private Shape[] shapes(int row,int col)
+               { return shapes[row][col];
+               }
+         
+         }
 
-    static final int g_firstRegion[] = {
-        0x00, 0x01, 0x02, 0x03,   0x04, 0x01, 0x06, 0x07,
-        0x08, 0x01, 0x02, 0x03,   0x0c, 0x01, 0x0e, 0x0f,
+     /** Container class for the shape vector and bitmap single puzzle piece mutation.
+       * 
+       * 
+       */
+     
+     private static class Shape
+        { private char    symbol;
+          private int[][] vector;
+          private long    bitmap;
+          private int     shift;
+          
+          private boolean islet;
+          private int     maxRow;
+          private int     minCol;
+          private int     maxCol;
+          
+          private Shape (char    symbol,
+                 int[][] vector,
+                 long    bitmap,
+                 int     shift,
+                 boolean islet,
+                 int     maxRow,
+                 int     minCol,
+                 int     maxCol)
+              { this.symbol  = symbol;
+            this.vector  = vector;
+            this.bitmap  = bitmap;
+            this.shift   = shift;
+            
+            this.islet   = islet;
+            this.maxRow  = maxRow;
+            this.minCol  = minCol;
+            this.maxCol  = maxCol;
+              }
+          
+          private Shape (Shape shape,
+                 int   row,
+                 int   col)
+              { this.symbol  = shape.symbol;
+            this.vector  = shape.vector;
+            this.bitmap  = shape.bitmap << ((SHIFT[row] + (col - (row % 2))/2) - shape.shift);
+            
+            this.islet   = shape.islet;
+            this.maxRow  = shape.maxRow;
+            this.minCol  = shape.minCol;
+            this.maxCol  = shape.maxCol;
+              }
+        }
+     
+     // PIECES
 
-        0x10, 0x01, 0x02, 0x03,   0x04, 0x01, 0x06, 0x07,
-        0x18, 0x01, 0x02, 0x03,   0x1c, 0x01, 0x1e, 0x1f
-    };
+     private static final Shape[] PIECE0 = { new Shape ('0',new int[][] {{3, 5},{2, 4},{1, 3},{0, 2},{0, 0}},0x0000000000082083L,0,false,6,0,4),
+                     new Shape ('0',new int[][] {{4,-2},{3,-1},{2, 0},{1, 1},{0, 0}},0x0000000000421082L,1,false,5,2,8),
+                     new Shape ('0',new int[][] {{1,-7},{1,-5},{1,-3},{1,-1},{0, 0}},0x00000000000003D0L,4,false,8,7,9),
+                     new Shape ('0',new int[][] {{0, 0},{1, 1},{2, 2},{3, 3},{3, 5}},0x00000000000C1041L,0,false,6,0,4),
+                     new Shape ('0',new int[][] {{0, 0},{1,-1},{2,-2},{3,-3},{4,-2}},0x0000000000821084L,2,false,5,3,9),
+                     new Shape ('0',new int[][] {{0, 6},{0, 4},{0, 2},{0, 0},{1,-1}},0x000000000000005EL,1,false,8,1,3),
+                     new Shape ('0',new int[][] {{0, 0},{1, 1},{2, 2},{3, 3},{4, 2}},0x0000000000841041L,0,false,5,0,6),
+                     new Shape ('0',new int[][] {{0, 0},{1,-1},{2,-2},{3,-3},{3,-5}},0x0000000000062108L,3,false,6,5,9),
+                     new Shape ('0',new int[][] {{1, 7},{1, 5},{1, 3},{1, 1},{0, 0}},0x00000000000003C1L,0,false,8,0,2),
+                     new Shape ('0',new int[][] {{4, 2},{3, 1},{2, 0},{1,-1},{0, 0}},0x0000000001041042L,1,false,5,1,7),
+                     new Shape ('0',new int[][] {{3,-3},{2,-2},{1,-1},{0, 0},{0, 2}},0x000000000002108CL,2,false,6,3,7),
+                     new Shape ('0',new int[][] {{0, 0},{0, 2},{0, 4},{0, 6},{1, 7}},0x000000000000020FL,0,false,8,0,2)
+                       };
 
-    static final int g_flip[] = {
-        0x00, 0x10, 0x08, 0x18, 0x04, 0x14, 0x0c, 0x1c,
-        0x02, 0x12, 0x0a, 0x1a, 0x06, 0x16, 0x0e, 0x1e,
+     private static final Shape[] PIECE1 = { new Shape ('1',new int[][] {{0, 2},{0, 0},{1,-1},{2, 0},{3,-1}},0x0000000000021046L,1,false,6,1,7),
+                     new Shape ('1',new int[][] {{1, 3},{0, 2},{0, 0},{1,-1},{1,-3}},0x00000000000002CCL,2,false,8,3,6),
+                     new Shape ('1',new int[][] {{3, 3},{2, 4},{1, 3},{1, 1},{0, 0}},0x00000000000420C1L,0,false,6,0,5),
+                     new Shape ('1',new int[][] {{3,-3},{3,-1},{2, 0},{1,-1},{0, 0}},0x0000000000062084L,2,false,6,3,9),
+                     new Shape ('1',new int[][] {{0, 0},{1, 1},{1, 3},{0, 4},{0, 6}},0x00000000000000CDL,0,true, 8,0,3),
+                     new Shape ('1',new int[][] {{0, 0},{1,-1},{2, 0},{2, 2},{3, 3}},0x0000000000083042L,1,false,6,1,6),
+                     new Shape ('1',new int[][] {{0, 6},{1, 5},{1, 3},{0, 2},{0, 0}},0x000000000000018BL,0,true, 8,0,3),
+                     new Shape ('1',new int[][] {{3, 3},{3, 1},{2, 0},{1, 1},{0, 0}},0x0000000000060841L,0,false,6,0,6),
+                     new Shape ('1',new int[][] {{3,-3},{2,-4},{1,-3},{1,-1},{0, 0}},0x00000000000208C4L,2,false,6,4,9),
+                     new Shape ('1',new int[][] {{1,-1},{0, 0},{0, 2},{1, 3},{1, 5}},0x0000000000000346L,1,false,8,1,4),
+                     new Shape ('1',new int[][] {{0, 0},{0, 2},{1, 3},{2, 2},{3, 3}},0x0000000000041083L,0,false,6,0,6),
+                     new Shape ('1',new int[][] {{0, 0},{1, 1},{2, 0},{2,-2},{3,-3}},0x0000000000023104L,2,false,6,3,8)
+                       };
 
-        0x01, 0x11, 0x09, 0x19, 0x05, 0x15, 0x0d, 0x1d,
-        0x03, 0x13, 0x0b, 0x1b, 0x07, 0x17, 0x0f, 0x1f,
-    };
+     private static final Shape[] PIECE2 = { new Shape ('2',new int[][] {{1, 1},{0, 0},{2, 0},{2,-2},{2,-4}},0x0000000000003904L,2,false,7,4,8),
+                     new Shape ('2',new int[][] {{2, 4},{1, 5},{2, 2},{1, 1},{0, 0}},0x0000000000003141L,0,false,7,0,4),
+                     new Shape ('2',new int[][] {{3,-1},{3, 1},{2,-2},{1,-1},{0, 0}},0x0000000000060842L,1,false,6,2,8),
+                     new Shape ('2',new int[][] {{1,-1},{2, 0},{0, 0},{0, 2},{0, 4}},0x000000000000104EL,1,false,7,1,5),
+                     new Shape ('2',new int[][] {{0, 0},{1,-1},{0, 2},{1, 3},{2, 4}},0x0000000000004146L,1,false,7,1,5),
+                     new Shape ('2',new int[][] {{0, 2},{0, 0},{1, 3},{2, 2},{3, 1}},0x0000000000021083L,0,true, 6,0,6),
+                     new Shape ('2',new int[][] {{0, 2},{1, 3},{0, 0},{1,-1},{2,-2}},0x0000000000000946L,1,false,7,2,6),
+                     new Shape ('2',new int[][] {{1, 5},{2, 4},{0, 4},{0, 2},{0, 0}},0x0000000000002107L,0,false,7,0,4),
+                     new Shape ('2',new int[][] {{3, 1},{3,-1},{2, 2},{1, 1},{0, 0}},0x0000000000062082L,1,false,6,1,7),
+                     new Shape ('2',new int[][] {{2,-4},{1,-5},{2,-2},{1,-1},{0, 0}},0x0000000000003148L,3,false,7,5,9),
+                     new Shape ('2',new int[][] {{1,-1},{0, 0},{2, 0},{2, 2},{2, 4}},0x0000000000007042L,1,false,7,1,5),
+                     new Shape ('2',new int[][] {{0, 0},{0, 2},{1,-1},{2, 0},{3, 1}},0x0000000000041046L,1,false,6,1,7)
+                       };
 
-    static final int[] s_firstOne = {
-        0, 0, 1, 0,   2, 0, 1, 0,
-        3, 0, 1, 0,   2, 0, 1, 0,
+     private static final Shape[] PIECE3 = { new Shape ('3',new int[][] {{0, 0},{2, 0},{1,-1},{2,-2},{2,-4}},0x0000000000003884L,2,false,7,4,9),
+                     new Shape ('3',new int[][] {{1, 5},{2, 2},{1, 3},{1, 1},{0, 0}},0x00000000000011C1L,0,false,7,0,4),
+                     new Shape ('3',new int[][] {{3, 1},{2,-2},{2, 0},{1,-1},{0, 0}},0x0000000000041842L,1,false,6,2,8),
+                     new Shape ('3',new int[][] {{2, 0},{0, 0},{1, 1},{0, 2},{0, 4}},0x0000000000000847L,0,false,7,0,5),
+                     new Shape ('3',new int[][] {{1,-3},{0, 0},{1,-1},{1, 1},{2, 2}},0x00000000000041C4L,2,false,7,3,7),
+                     new Shape ('3',new int[][] {{0, 0},{1, 3},{1, 1},{2, 2},{3, 1}},0x00000000000210C1L,0,true, 6,0,6),
+                     new Shape ('3',new int[][] {{1, 3},{0, 0},{1, 1},{1,-1},{2,-2}},0x00000000000009C2L,1,false,7,2,6),
+                     new Shape ('3',new int[][] {{2, 4},{0, 4},{1, 3},{0, 2},{0, 0}},0x0000000000002087L,0,false,7,0,5),
+                     new Shape ('3',new int[][] {{3,-1},{2, 2},{2, 0},{1, 1},{0, 0}},0x0000000000023082L,1,false,6,1,7),
+                     new Shape ('3',new int[][] {{1,-5},{2,-2},{1,-3},{1,-1},{0, 0}},0x00000000000021C8L,3,false,7,5,9),
+                     new Shape ('3',new int[][] {{0, 0},{2, 0},{1, 1},{2, 2},{2, 4}},0x0000000000003841L,0,false,7,0,5),
+                     new Shape ('3',new int[][] {{0, 0},{1,-3},{1,-1},{2,-2},{3,-1}},0x00000000000410C4L,2,false,6,3,9)
+                       };
 
-        4, 0, 1, 0,   2, 0, 1, 0,
-        3, 0, 1, 0,   2, 0, 1, 0,
-    };
+     private static final Shape[] PIECE4 = { new Shape ('4',new int[][] {{1, 5},{2, 2},{1, 3},{0, 2},{0, 0}},0x0000000000001183L,0,false,7,0,4),
+                     new Shape ('4',new int[][] {{3, 1},{2,-2},{2, 0},{1, 1},{0, 0}},0x0000000000041882L,1,false,6,2,8),
+                     new Shape ('4',new int[][] {{2, 0},{0, 0},{1, 1},{1, 3},{0, 4}},0x00000000000008C5L,0,true, 7,0,5),
+                     new Shape ('4',new int[][] {{1,-3},{0, 0},{1,-1},{2, 0},{2, 2}},0x00000000000060C4L,2,false,7,3,7),
+                     new Shape ('4',new int[][] {{0, 0},{1, 3},{1, 1},{2, 0},{3, 1}},0x00000000000208C1L,0,false,6,0,6),
+                     new Shape ('4',new int[][] {{0, 0},{2, 0},{1,-1},{1,-3},{2,-4}},0x00000000000028C4L,2,false,7,4,9),
+                     new Shape ('4',new int[][] {{0, 0},{1,-3},{1,-1},{2, 0},{3,-1}},0x00000000000420C4L,2,false,6,3,9),
+                     new Shape ('4',new int[][] {{1, 3},{0, 0},{1, 1},{2, 0},{2,-2}},0x0000000000001982L,1,false,7,2,6),
+                     new Shape ('4',new int[][] {{2, 4},{0, 4},{1, 3},{1, 1},{0, 0}},0x00000000000020C5L,0,true, 7,0,5),
+                     new Shape ('4',new int[][] {{3,-1},{2, 2},{2, 0},{1,-1},{0, 0}},0x0000000000023042L,1,false,6,1,7),
+                     new Shape ('4',new int[][] {{1,-3},{2, 0},{1,-1},{0, 0},{0, 2}},0x00000000000020CCL,2,false,7,3,7),
+                     new Shape ('4',new int[][] {{0, 0},{2, 0},{1, 1},{1, 3},{2, 4}},0x00000000000028C1L,0,false,7,0,5)
+                       };
 
-    static int getMask(int iPos) {
-        return (1 << (iPos));
+     private static final Shape[] PIECE5 = { new Shape ('5',new int[][] {{0, 2},{1, 1},{0, 0},{1,-1},{2,-2}},0x00000000000008C6L,1,false,7,2,7),
+                     new Shape ('5',new int[][] {{1, 5},{1, 3},{0, 4},{0, 2},{0, 0}},0x0000000000000187L,0,false,8,0,4),
+                     new Shape ('5',new int[][] {{3, 1},{2, 0},{2, 2},{1, 1},{0, 0}},0x0000000000021841L,0,false,6,0,7),
+                     new Shape ('5',new int[][] {{2,-4},{1,-3},{2,-2},{1,-1},{0, 0}},0x00000000000018C4L,2,false,7,4,9),
+                     new Shape ('5',new int[][] {{0, 0},{0, 2},{1, 1},{1, 3},{1, 5}},0x00000000000001C3L,0,false,8,0,4),
+                     new Shape ('5',new int[][] {{0, 0},{1, 1},{1,-1},{2, 0},{3, 1}},0x00000000000410C2L,1,false,6,1,8),
+                     new Shape ('5',new int[][] {{0, 2},{0, 0},{1, 1},{1,-1},{1,-3}},0x00000000000001CCL,2,false,8,3,7),
+                     new Shape ('5',new int[][] {{2, 4},{1, 3},{2, 2},{1, 1},{0, 0}},0x00000000000030C1L,0,false,7,0,5),
+                     new Shape ('5',new int[][] {{3,-1},{2, 0},{2,-2},{1,-1},{0, 0}},0x0000000000021842L,1,false,6,2,9),
+                     new Shape ('5',new int[][] {{1,-1},{1, 1},{0, 0},{0, 2},{0, 4}},0x00000000000000CEL,1,false,8,1,5),
+                     new Shape ('5',new int[][] {{0, 0},{1, 1},{0, 2},{1, 3},{2, 4}},0x00000000000020C3L,0,false,7,0,5),
+                     new Shape ('5',new int[][] {{0, 0},{1,-1},{1, 1},{2, 0},{3,-1}},0x00000000000210C2L,1,false,6,1,8)
+                       };
+
+     private static final Shape[] PIECE6 = { new Shape ('6',new int[][] {{1, 1},{0, 0},{1,-1},{1,-3},{2,-4}},0x00000000000009C4L,2,false,7,4,8),
+                     new Shape ('6',new int[][] {{2, 4},{1, 5},{1, 3},{0, 2},{0, 0}},0x0000000000002183L,0,false,7,0,4),
+                     new Shape ('6',new int[][] {{3,-1},{3, 1},{2, 0},{1, 1},{0, 0}},0x0000000000061082L,1,false,6,1,8),
+                     new Shape ('6',new int[][] {{1,-5},{2,-4},{1,-3},{1,-1},{0, 0}},0x00000000000011C8L,3,false,7,5,9),
+                     new Shape ('6',new int[][] {{0, 0},{1,-1},{1, 1},{2, 2},{2, 4}},0x00000000000060C2L,1,false,7,1,5),
+                     new Shape ('6',new int[][] {{0, 2},{0, 0},{1, 1},{2, 0},{3, 1}},0x0000000000020843L,0,false,6,0,7),
+                     new Shape ('6',new int[][] {{0, 0},{1, 1},{1,-1},{2,-2},{2,-4}},0x0000000000001984L,2,false,7,4,8),
+                     new Shape ('6',new int[][] {{1, 5},{2, 4},{1, 3},{1, 1},{0, 0}},0x00000000000021C1L,0,false,7,0,4),
+                     new Shape ('6',new int[][] {{3, 1},{3,-1},{2, 0},{1,-1},{0, 0}},0x0000000000061042L,1,false,6,1,8),
+                     new Shape ('6',new int[][] {{2,-2},{1,-3},{1,-1},{0, 0},{0, 2}},0x00000000000010CCL,2,false,7,3,7),
+                     new Shape ('6',new int[][] {{1,-1},{0, 0},{1, 1},{1, 3},{2, 4}},0x00000000000041C2L,1,false,7,1,5),
+                     new Shape ('6',new int[][] {{0, 0},{0, 2},{1, 1},{2, 2},{3, 1}},0x0000000000021043L,0,false,6,0,7)
+                       };
+
+     private static final Shape[] PIECE7 = { new Shape ('7',new int[][] {{0, 2},{1, 1},{0, 0},{2, 0},{2,-2}},0x0000000000001886L,1,false,7,2,7),
+                     new Shape ('7',new int[][] {{1, 5},{1, 3},{0, 4},{1, 1},{0, 0}},0x00000000000001C5L,0,true, 8,0,4),
+                     new Shape ('7',new int[][] {{3, 1},{2, 0},{2, 2},{1,-1},{0, 0}},0x0000000000043042L,1,false,6,1,7),
+                     new Shape ('7',new int[][] {{2,-2},{1,-1},{2, 0},{0, 0},{0, 2}},0x0000000000001846L,1,false,7,2,7),
+                     new Shape ('7',new int[][] {{0, 0},{0, 2},{1, 1},{0, 4},{1, 5}},0x0000000000000147L,0,false,8,0,4),
+                     new Shape ('7',new int[][] {{0, 0},{1, 1},{1,-1},{2, 2},{3, 1}},0x00000000000420C2L,1,false,6,1,7),
+                     new Shape ('7',new int[][] {{0, 4},{0, 2},{1, 3},{0, 0},{1,-1}},0x000000000000014EL,1,false,8,1,5),
+                     new Shape ('7',new int[][] {{2, 4},{1, 3},{2, 2},{0, 2},{0, 0}},0x0000000000003083L,0,false,7,0,5),
+                     new Shape ('7',new int[][] {{3,-1},{2, 0},{2,-2},{1, 1},{0, 0}},0x0000000000021882L,1,false,6,2,8),
+                     new Shape ('7',new int[][] {{1,-1},{1, 1},{0, 0},{1, 3},{0, 4}},0x00000000000001CAL,1,false,8,1,5),
+                     new Shape ('7',new int[][] {{0, 0},{1, 1},{0, 2},{2, 2},{2, 4}},0x0000000000003043L,0,false,7,0,5),
+                     new Shape ('7',new int[][] {{0, 0},{1,-1},{1, 1},{2,-2},{3,-1}},0x00000000000208C2L,1,false,6,2,8)
+                       };
+
+     private static final Shape[] PIECE8 = { new Shape ('8',new int[][] {{4, 2},{3, 1},{2, 0},{1, 1},{0, 0}},0x0000000000820841L,0,false,5,0,7),
+                     new Shape ('8',new int[][] {{3,-5},{2,-4},{1,-3},{1,-1},{0, 0}},0x0000000000021188L,3,false,6,5,9),
+                     new Shape ('8',new int[][] {{0, 0},{0, 2},{0, 4},{1, 5},{1, 7}},0x0000000000000307L,0,false,8,0,2),
+                     new Shape ('8',new int[][] {{0, 0},{1, 1},{2, 2},{3, 1},{4, 2}},0x0000000000821041L,0,true, 5,0,7),
+                     new Shape ('8',new int[][] {{0, 0},{1,-1},{2,-2},{2,-4},{3,-5}},0x0000000000023108L,3,false,6,5,9),
+                     new Shape ('8',new int[][] {{1, 7},{1, 5},{1, 3},{0, 2},{0, 0}},0x0000000000000383L,0,false,8,0,2),
+                     new Shape ('8',new int[][] {{0, 0},{1, 1},{2, 2},{2, 4},{3, 5}},0x0000000000083041L,0,false,6,0,4),
+                     new Shape ('8',new int[][] {{0, 0},{1,-1},{2,-2},{3,-1},{4,-2}},0x0000000000420842L,1,false,5,2,9),
+                     new Shape ('8',new int[][] {{0, 4},{0, 2},{0, 0},{1,-1},{1,-3}},0x00000000000000DCL,2,false,8,3,5),
+                     new Shape ('8',new int[][] {{3, 5},{2, 4},{1, 3},{1, 1},{0, 0}},0x00000000000820C1L,0,false,6,0,4),
+                     new Shape ('8',new int[][] {{4,-2},{3,-1},{2, 0},{1,-1},{0, 0}},0x0000000000421042L,1,false,5,2,9),
+                     new Shape ('8',new int[][] {{1,-5},{1,-3},{1,-1},{0, 0},{0, 2}},0x00000000000001D8L,3,false,8,5,7)
+                       };
+
+     private static final Shape[] PIECE9 = { new Shape ('9',new int[][] {{3, 3},{2, 2},{1, 1},{0, 0},{0, 2}},0x0000000000041043L,0,false,6,0,6),
+                     new Shape ('9',new int[][] {{3,-3},{2,-2},{1,-1},{0, 0},{1, 1}},0x0000000000021184L,2,false,6,3,8),
+                     new Shape ('9',new int[][] {{0, 0},{0, 2},{0, 4},{0, 6},{1, 5}},0x000000000000010FL,0,false,8,0,3),
+                     new Shape ('9',new int[][] {{0, 0},{1, 1},{2, 2},{3, 3},{3, 1}},0x0000000000061041L,0,true, 6,0,6),
+                     new Shape ('9',new int[][] {{0, 0},{1,-1},{2,-2},{3,-3},{2,-4}},0x0000000000021884L,2,false,6,4,9),
+                     new Shape ('9',new int[][] {{1, 5},{1, 3},{1, 1},{1,-1},{0, 0}},0x00000000000003C2L,1,false,8,1,4),
+                     new Shape ('9',new int[][] {{0, 0},{1, 1},{2, 2},{3, 3},{2, 4}},0x0000000000043041L,0,false,6,0,5),
+                     new Shape ('9',new int[][] {{0, 0},{1,-1},{2,-2},{3,-3},{3,-1}},0x0000000000061084L,2,false,6,3,9),
+                     new Shape ('9',new int[][] {{0, 6},{0, 4},{0, 2},{0, 0},{1, 1}},0x000000000000004FL,0,false,8,0,3),
+                     new Shape ('9',new int[][] {{3, 3},{2, 2},{1, 1},{0, 0},{1,-1}},0x00000000000820C2L,1,false,6,1,6),
+                     new Shape ('9',new int[][] {{3,-1},{2, 0},{1, 1},{0, 2},{0, 0}},0x0000000000021086L,1,false,6,1,7),
+                     new Shape ('9',new int[][] {{1,-5},{1,-3},{1,-1},{1, 1},{0, 0}},0x00000000000003C8L,3,false,8,5,8)
+                       };
+                       
     }
-
-    static int floor(int top, int bot) {
-        int toZero = top / bot;
-        // negative numbers should be rounded down, not towards zero;
-
-        if ((toZero * bot != top) && ((top < 0) != (bot <= 0)))
-            toZero--;
-
-        return toZero;
-    }
-
-    static int getFirstOne(int v) {
-        int startPos = 0;
-        if (v == 0)
-            return 0;
-
-        int iPos = startPos;
-        int mask = 0xff << startPos;
-        while ((mask & v) == 0) {
-            mask <<= 8;
-            iPos += 8;
-        }
-        int result = (mask & v) >> iPos;
-        int resultLow = result & 0x0f;
-        if (resultLow != 0)
-            iPos += s_firstOne[resultLow];
-        else
-            iPos += 4 + s_firstOne[result >> 4];
-
-        return iPos;
-    }
-
-    static int countOnes(int v) {
-        int n = 0;
-        while (v != 0) {
-            n++;
-            v = v & (v - 1);
-        }
-
-        return n;
-    }
-
-
-    static int flipTwoRows(int bits) {
-        int flipped = g_flip[bits >> N_COL] << N_COL;
-        return (flipped | g_flip[bits & Board.TOP_ROW]);
-    }
-
-    static void markBad(IslandInfo info, int mask, int eo, boolean always) {
-        info.hasBad[eo][OPEN] |= mask;
-        info.hasBad[eo][CLOSED] |= mask;
-
-        if (always)
-            info.alwaysBad[eo] |= mask;
-    }
-
-    static void initGlobals() {
-        for (int i = 0; i < MAX_ISLAND_OFFSET; i++)
-        {
-            g_islandInfo[i] = new IslandInfo();
-        }
-
-        for (int i = 0; i < N_ROW; i++)
-        {
-            for (int j = 0; j < N_COL; j++)
-                g_okPieces[i][j] = new OkPieces();
-        }
-    }
-
-
-//-- Classes -------------------------;
-
-
-    static class OkPieces {
-        byte[] nPieces = new byte[N_PIECE_TYPE];
-        int[][] pieceVec = new int[N_PIECE_TYPE][N_ORIENT];
-    }
-
-
-    static class IslandInfo {
-        int[][] hasBad  =  new int[N_FIXED][N_PARITY];
-        int[][] isKnown =  new int[N_FIXED][N_PARITY];
-        int[] alwaysBad =  new int[N_PARITY];
-    }
-
-
-    static class Soln {
-        static final int NO_PIECE = -1;
-
-        boolean isEmpty() {
-            return (m_nPiece == 0);
-        }
-        void popPiece() {
-            m_nPiece--;
-            m_synched = false;
-        }
-        void pushPiece(int vec, int iPiece, int row) {
-            SPiece p = m_pieces[m_nPiece++];
-            p.vec = vec;
-            p.iPiece = (short) iPiece;
-            p.row = (short) row;
-        }
-
-        Soln() {
-            m_synched = false;
-            m_nPiece = 0;
-            init();
-        }
-
-        class SPiece {
-            int vec;
-            short iPiece;
-            short row;
-            SPiece() {}
-            SPiece(int avec, int apiece, int arow) {
-                vec = avec;
-                iPiece = (short)apiece;
-                row = (short)arow;
-            }
-            SPiece(SPiece other) {
-                vec = other.vec;
-                iPiece = other.iPiece;
-                row = other.row;
-            }
-        }
-
-        SPiece[] m_pieces = new SPiece [N_PIECE_TYPE];
-        int m_nPiece;
-        byte[][] m_cells = new byte [N_ROW][N_COL];
-        boolean m_synched;
-
-        void init() {
-            for (int i = 0; i < N_PIECE_TYPE; i++)
-                m_pieces[i] = new SPiece();
-        }
-        Soln (int fillVal) {
-            init();
-            m_nPiece = 0;
-            fill(fillVal);
-        }
-        public Soln clone2() {
-            Soln s = new Soln();
-            for (int i = 0; i < m_pieces.length; i++)
-                s.m_pieces[i] = new SPiece(m_pieces[i]);
-
-            s.m_nPiece = m_nPiece;
-            //System.arraycopy(m_cells, 0, s.m_cells, 0, N_CELL);
-
-            for (int i = 0; i < N_ROW; i++)
-            {
-                for (int j = 0; j < N_COL; j ++)
-                {
-                    s.m_cells[i][j] = m_cells[i][j];
-                }
-            }
-
-            s.m_synched = m_synched;
-            return s;
-        }
-
-        void fill(int val) {
-            m_synched = false;
-            for (int i = 0; i < N_ROW; i++)
-            {
-                for (int j = 0; j < N_COL; j++)
-                    m_cells[i][j] = (byte) val;
-            }
-        }
-
-        public String toString()  {
-            StringBuffer result = new StringBuffer(N_CELL * 2);
-
-            for (int y = 0; y < N_ROW; y++) {
-                for (int x = 0; x < N_COL; x++) {
-                    int val = m_cells[y][x];
-                    //if (val == NO_PIECE) result.append('.');
-
-                    {
-                        result.append(val);
-                    }
-                    result.append(' ');
-                }
-                result.append('\n');
-
-                // indent every second line
-
-                if (y % 2 == 0)
-                    result.append(" ");
-            }
-            return result.toString();
-        }
-
-        void setCells() {
-            if (m_synched)
-                return;
-
-            for (int iPiece = 0; iPiece < m_nPiece; iPiece++) {
-                SPiece p = m_pieces[iPiece];
-                int vec = p.vec;
-                byte pID = (byte) p.iPiece;
-                int rowOffset = p.row;
-
-                int nNewCells = 0;
-                for (int y = rowOffset; y < N_ROW; y++) {
-                    for (int x = 0; x < N_COL; x++) {
-                        if ((vec & 1) != 0) {
-                            m_cells[y][x] = pID;
-                            nNewCells++;
-                        }
-                        vec >>= 1;
-                    }
-                    if (nNewCells == Piece.N_ELEM)
-                        break;
-                }
-            }
-            m_synched = true;
-        }
-
-        boolean lessThan(Soln r) {
-            if (m_pieces[0].iPiece != r.m_pieces[0].iPiece) {
-                return m_pieces[0].iPiece < r.m_pieces[0].iPiece;
-            }
-
-            setCells();
-            r.setCells();
-
-            for (int y = 0; y < N_ROW; y++) {
-                for (int x = 0; x < N_COL; x++) {
-                    int lval = m_cells[y][x];
-                    int rval = r.m_cells[y][x];
-
-                    if (lval != rval)
-                        return (lval < rval);
-                }
-            }
-
-            return false;
-        }
-
-        void spin(Soln spun) {
-            setCells();
-
-            for (int y = 0; y < N_ROW; y++) {
-                for (int x = 0; x < N_COL; x++) {
-                    byte flipped = m_cells[N_ROW - y - 1][N_COL - x - 1];
-                    spun.m_cells[y][x] = flipped;
-                }
-            }
-
-
-            spun.m_pieces[0].iPiece = m_pieces[N_PIECE_TYPE - 1].iPiece;
-            spun.m_synched = true;
-        }
-    }
-
-
-//-----------------------
-
-    static class Board {
-        static final int L_EDGE_MASK = 
-                                       ((1 <<  0) | (1 <<  5) | (1 << 10) | (1 << 15) |
-                                        (1 << 20) | (1 << 25) | (1 << 30));
-        static final int R_EDGE_MASK = L_EDGE_MASK << 4;
-        static final int TOP_ROW = (1 << N_COL) - 1;
-        static final int ROW_0_MASK =
-            TOP_ROW | (TOP_ROW << 10) | (TOP_ROW << 20) | (TOP_ROW << 30);
-        static final int ROW_1_MASK = ROW_0_MASK << 5;
-        static final int BOARD_MASK = (1 << 30) - 1;
-
-        static int getIndex(int x, int y) {
-            return y * N_COL + x;
-        }
-
-        Soln m_curSoln;
-        Soln m_minSoln;
-        Soln m_maxSoln;
-        int m_nSoln;
-
-        Board () {
-            m_curSoln = new Soln(Soln.NO_PIECE);
-            m_minSoln = new Soln(N_PIECE_TYPE);
-            m_maxSoln = new Soln(Soln.NO_PIECE);
-            m_nSoln = (0);
-        }
-
-        static boolean badRegion(int[] toFill, int rNew)
-        {
-            // grow empty region, until it doesn't change any more;
-
-            int region;
-            do {
-                region = rNew;
-
-                // simple grow up/down
-
-                rNew |= (region >> N_COL);
-                rNew |= (region << N_COL);
-
-                // grow right/left
-
-                rNew |= (region & ~L_EDGE_MASK) >> 1;
-                rNew |= (region & ~R_EDGE_MASK) << 1;
-
-                // tricky growth
-
-                int evenRegion = region & (ROW_0_MASK & ~L_EDGE_MASK);
-                rNew |= evenRegion >> (N_COL + 1);
-                rNew |= evenRegion << (N_COL - 1);
-                int oddRegion = region & (ROW_1_MASK & ~R_EDGE_MASK);
-                rNew |= oddRegion >> (N_COL - 1);
-                rNew |= oddRegion << (N_COL + 1);
-
-                // clamp against existing pieces
-
-                rNew &= toFill[0];
-            }
-            while ((rNew != toFill[0]) && (rNew != region));
-
-            // subtract empty region from board
-
-            toFill[0] ^= rNew;
-
-            int nCells = countOnes(toFill[0]);
-            return (nCells % Piece.N_ELEM != 0);
-        }
-
-        static int hasBadIslands(int boardVec, int row)
-        {
-            // skip over any filled rows
-
-            while ((boardVec & TOP_ROW) == TOP_ROW) {
-                boardVec >>= N_COL;
-                row++;
-            }
-
-            int iInfo = boardVec & ((1 << 2 * N_COL) - 1);
-            IslandInfo info = g_islandInfo[iInfo];
-
-            int lastRow = (boardVec >> (2 * N_COL)) & TOP_ROW;
-            int mask = getMask(lastRow);
-            int isOdd = row & 1;
-
-            if ((info.alwaysBad[isOdd] & mask) != 0)
-                return BAD;
-
-            if ((boardVec & (TOP_ROW << N_COL * 3)) != 0)
-                return calcBadIslands(boardVec, row);
-
-            int isClosed = (row > 6) ? 1 : 0;
-
-            if ((info.isKnown[isOdd][isClosed] & mask) != 0)
-                return (info.hasBad[isOdd][isClosed] & mask);
-
-            if (boardVec == 0)
-                return GOOD;
-
-            int hasBad = calcBadIslands(boardVec, row);
-
-            info.isKnown[isOdd][isClosed] |= mask;
-            if (hasBad != 0)
-                info.hasBad[isOdd][isClosed] |= mask;
-
-            return hasBad;
-        }
-        static int calcBadIslands(int boardVec, int row)
-        {
-            int[] toFill = {~boardVec};
-            if ((row & 1) != 0) {
-                row--;
-                toFill[0] <<= N_COL;
-            }
-
-            int boardMask = BOARD_MASK;
-            if (row > 4) {
-                int boardMaskShift = (row - 4) * N_COL;
-                boardMask >>= boardMaskShift;
-            }
-            toFill[0] &= boardMask;
-
-            // a little pre-work to speed things up
-
-            int bottom = (TOP_ROW << (5 * N_COL));
-            boolean filled = ((bottom & toFill[0]) == bottom);
-            while ((bottom & toFill[0]) == bottom) {
-                toFill[0] ^= bottom;
-                bottom >>= N_COL;
-            }
-
-            int startRegion;
-            if (filled || (row < 4))
-                startRegion = bottom & toFill[0];
-            else {
-                startRegion = g_firstRegion[toFill[0] & TOP_ROW];
-                if (startRegion == 0)  {
-                    startRegion = (toFill[0] >> N_COL) & TOP_ROW;
-                    startRegion = g_firstRegion[startRegion];
-                    startRegion <<= N_COL;
-                }
-                startRegion |= (startRegion << N_COL) & toFill[0];
-            }
-
-            while (toFill[0] != 0)    {
-                if (badRegion(toFill, startRegion))
-                    return ((toFill[0]!=0) ? ALWAYS_BAD : BAD);
-                int iPos = getFirstOne(toFill[0]);
-                startRegion = getMask(iPos);
-            }
-
-            return GOOD;
-        }
-        static void calcAlwaysBad() {
-            for (int iWord = 1; iWord < MAX_ISLAND_OFFSET; iWord++) {
-                IslandInfo isleInfo = g_islandInfo[iWord];
-                IslandInfo flipped = g_islandInfo[flipTwoRows(iWord)];
-
-                for (int i = 0, mask = 1; i < 32; i++, mask <<= 1) {
-                    int boardVec = (i << (2 * N_COL)) | iWord;
-                    if ((isleInfo.isKnown[0][OPEN] & mask) != 0)
-                        continue;
-
-                    int hasBad = calcBadIslands(boardVec, 0);
-                    if (hasBad != GOOD) {
-                        boolean always = (hasBad==ALWAYS_BAD);
-                        markBad(isleInfo, mask, EVEN, always);
-
-                        int flipMask = getMask(g_flip[i]);
-                        markBad(flipped, flipMask, ODD, always);
-                    }
-                }
-                flipped.isKnown[1][OPEN] =  -1;
-                isleInfo.isKnown[0][OPEN] = -1;
-            }
-        }
-
-        static boolean hasBadIslandsSingle(int boardVec, int row)
-        {
-            int[] toFill = {~boardVec};
-            boolean isOdd = ((row & 1) != 0);
-            if (isOdd) {
-                row--;
-                toFill[0] <<= N_COL; // shift to even aligned
-
-                toFill[0] |= TOP_ROW;
-            }
-
-            int startRegion = TOP_ROW;
-            int lastRow = TOP_ROW << (5 * N_COL);
-            int boardMask = BOARD_MASK; // all but the first two bits
-
-            if (row >= 4)
-                boardMask >>= ((row - 4) * N_COL);
-            else if (isOdd || (row == 0))
-                startRegion = lastRow;
-
-            toFill[0] &= boardMask;
-            startRegion &= toFill[0];
-
-            while (toFill[0] != 0)    {
-                if (badRegion(toFill, startRegion))
-                    return true;
-                int iPos = getFirstOne(toFill[0]);
-                startRegion = getMask(iPos);
-            }
-
-            return false;
-        }
-
-        void genAllSolutions(int boardVec, int placedPieces, int row)
-        {
-            while ((boardVec & TOP_ROW) == TOP_ROW) {
-                boardVec >>= N_COL;
-                row++;
-            }
-            int iNextFill = s_firstOne[~boardVec & TOP_ROW];
-            OkPieces allowed = g_okPieces[row][iNextFill];
-
-            int iPiece = getFirstOne(~placedPieces);
-            int pieceMask = getMask(iPiece);
-            for (; iPiece < N_PIECE_TYPE; iPiece++, pieceMask <<= 1)
-            {
-                if ((pieceMask & placedPieces) != 0)
-                    continue;
-
-                placedPieces |= pieceMask;
-                for (int iOrient = 0; iOrient < allowed.nPieces[iPiece]; iOrient++) {
-                    int pieceVec = allowed.pieceVec[iPiece][iOrient];
-
-                    if ((pieceVec & boardVec) != 0)
-                        continue;
-
-                    boardVec |= pieceVec;
-
-                    if ((hasBadIslands(boardVec, row)) != 0) {
-                        boardVec ^= pieceVec;
-                        continue;
-                    }
-
-                    m_curSoln.pushPiece(pieceVec, iPiece, row);
-
-                    // recur or record solution
-
-                    if (placedPieces != Piece.ALL_PIECE_MASK)
-                        genAllSolutions(boardVec, placedPieces, row);
-                    else
-                        recordSolution(m_curSoln);
-
-                    boardVec ^= pieceVec;
-                    m_curSoln.popPiece();
-                }
-
-                placedPieces ^= pieceMask;
-            }
-        }
-
-        void recordSolution(Soln s) {
-            m_nSoln += 2;
-
-            if (m_minSoln.isEmpty()) {
-                m_minSoln = m_maxSoln = s.clone2();
-                return;
-            }
-
-            if (s.lessThan(m_minSoln))
-                m_minSoln = s.clone2();
-            else if (m_maxSoln.lessThan(s))
-                m_maxSoln = s.clone2();
-
-            Soln spun = new Soln();
-            s.spin(spun);
-            if (spun.lessThan(m_minSoln))
-                m_minSoln = spun;
-            else if (m_maxSoln.lessThan(spun))
-                m_maxSoln = spun;
-        }
-    }
-
-//----------------------
-
-    static class Piece {
-        class Instance {
-            long m_allowed;
-            int m_vec;
-            int m_offset;
-        }
-
-        static final int N_ELEM = 5;
-        static final int ALL_PIECE_MASK = (1 << N_PIECE_TYPE) - 1;
-        static final int SKIP_PIECE = 5;
-
-        static final int BaseVecs[] = {
-            0x10f, 0x0cb, 0x1087, 0x427, 0x465,
-            0x0c7, 0x8423, 0x0a7, 0x187, 0x08f
-        };
-
-        static Piece[][] s_basePiece = new Piece [N_PIECE_TYPE][N_ORIENT];
-
-        Instance[] m_instance = new Instance [N_PARITY];
-
-        void init() {
-            for (int i = 0; i < N_PARITY; i++)
-                m_instance[i] = new Instance();
-        }
-        Piece() {
-            init();
-        }
-
-        static {
-            for (int i = 0; i < N_PIECE_TYPE; i++) {
-                for (int j = 0; j < N_ORIENT; j++)
-                    s_basePiece[i][j] = new Piece();
-            }
-        }
-        static void setCoordList(int vec, int[][] pts) {
-            int iPt = 0;
-            int mask = 1;
-            for (int y = 0; y < N_ROW; y++) {
-                for (int x = 0; x < N_COL; x++) {
-                    if ((mask & vec) != 0) {
-                        pts[iPt][X] = x;
-                        pts[iPt][Y] = y;
-
-                        iPt++;
-                    }
-                    mask <<= 1;
-                }
-            }
-        }
-
-        static int toBitVector(int[][] pts) {
-            int y, x;
-            int result = 0;
-            for (int iPt = 0; iPt < N_ELEM; iPt++) {
-                x = pts[iPt][X];
-                y = pts[iPt][Y];
-
-                int pos = Board.getIndex(x, y);
-                result |= (1 << pos);
-            }
-
-            return result;
-        }
-
-        static void shiftUpLines(int[][] pts, int shift) {
-
-            for (int iPt = 0; iPt < N_ELEM; iPt++) {
-                if ((pts[iPt][Y] & shift & 0x1) != 0)
-                    (pts[iPt][X])++;
-                pts[iPt][Y] -= shift;
-            }
-        }
-
-        static int shiftToX0(int[][] pts, Instance instance, int offsetRow)
-        {
-            int x, y, iPt;
-            int xMin = pts[0][X];
-            int xMax = xMin;
-            for (iPt = 1; iPt < N_ELEM; iPt++) {
-                x = pts[iPt][X];
-                y = pts[iPt][Y];
-
-                if (x < xMin)
-                    xMin = x;
-                else if (x > xMax)
-                    xMax = x;
-            }
-
-            int offset = N_ELEM;
-            for (iPt = 0; iPt < N_ELEM; iPt++) {
-
-                pts[iPt][X] -= xMin;
-
-                if ((pts[iPt][Y] == offsetRow) && (pts[iPt][X] < offset))
-                    offset = pts[iPt][X];
-            }
-
-            instance.m_offset = offset;
-            instance.m_vec = toBitVector(pts);
-            return xMax - xMin;
-        }
-
-        void setOkPos(int isOdd, int w, int h) {
-            Instance p = m_instance[isOdd];
-            p.m_allowed = 0;
-            long posMask = 1L << (isOdd * N_COL);
-
-            for (int y = isOdd; y < N_ROW - h; y+=2, posMask <<= N_COL) {
-                if ((p.m_offset) != 0)
-                    posMask <<= p.m_offset;
-
-                for (int xPos = 0; xPos < N_COL - p.m_offset; xPos++, posMask <<= 1) {
-
-                    if (xPos >= N_COL - w)
-                        continue;
-
-                    int pieceVec = p.m_vec << xPos;
-
-                    if (Board.hasBadIslandsSingle(pieceVec, y))
-                        continue;
-
-                    p.m_allowed |= posMask;
-                }
-            }
-        }
-
-        static void genOrientation(int vec, int iOrient, Piece target)
-        {
-            int[][] pts = new int[N_ELEM][N_DIM];
-            setCoordList(vec, pts);
-
-            int y, x, iPt;
-            int rot = iOrient % 6;
-            int flip = iOrient >= 6 ? 1 : 0;
-            if (flip != 0) {
-                for (iPt = 0; iPt < N_ELEM; iPt++)
-                    pts[iPt][Y] = -pts[iPt][Y];
-            }
-
-            while ((rot--) != 0) {
-                for (iPt = 0; iPt < N_ELEM; iPt++) {
-                    x = pts[iPt][X];
-                    y = pts[iPt][Y];
-
-                    int xNew = floor((2 * x - 3 * y + 1), 4);
-                    int yNew = floor((2 * x + y + 1), 2);
-                    pts[iPt][X] = xNew;
-                    pts[iPt][Y] = yNew;
-                }
-            }
-
-            int yMin = pts[0][Y];
-            int yMax = yMin;
-            for (iPt = 1; iPt < N_ELEM; iPt++) {
-                y = pts[iPt][Y];
-
-                if (y < yMin)
-                    yMin = y;
-                else if (y > yMax)
-                    yMax = y;
-            }
-            int h = yMax - yMin;
-            Instance even = target.m_instance[EVEN];
-            Instance odd = target.m_instance[ODD];
-
-            shiftUpLines(pts, yMin);
-            int w = shiftToX0(pts, even, 0);
-            target.setOkPos(EVEN, w, h);
-            even.m_vec >>= even.m_offset;
-
-            shiftUpLines(pts, -1);
-            w = shiftToX0(pts, odd, 1);
-            odd.m_vec >>= N_COL;
-            target.setOkPos(ODD, w, h);
-            odd.m_vec >>= odd.m_offset;
-        }
-
-        static void genAllOrientations() {
-            for (int iPiece = 0; iPiece < N_PIECE_TYPE; iPiece++) {
-                int refPiece = BaseVecs[iPiece];
-                for (int iOrient = 0; iOrient < N_ORIENT; iOrient++) {
-                    Piece p = s_basePiece[iPiece][iOrient];
-                    genOrientation(refPiece, iOrient, p);
-                    if ((iPiece == SKIP_PIECE)  && (((iOrient / 3) & 1) != 0))
-                        p.m_instance[0].m_allowed = p.m_instance[1].m_allowed = 0;
-                }
-            }
-            for (int iPiece = 0; iPiece < N_PIECE_TYPE; iPiece++) {
-                for (int iOrient = 0; iOrient < N_ORIENT; iOrient++) {
-                    long mask = 1;
-                    for (int iRow = 0; iRow < N_ROW; iRow++) {
-                        Instance p = getPiece(iPiece, iOrient, (iRow & 1));
-                        for (int iCol = 0; iCol < N_COL; iCol++) {
-                            OkPieces allowed = g_okPieces[iRow][iCol];
-                            if ((p.m_allowed & mask) != 0) {
-                                allowed.pieceVec[iPiece][allowed.nPieces[iPiece]] = p.m_vec << iCol;
-                                (allowed.nPieces[iPiece])++;
-                            }
-
-                            mask <<= 1;
-                        }
-                    }
-                }
-            }
-        }
-
-        static Instance getPiece(int iPiece, int iOrient, int iParity) {
-            return s_basePiece[iPiece][iOrient].m_instance[iParity];
-        }
-    }
-
-
-//-- Main ---------------------------
-
-    public static void main(String[] args) {
-        if (args.length > 2)
-            System.exit(-1); // spec says this is an error;
-
-
-        initGlobals();
-        Board b = new Board();
-        Piece.genAllOrientations();
-        Board.calcAlwaysBad();
-        b.genAllSolutions(0, 0, 0);
-
-        System.out.println(b.m_nSoln + " solutions found\n");
-        System.out.println(b.m_minSoln);
-        System.out.println(b.m_maxSoln);
-    }
-}

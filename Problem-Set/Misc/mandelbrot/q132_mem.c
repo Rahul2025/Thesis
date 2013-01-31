@@ -1,3 +1,15 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+
+   contributed by Greg Buchholz
+   
+   for the debian (AMD) machine...
+   compile flags:  -O3 -ffast-math -march=athlon-xp -funroll-loops
+
+   for the gp4 (Intel) machine...
+   compile flags:  -O3 -ffast-math -march=pentium4 -funroll-loops
+*/
+
 #include<stdio.h>
 
 int main (int argc, char **argv)
@@ -48,3 +60,4 @@ int main (int argc, char **argv)
         }
     }	
 }
+

@@ -1,3 +1,9 @@
+-- The Computer Language Benchmarks Game
+-- http://shootout.alioth.debian.org/
+-- contributed by Bryan O'Sullivan
+-- modified by Eugene Kirpichov: pidgits only generates
+-- the result string instead of printing it. For some
+-- reason, this gives a speedup.
 
 import System.Environment
 

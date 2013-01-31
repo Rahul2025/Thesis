@@ -1,3 +1,9 @@
+--
+-- The Computer Language Benchmarks Game
+--   http://shootout.alioth.debian.org/
+--
+--   Sterling Clover's translation of Tim Hochberg's Clean implementation
+
 module Main where
 import System.Environment
 import Data.Bits

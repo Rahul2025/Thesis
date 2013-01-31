@@ -1,3 +1,10 @@
+/* The Computer Language Benchmarks Game
+ http://shootout.alioth.debian.org/
+
+ contributed by Rikard Mustajärvi
+*/
+
+
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;

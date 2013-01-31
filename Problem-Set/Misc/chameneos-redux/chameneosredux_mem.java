@@ -1,256 +1,187 @@
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
 
-
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+   contributed by Kirill Ilyukhin
+*/
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Exchanger;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
+public class chameneosredux_3 {
 
-/**
- * This implementation uses the java.util.concurrent.atomic library
- * i.e. (compare and set) to avoid locking.  Real threads are used, but
- * are set up as a thread pool and meeting requests are pushed onto a
- * queue that feeds the thread pool.
- */
-public final class chameneosredux_mem {
+   static MeetingPlace meetingPlace;
+   static CountDownLatch latch;
+   static AtomicInteger meetingsLeft;
 
-    enum Colour {
-        blue,
-        red,
-        yellow
-    }
+   public static void main(String[] args) throws InterruptedException {
+      int N = 6_000_000;
+      if (args.length > 0) {
+         try {
+            N = Integer.parseInt(args[0]);
+         } catch (NumberFormatException ignore) {
+         }
+      }
+      for (Color color1 : Color.colors) {
+         for (Color color2 : Color.colors) {
+            System.out.println(color1 + " + " + color2 + " -> " + Color.complement(color1, color2));
+         }
+      }
+      System.out.println();
+      run(N, Color.blue, Color.red, Color.yellow);
+      run(N, Color.blue, Color.red, Color.yellow, Color.red, Color.yellow, Color.blue, Color.red, Color.yellow, Color.red, Color.blue);
+   }
 
-    private static Colour doCompliment(final Colour c1, final Colour c2) {
-        switch (c1) {
-        case blue:
-            switch (c2) {
-            case blue:
-                return Colour.blue;
-            case red:
-                return Colour.yellow;
-            case yellow:
-                return Colour.red;
-            }
-        case red:
-            switch (c2) {
-            case blue:
-                return Colour.yellow;
-            case red:
-                return Colour.red;
-            case yellow:
-                return Colour.blue;
-            }
-        case yellow:
-            switch (c2) {
-            case blue:
-                return Colour.red;
-            case red:
-                return Colour.blue;
-            case yellow:
-                return Colour.yellow;
-            }
-        }
+   private static void run(final int N, final Color... colors) throws InterruptedException {
+      meetingPlace = new MeetingPlace();
+      latch = new CountDownLatch(2*N);
+      meetingsLeft = new AtomicInteger(2*N);
+      Creature[] creatures = new Creature[colors.length];
+      for (int i=0; i < colors.length; i++) {
+         System.out.print(" " + colors[i]);
+         creatures[i] = new Creature(colors[i]);
+      }
+      System.out.println();
+      for (Creature creature : creatures) {
+         creature.start();
+      }
+      latch.await();
+      for (Creature creature : creatures) {
+         creature.interrupt();
+      }
+      for (Creature creature : creatures) {
+         creature.join();
+      }
+      int m = 0;
+      for (Creature creature : creatures) {
+         System.out.println("" + creature.meetings + spell(creature.meetingsWithSelf));
+         m += creature.meetings;
+      }
+      System.out.println(spell(m));
+      System.out.println();
+   }
 
-        throw new RuntimeException("Error");
-    }
+   private static final String[] DIGITS = {
+         " zero",
+         " one",
+         " two",
+         " three",
+         " four",
+         " five",
+         " six",
+         " seven",
+         " eight",
+         " nine"
+   };
+   static String spell(int number) {
+      if (number == 0) {
+         return DIGITS[0];
+      }
+      String s = "";
+      while (number > 0) {
+         s = DIGITS[number % 10] + s;
+         number /= 10;
+      }
+      return s;
+   }
 
-    static final class MeetingPlace {
+   static class Creature extends Thread {
+      private static int nameCounter;
+      private Color color;
+      private final int name;
+      int meetings = 0;
+      int meetingsWithSelf = 0;
 
-        private final AtomicInteger meetingsLeft;
-        private final AtomicReference<Creature> creatureRef = new AtomicReference<Creature>();
+      Creature(Color color) {
+         this.name = ++nameCounter;
+         this.color = color;
+      }
 
-        public MeetingPlace(final int meetings) {
-            meetingsLeft = new AtomicInteger(meetings);
-        }
+      private Agent createAgent() {
+         return new Agent(this);
+      }
 
-        public void meet(final Creature incoming) {
-            Colour newColour = null;
-            Creature first = null;
-            Creature next = null;
-            do {
-                first = creatureRef.get();
-                next = incoming;
-                if (first != null) {
-                    newColour = doCompliment(incoming.colour, first.colour);
-                    next = null;
-                }
-            } while (!creatureRef.compareAndSet(first, next));
-
-            if (first != null) {
-                final int meetings = meetingsLeft.decrementAndGet();
-                if (meetings >= 0) {
-                    first.setColour(incoming.id, newColour);
-                    incoming.setColour(first.id, newColour);
-                } else {
-                    first.complete();
-                    incoming.complete();
-                }
-            }
-        }
-    }
-
-    static final class Dispatcher implements Runnable {
-        private final BlockingQueue<Creature> q;
-
-        public Dispatcher(final BlockingQueue<Creature> q) {
-            this.q = q;
-        }
-
-        public void run() {
+      @Override
+      public void run() {
+         while (true) {
             try {
-                while (true) {
-                    q.take().run();
-                }
-            } catch (final InterruptedException e) {
+               Agent agent = meetingPlace.enter(this.createAgent());
+               if (agent == null) {
+                  return;
+               }
+               if (agent.name == this.name) {
+                  meetingsWithSelf++;
+               }
+               color = Color.complement(this.color, agent.color);
+               meetings++;
+            } catch (InterruptedException e) {
+               break;
             }
-        }
-    }
+         }
+      }
 
-    static final class Creature {
+   }
 
-        private final int id;
-        private final MeetingPlace place;
-        private final BlockingQueue<Creature> q;
-        private final CountDownLatch latch;
-        private int count = 0;
-        private int sameCount = 0;
-        private Colour colour;
+   static class MeetingPlace {
+      private final Exchanger<Agent> room;
 
-        public Creature(final MeetingPlace place, final Colour colour,
-                        final BlockingQueue<Creature> q, final CountDownLatch latch) {
-            this.id = System.identityHashCode(this);
-            this.place = place;
-            this.latch = latch;
-            this.colour = colour;
-            this.q = q;
-        }
+      MeetingPlace() {
+         room = new Exchanger<>();
+      }
 
-        public void complete() {
-            latch.countDown();
-        }
+      public Agent enter(Agent visitor) throws InterruptedException {
+         if (meetingsLeft.get() < 0) {
+            return null;
+         }
+         Agent agent = room.exchange(visitor);
+         latch.countDown();
+         if (meetingsLeft.decrementAndGet() < 0) {
+            return null;
+         }
+         return agent;
+      }
 
-        public void setColour(final int id, final Colour newColour) {
-            this.colour = newColour;
-            count++;
-            sameCount += 1 ^ Integer.signum(abs(this.id - id));
-            q.add(this);
-        }
+   }
 
-        private int abs(final int x) {
-            final int y = x >> 31;
-            return (x ^ y) - y;
-        }
+   static class Agent {
+      final int name;
+      final Color color;
 
-        public void run() {
-            place.meet(this);
-        }
+      Agent(Creature creature) {
+         this.name = creature.name;
+         this.color = creature.color;
+      }
+   }
 
-        public int getCount() {
-            return count;
-        }
+   enum Color {
+      blue,
+      red,
+      yellow;
 
-        @Override
-        public String toString() {
-            return String.valueOf(count) + getNumber(sameCount);
-        }
-    }
+      static final Color[] colors = {Color.blue, Color.red, Color.yellow};
 
-    private static void run(final int n, final Colour...colours) {
-        final int len = colours.length;
-        final MeetingPlace place = new MeetingPlace(n);
-        final Creature[] creatures = new Creature[len];
-        final BlockingQueue<Creature> q = new ArrayBlockingQueue<Creature>(len);
-        final CountDownLatch latch = new CountDownLatch(len - 1);
-
-        for (int i = 0; i < len; i++) {
-            System.out.print(" " + colours[i]);
-            creatures[i] = new Creature(place, colours[i], q, latch);
-        }
-
-        System.out.println();
-        final Thread[] ts = new Thread[len];
-        for (int i = 0, h = ts.length; i < h; i++) {
-            ts[i] = new Thread(new Dispatcher(q));
-            ts[i].setDaemon(true);
-            ts[i].start();
-        }
-
-        for (final Creature creature : creatures) {
-            q.add(creature);
-        }
-
-        try {
-            latch.await();
-            for (final Thread t : ts) {
-                t.interrupt();
-            }
-            for (final Thread t : ts) {
-                t.join();
-            }
-        } catch (final InterruptedException e1) {
-            System.err.println("Existing with error: " + e1);
-        }
-
-        int total = 0;
-        for (final Creature creature : creatures) {
-            System.out.println(creature);
-            total += creature.getCount();
-        }
-        System.out.println(getNumber(total));
-        System.out.println();
-    }
-
-    public static void main(final String[] args){
-        chameneosredux_mem.program_main(args,true);
-    }
-
-    public static void program_main(final String[] args, final boolean isWarm) {
-
-        int n = 600;
-        try {
-            n = Integer.parseInt(args[0]);
-        } catch (final Exception e) {
-        }
-
-        printColours();
-        System.out.println();
-        run(n, Colour.blue, Colour.red, Colour.yellow);
-        run(n, Colour.blue, Colour.red, Colour.yellow, Colour.red, Colour.yellow,
-               Colour.blue, Colour.red, Colour.yellow, Colour.red, Colour.blue);
-    }
-
-    private static final String[] NUMBERS = {
-        "zero", "one", "two", "three", "four", "five",
-        "six", "seven", "eight", "nine"
-    };
-
-    private static String getNumber(final int n) {
-        final StringBuilder sb = new StringBuilder();
-        final String nStr = String.valueOf(n);
-        for (int i = 0; i < nStr.length(); i++) {
-            sb.append(" ");
-            sb.append(NUMBERS[Character.getNumericValue(nStr.charAt(i))]);
-        }
-
-        return sb.toString();
-    }
-
-    private static void printColours() {
-        printColours(Colour.blue, Colour.blue);
-        printColours(Colour.blue, Colour.red);
-        printColours(Colour.blue, Colour.yellow);
-        printColours(Colour.red, Colour.blue);
-        printColours(Colour.red, Colour.red);
-        printColours(Colour.red, Colour.yellow);
-        printColours(Colour.yellow, Colour.blue);
-        printColours(Colour.yellow, Colour.red);
-        printColours(Colour.yellow, Colour.yellow);
-    }
-
-    private static void printColours(final Colour c1, final Colour c2) {
-        System.out.println(c1 + " + " + c2 + " -> " + doCompliment(c1, c2));
-    }
-
+      public static Color complement(final Color color1, final Color color2) {
+         switch (color1) {
+            case blue:
+               switch (color2) {
+                  case blue:      return blue;
+                  case red:      return yellow;
+                  case yellow:   return red;
+               }
+            case red:
+               switch (color2) {
+                  case blue:      return yellow;
+                  case red:      return red;
+                  case yellow:   return blue;
+               }
+            case yellow:
+               switch (color2) {
+                  case blue:      return red;
+                  case red:      return blue;
+                  case yellow:   return yellow;
+               }
+         }
+         return null;
+      }
+   }
 
 }

@@ -1,3 +1,9 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+
+   contributed by Mr Ledrug
+*/
+
 #define _GNU_SOURCE
 #include <sched.h>
 #include <stdio.h>

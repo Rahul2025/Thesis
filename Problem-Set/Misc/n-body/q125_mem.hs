@@ -1,3 +1,16 @@
+--
+-- The Computer Language Benchmarks Game
+-- http://shootout.alioth.debian.org/
+--
+-- Contributed by Olof Kraigher and Don Stewart.
+--
+-- To be compiled with:
+--
+--  -O2 -fglasgow-exts -funbox-strict-fields -fbang-patterns -optc-O 
+--
+-- Don't enable -optc-mfpmath=sse -optc-msse2, this triggers a gcc bug on x86
+--
+
 import Foreign
 import Foreign.Storable
 import Foreign.Marshal.Alloc

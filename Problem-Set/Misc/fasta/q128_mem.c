@@ -1,150 +1,142 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+
+ * Contributed by Joern Inge Vestgaarden
+ * Modified by Jorge Peixoto de Morais Neto
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <err.h>
 
-#define IM 139968
-#define IA   3877
-#define IC  29573
+#define WIDTH 60
+#define MIN(a,b) ((a) <= (b) ? (a) : (b))
+#define NELEMENTS(x) (sizeof (x) / sizeof ((x)[0]))
 
-double gen_random (double max) {
-    static long last = 42;
-    return max * (last = (last * IA + IC) % IM) / IM;
-}
-
-struct aminoacids {
+typedef struct {
+    float p;
     char c;
-    double p;
-};
+} aminoacid_t;
 
-/* Weighted selection from alphabet */
+static inline float myrandom (float max) { 
+    unsigned long const IM = 139968;
+    unsigned long const IA = 3877;
+    unsigned long const IC = 29573;
+    static unsigned long last = 42; 
+    last = (last * IA + IC) % IM; 
+    /*Integer to float conversions are faster if the integer is signed*/
+    return max * (long) last / IM; 
+} 
 
-void makeCumulative (struct aminoacids * genelist, int count) {
-    double cp = 0.0;
-    int i;
-
-    for (i=0; i < count; i++) {
+static inline void accumulate_probabilities (aminoacid_t *genelist, size_t len) {
+    float cp = 0.0;
+    size_t i;
+    for (i = 0; i < len; i++) {
         cp += genelist[i].p;
         genelist[i].p = cp;
     }
 }
 
-char selectRandom (const struct aminoacids * genelist, int count) {
-    double r = gen_random (1);
-    int i, lo, hi;
-
-    if (r < genelist[0].p) return genelist[0].c;
-
-    lo = 0;
-    hi = count-1;
-
-    while (hi > lo+1) {
-        i = (hi + lo) / 2;
-        if (r < genelist[i].p) hi = i; else lo = i;
-    }
-    return genelist[hi].c;
+/* This function prints the characters of the string s. When it */
+/* reaches the end of the string, it goes back to the beginning */
+/* It stops when the total number of characters printed is count. */
+/* Between each WIDTH consecutive characters it prints a newline */
+/* This function assumes that WIDTH <= strlen (s) + 1 */
+static void repeat_fasta (char const *s, size_t count) {
+    size_t pos = 0;  
+    size_t len = strlen (s); 
+    char *s2 = malloc (len + WIDTH);
+    memcpy (s2, s, len); 
+    memcpy (s2 + len, s, WIDTH); 
+    do {   
+     	size_t line = MIN(WIDTH, count); 
+     	fwrite_unlocked (s2 + pos,1,line,stdout); 
+     	putchar_unlocked ('\n'); 
+     	pos += line; 
+     	if (pos >= len) pos -= len; 
+     	count -= line;  
+    } while (count); 
+    free (s2); 
 }
 
-/* Generate and write FASTA format */
-
-#define LINE_LENGTH (60)
-
-void makeRandomFasta (const char * id, const char * desc, const struct 
-aminoacids * genelist, int count, int n) {
-   int todo = n;
-   int i, m;
-
-   printf (">%s %s\n", id, desc);
-
-   for (; todo > 0; todo -= LINE_LENGTH) {
-       char pick[LINE_LENGTH+1];
-       if (todo < LINE_LENGTH) m = todo; else m = LINE_LENGTH;
-       for (i=0; i < m; i++) pick[i] = selectRandom (genelist, count);
-       pick[m] = '\0';
-       puts (pick);
-   }
+/* This function takes a pointer to the first element of an array */
+/* Each element of the array is a struct with a character and */
+/* a float number p between 0 and 1. */
+/* The function generates a random float number r and */
+/* finds the first array element such that p >= r. */
+/* This is a weighted random selection. */
+/* The function then prints the character of the array element. */
+/* This is done count times. */
+/* Between each WIDTH consecutive characters, the function prints a newline */
+static void random_fasta (aminoacid_t const *genelist, size_t count) {
+    do {    
+	size_t line = MIN(WIDTH, count);    
+	size_t pos = 0;    
+	char buf[WIDTH + 1];    
+	do {    
+	    float r = myrandom (1.0);
+	    size_t i = 0;   
+	    while (genelist[i].p < r)    
+		++i; /* Linear search */    
+	    buf[pos++] = genelist[i].c;    
+	} while (pos < line);   
+	buf[line] = '\n';
+	fwrite_unlocked (buf, 1, line + 1, stdout);    
+	count -= line;    
+    } while (count);   
 }
 
-void makeRepeatFasta (const char * id, const char * desc, const char * 
-s, int n) {
-   char * ss;
-   int todo = n, k = 0, kn = strlen (s);
-   int m;
+int main (int argc, char **argv) {
+    size_t n;
+    if (argc > 1) { 
+	char const *arg = argv[1];
+ 	char *tail; 
+ 	n = strtoul (arg, &tail, 0); 
+ 	if (tail == arg)  
+	    errx (1, "Could not convert \"%s\" to an unsigned long integer", arg); 
+    } else n = 1000;
 
-   ss = (char *) malloc (kn + 1);
-   memcpy (ss, s, kn+1);
+    static aminoacid_t iub[] = {
+	{ 0.27, 'a' },
+	{ 0.12, 'c' },
+	{ 0.12, 'g' },
+	{ 0.27, 't' },
+	{ 0.02, 'B' },
+	{ 0.02, 'D' },
+	{ 0.02, 'H' },
+	{ 0.02, 'K' },
+	{ 0.02, 'M' },
+	{ 0.02, 'N' },
+	{ 0.02, 'R' },
+	{ 0.02, 'S' },
+	{ 0.02, 'V' },
+	{ 0.02, 'W' },
+	{ 0.02, 'Y' }};
 
-   printf (">%s %s\n", id, desc);
+    static aminoacid_t homosapiens[] = {
+	{ 0.3029549426680, 'a' },
+	{ 0.1979883004921, 'c' },
+	{ 0.1975473066391, 'g' },
+	{ 0.3015094502008, 't' }};
 
-   for (; todo > 0; todo -= LINE_LENGTH) {
-       if (todo < LINE_LENGTH) m = todo; else m = LINE_LENGTH;
+    accumulate_probabilities (iub, NELEMENTS(iub)); 
+    accumulate_probabilities (homosapiens, NELEMENTS(homosapiens));
 
-       while (m >= kn - k) {
-           printf ("%s", s+k);
-           m -= kn - k;
-           k = 0;
-       }
+    static char const *const alu ="\
+GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG\
+GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA\
+CCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAAT\
+ACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCA\
+GCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGG\
+AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC\
+AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA";
 
-       ss[k + m] = '\0';
-       puts (ss+k);
-       ss[k + m] = s[m+k];
-       k += m;
-   }
-
-   free (ss);
-}
-
-/* Main -- define alphabets, make 3 fragments */
-
-struct aminoacids iub[] = {
-    { 'a', 0.27 },
-    { 'c', 0.12 },
-    { 'g', 0.12 },
-    { 't', 0.27 },
-
-    { 'B', 0.02 },
-    { 'D', 0.02 },
-    { 'H', 0.02 },
-    { 'K', 0.02 },
-    { 'M', 0.02 },
-    { 'N', 0.02 },
-    { 'R', 0.02 },
-    { 'S', 0.02 },
-    { 'V', 0.02 },
-    { 'W', 0.02 },
-    { 'Y', 0.02 }
-};
-
-#define IUB_LEN (sizeof (iub) / sizeof (struct aminoacids))
-
-struct aminoacids homosapiens[] = {
-    { 'a', 0.3029549426680 },
-    { 'c', 0.1979883004921 },
-    { 'g', 0.1975473066391 },
-    { 't', 0.3015094502008 },
-};
-
-#define HOMOSAPIENS_LEN (sizeof (homosapiens) / sizeof (struct aminoacids))
-
-char * alu =
-   "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG" \
-   "GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA" \
-   "CCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAAT" \
-   "ACAAAAATTAGCCGGGCGTGGTGGCGCGCGCCTGTAATCCCA" \
-   "GCTACTCGGGAGGCTGAGGCAGGAGAATCGCTTGAACCCGGG" \
-   "AGGCGGAGGTTGCAGTGAGCCGAGATCGCGCCACTGCACTCC" \
-   "AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA";
-
-int main (int argc, char * argv[]) {
-    int n = 1000;
-
-    if (argc > 1) sscanf (argv[1], "%d", &n);
-
-    makeCumulative (iub, IUB_LEN);
-    makeCumulative (homosapiens, HOMOSAPIENS_LEN);
-
-    makeRepeatFasta ("ONE", "Homo sapiens alu", alu, n*2);
-    makeRandomFasta ("TWO", "IUB ambiguity codes", iub, IUB_LEN, n*3);
-    makeRandomFasta ("THREE", "Homo sapiens frequency", homosapiens, 
-HOMOSAPIENS_LEN, n*5);
-
+    fputs_unlocked (">ONE Homo sapiens alu\n", stdout);
+    repeat_fasta (alu, 2 * n);
+    fputs_unlocked (">TWO IUB ambiguity codes\n", stdout);
+    random_fasta (iub, 3 * n);
+    fputs_unlocked (">THREE Homo sapiens frequency\n", stdout);
+    random_fasta (homosapiens, 5 * n);
     return 0;
 }

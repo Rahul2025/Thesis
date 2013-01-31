@@ -1,3 +1,10 @@
+{-
+The Computer Language Benchmarks Game
+ http://shootout.alioth.debian.org/
+
+contributed by Louis Wasserman
+-}
+
 import Control.Monad
 import Foreign
 import Data.ByteString.Internal

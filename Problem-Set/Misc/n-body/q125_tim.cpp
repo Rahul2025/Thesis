@@ -1,3 +1,12 @@
+/* The Computer Language Benchmarks Game
+
+   http://shootout.alioth.debian.org/
+
+   contributed by Mark C. Lewis
+   modified slightly by Chad Whipkey
+   converted from java to c++,added sse support, by Branimir Maksimovic 
+*/
+
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
@@ -190,8 +199,7 @@ class NBodySystem {
 };
 
 int main(int argc, char** argv) {
-        int n;
-scanf("%d",&n);
+        int n = atoi(argv[1]);
 
         NBodySystem bodies;
         printf("%.9f\n", bodies.energy());

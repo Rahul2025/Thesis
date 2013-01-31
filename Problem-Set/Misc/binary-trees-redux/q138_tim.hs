@@ -1,3 +1,9 @@
+--
+-- The Computer Language Benchmarks Game
+-- http://shootout.alioth.debian.org/
+--
+-- Contributed by Don Stewart
+--
 
 import System.Environment
 import Data.Bits

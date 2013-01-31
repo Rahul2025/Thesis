@@ -1,7 +1,12 @@
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+   transliterated from C++ (Ben St. John) and D (Michael Deardeuff) by Amir K aka Razii
+*/
+
 
 import java.util.*;
 
-public final class meteor
+public final class meteor_2
 {
     static final int X = 0;
     static final int Y = 1;
@@ -28,7 +33,6 @@ public final class meteor
 
 
 //-- Globals -------------------------
-
     static IslandInfo[] g_islandInfo = new IslandInfo [MAX_ISLAND_OFFSET];
     static int g_nIslandInfo = 0;
     static OkPieces[][] g_okPieces = new OkPieces [N_ROW][N_COL];
@@ -64,7 +68,6 @@ public final class meteor
     static int floor(int top, int bot) {
         int toZero = top / bot;
         // negative numbers should be rounded down, not towards zero;
-
         if ((toZero * bot != top) && ((top < 0) != (bot <= 0)))
             toZero--;
 
@@ -131,7 +134,6 @@ public final class meteor
 
 
 //-- Classes -------------------------;
-
 
     static class OkPieces {
         byte[] nPieces = new byte[N_PIECE_TYPE];
@@ -207,7 +209,6 @@ public final class meteor
 
             s.m_nPiece = m_nPiece;
             //System.arraycopy(m_cells, 0, s.m_cells, 0, N_CELL);
-
             for (int i = 0; i < N_ROW; i++)
             {
                 for (int j = 0; j < N_COL; j ++)
@@ -236,7 +237,6 @@ public final class meteor
                 for (int x = 0; x < N_COL; x++) {
                     int val = m_cells[y][x];
                     //if (val == NO_PIECE) result.append('.');
-
                     {
                         result.append(val);
                     }
@@ -245,7 +245,6 @@ public final class meteor
                 result.append('\n');
 
                 // indent every second line
-
                 if (y % 2 == 0)
                     result.append(" ");
             }
@@ -317,7 +316,6 @@ public final class meteor
 
 
 //-----------------------
-
     static class Board {
         static final int L_EDGE_MASK = 
                                        ((1 <<  0) | (1 <<  5) | (1 << 10) | (1 << 15) |
@@ -348,23 +346,19 @@ public final class meteor
         static boolean badRegion(int[] toFill, int rNew)
         {
             // grow empty region, until it doesn't change any more;
-
             int region;
             do {
                 region = rNew;
 
                 // simple grow up/down
-
                 rNew |= (region >> N_COL);
                 rNew |= (region << N_COL);
 
                 // grow right/left
-
                 rNew |= (region & ~L_EDGE_MASK) >> 1;
                 rNew |= (region & ~R_EDGE_MASK) << 1;
 
                 // tricky growth
-
                 int evenRegion = region & (ROW_0_MASK & ~L_EDGE_MASK);
                 rNew |= evenRegion >> (N_COL + 1);
                 rNew |= evenRegion << (N_COL - 1);
@@ -373,13 +367,11 @@ public final class meteor
                 rNew |= oddRegion << (N_COL + 1);
 
                 // clamp against existing pieces
-
                 rNew &= toFill[0];
             }
             while ((rNew != toFill[0]) && (rNew != region));
 
             // subtract empty region from board
-
             toFill[0] ^= rNew;
 
             int nCells = countOnes(toFill[0]);
@@ -389,7 +381,6 @@ public final class meteor
         static int hasBadIslands(int boardVec, int row)
         {
             // skip over any filled rows
-
             while ((boardVec & TOP_ROW) == TOP_ROW) {
                 boardVec >>= N_COL;
                 row++;
@@ -440,7 +431,6 @@ public final class meteor
             toFill[0] &= boardMask;
 
             // a little pre-work to speed things up
-
             int bottom = (TOP_ROW << (5 * N_COL));
             boolean filled = ((bottom & toFill[0]) == bottom);
             while ((bottom & toFill[0]) == bottom) {
@@ -501,14 +491,12 @@ public final class meteor
             if (isOdd) {
                 row--;
                 toFill[0] <<= N_COL; // shift to even aligned
-
                 toFill[0] |= TOP_ROW;
             }
 
             int startRegion = TOP_ROW;
             int lastRow = TOP_ROW << (5 * N_COL);
             int boardMask = BOARD_MASK; // all but the first two bits
-
             if (row >= 4)
                 boardMask >>= ((row - 4) * N_COL);
             else if (isOdd || (row == 0))
@@ -560,7 +548,6 @@ public final class meteor
                     m_curSoln.pushPiece(pieceVec, iPiece, row);
 
                     // recur or record solution
-
                     if (placedPieces != Piece.ALL_PIECE_MASK)
                         genAllSolutions(boardVec, placedPieces, row);
                     else
@@ -597,7 +584,6 @@ public final class meteor
     }
 
 //----------------------
-
     static class Piece {
         class Instance {
             long m_allowed;
@@ -811,11 +797,9 @@ public final class meteor
 
 
 //-- Main ---------------------------
-
     public static void main(String[] args) {
         if (args.length > 2)
             System.exit(-1); // spec says this is an error;
-
 
         initGlobals();
         Board b = new Board();

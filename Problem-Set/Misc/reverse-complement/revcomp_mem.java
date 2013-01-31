@@ -1,10 +1,21 @@
+/* The Computer Language Benchmarks Game
+ * http://shootout.alioth.debian.org/
+
+ * contributed by Sassa NF
+ * fork-join + NIO
+ *
+ * very little left from original contribution by
+ * Jon Edvardsson which in turn is based on
+ * the original program by Anthony Donnefort and Enotus.
+ */
+
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.ArrayList;
 import java.util.concurrent.*;
 
-public class revcomp_mem extends RecursiveTask<ArrayList<revcomp>> {
+public class revcomp_7 extends RecursiveTask<ArrayList<revcomp_7>> {
   private static final byte[] map = new byte[128];
   private static final ByteBuffer bytes;
   private static final Semaphore processed = new Semaphore(0);
@@ -88,13 +99,13 @@ public class revcomp_mem extends RecursiveTask<ArrayList<revcomp>> {
     }
     bytes.flip();
 
-    revcomp _mem t = new revcomp_mem(bytes);
+    revcomp_7 t = new revcomp_7(bytes);
     jobs.execute(t);
 
-    ArrayList<revcomp_mem> bs = t.flatten();
+    ArrayList<revcomp_7> bs = t.flatten();
     ArrayList<ByteBuffer> head = new ArrayList<ByteBuffer>(bs.size()*2);
     ArrayList<ByteBuffer> tail = new ArrayList<ByteBuffer>(bs.size()*2);
-    for( revcomp_mem b: bs ) b.foldl( head, tail );
+    for( revcomp_7 b: bs ) b.foldl( head, tail );
 
     reverse(tail.toArray(new ByteBuffer[0]));
 
@@ -117,34 +128,32 @@ public class revcomp_mem extends RecursiveTask<ArrayList<revcomp>> {
   int firstt;
   int lastf;
 
-  public revcomp_mem(ByteBuffer b) {
+  public revcomp_7(ByteBuffer b) {
     buf = b;
   }
 
-  public revcomp_mem(ByteBuffer[] bs) {
+  public revcomp_7(ByteBuffer[] bs) {
     bufs = bs;
   }
 
-  protected ArrayList<revcomp_mem> compute() {
+  protected ArrayList<revcomp_7> compute() {
     if (bufs != null) {
       reverse(bufs);
       processed.release(1);
       return null;
     }
 
-    ArrayList<revcomp_mem> al = new ArrayList<revcomp_mem>();
+    ArrayList<revcomp_7> al = new ArrayList<revcomp_7>();
 
     while( buf.remaining() > THRESHOLD ) {
       int next = (buf.position() + buf.limit()) / 2;
          // assuming well-formed input, the buffer must contain
-
          // at least one CRLF in THRESHOLD bytes
-
       while( buf.get(next) != '\n' ) next--; 
       ByteBuffer b = buf.slice();
       b.limit(next+1-buf.position());
       buf.position(next+1);
-      revcomp_mem t = new revcomp_mem(b);
+      revcomp_7 t = new revcomp_7(b);
       jobs.execute(t);
       al.add(t);
     }
@@ -155,14 +164,10 @@ public class revcomp_mem extends RecursiveTask<ArrayList<revcomp>> {
     lastf = f;
     firstt = t; 
        // this is where the first entry ends; 
-
        // it must go before the last entry of the previous job
-
     for(;;) {
          // we don't reverse the first entry, 
-
          // and we don't reverse the last entry
-
       while(t < buf.limit() && buf.get(t) != '\n') t++;
       if ( t == buf.limit() ) break;
       f = t+1;
@@ -177,10 +182,10 @@ public class revcomp_mem extends RecursiveTask<ArrayList<revcomp>> {
     return al;
   }
 
-  public ArrayList<revcomp_mem> flatten() throws InterruptedException, ExecutionException {
-    ArrayList<revcomp_mem> pre = get();
-    ArrayList<revcomp_mem> r = pre.isEmpty() ? pre: new ArrayList<revcomp_mem>();
-    for( revcomp_mem p: pre ) r.addAll( p.flatten() );
+  public ArrayList<revcomp_7> flatten() throws InterruptedException, ExecutionException {
+    ArrayList<revcomp_7> pre = get();
+    ArrayList<revcomp_7> r = pre.isEmpty() ? pre: new ArrayList<revcomp_7>();
+    for( revcomp_7 p: pre ) r.addAll( p.flatten() );
     r.add(this);
     return r;
   }
@@ -188,7 +193,6 @@ public class revcomp_mem extends RecursiveTask<ArrayList<revcomp>> {
   public void foldl(ArrayList<ByteBuffer> head, ArrayList<ByteBuffer> tail) {
     if ( lastf <= firstt ) { 
          // all in one chunk - add all to head
-
       tail.add(buf);
       return;
     }
@@ -198,7 +202,7 @@ public class revcomp_mem extends RecursiveTask<ArrayList<revcomp>> {
 
       tail.add(first);
     }
-    jobs.execute(new revcomp_mem(tail.toArray(new ByteBuffer[0])));
+    jobs.execute(new revcomp_7(tail.toArray(new ByteBuffer[0])));
     tails++;
     head.addAll(tail);
     head.add(buf);

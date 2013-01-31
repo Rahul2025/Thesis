@@ -1,3 +1,19 @@
+--
+-- The Computer Language Benchmarks Game
+-- http://shootout.alioth.debian.org/
+--
+-- Modified by Ryan Trinkle: 1) change from divInt# to uncheckedIShiftRA#
+--                           2) changed -optc-O to -optc-O3
+--                           3) added -optc-ffast-math
+-- Translation from Clean by Don Stewart
+-- Parallelized by Louis Wasserman
+--
+-- Should be compiled with:
+-- 	-threaded -funbox-strict-fields -O2 -fvia-c -optc-O3 
+-- 	-fexcess-precision -optc-ffast-math 
+-- Should be run with:
+-- 	+RTS -N<number of cores>
+
 import System.Environment
 import Foreign.Marshal.Array
 import Foreign

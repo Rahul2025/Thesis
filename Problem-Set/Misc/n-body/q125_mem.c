@@ -1,3 +1,12 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+ *
+ * contributed by Christoph Bauer
+ * slightly improved by Mark Hinds
+ * SIMDified by Stefan Krause
+ * translated in ANSI C by Francesco Massei
+ */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -138,11 +147,10 @@ static void offset_momentum()
 
 int main(int argc, char ** argv)
 {
-   int n;
-	scanf("%d",&n);
   offset_momentum();
   printf ("%.9f\n", energy());
-  advance(n);
+  advance(atoi(argv[1]));
   printf ("%.9f\n", energy());
   return 0;
 }
+

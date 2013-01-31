@@ -1,3 +1,10 @@
+--
+-- The Computer Language Benchmarks Game
+-- http://shootout.alioth.debian.org/
+--
+-- contributed by Stephen Blackheath (with some bits taken from Don Stewart's
+--     version), v1.2
+
 import Text.Printf
 import Data.ByteString.Internal
 import qualified Data.ByteString.Char8 as S

@@ -1,21 +1,68 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+
+   contributed by Jason Nordwick
+*/
+
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class regexdna_mem
-{
-   private static final Map<String,String> replacements = 
-      new HashMap<String,String>(11);
-   private static final Pattern newSeqPattern = 
-      Pattern.compile("[WYKMSRBDVHN]");
-   private static final String[] variants = { 
-      "agggtaaa|tttaccct", 
+final class ByteWrapper implements CharSequence {
+
+   public byte[] backing;
+   public int length;
+
+   public ByteWrapper( byte[] backing ) {
+      this( backing, backing.length );
+   }
+   
+   public ByteWrapper( byte[] backing, int length ) {
+      this.backing = backing;
+      this.length = length;
+   }
+
+   public int length() {
+      return length;
+   }
+
+   public char charAt(int index) {
+      return (char) backing[index];
+   }
+   
+   public CharSequence subSequence(int start, int end) {
+      throw new UnsupportedOperationException();
+   }
+}
+
+
+public final class regexdna_7 {
+   
+   private static Pattern comments = Pattern.compile(">.*\n|\n");
+   
+   private static String[][] codes =
+      {{"B", "(c|g|t)"},
+      {"D", "(a|g|t)"},
+      {"H", "(a|c|t)"},
+      {"K", "(g|t)"},
+      {"M", "(a|c)"},
+      {"N", "(a|c|g|t)"},
+      {"R", "(a|g)"},
+      {"S", "(c|g)"},
+      {"V", "(a|c|g)"},
+      {"W", "(a|t)"},
+      {"Y", "(c|t)"} };
+   
+   private static Pattern codesPat = Pattern.compile("[BDHKMNRSVWY]");
+   
+   private static final int longest;
+   private static byte[] repl;
+ 
+   private static String[] strs = {
+      "agggtaaa|tttaccct",
       "[cgt]gggtaaa|tttaccc[acg]",
       "a[act]ggtaaa|tttacc[agt]t",
       "ag[act]gtaaa|tttac[agt]ct",
@@ -26,162 +73,101 @@ public final class regexdna_mem
       "agggtaa[cgt]|[acg]ttaccct"
    };
 
-   static
-   {
-      replacements.put("W", "(a|t)");
-      replacements.put("Y", "(c|t)");
-      replacements.put("K", "(g|t)");
-      replacements.put("M", "(a|c)");
-      replacements.put("S", "(c|g)");
-      replacements.put("R", "(a|g)");
-      replacements.put("B", "(c|g|t)");
-      replacements.put("D", "(a|g|t)");
-      replacements.put("V", "(a|c|g)");
-      replacements.put("H", "(a|c|t)");
-      replacements.put("N", "(a|c|g|t)");
-   }
+   private static Pattern[] pats = new Pattern[strs.length];
    
-   private static final class NewSeqThread extends Thread
-   {
-      private final String sequence;
-      private final AtomicInteger newSeqLength;
-      private final AtomicInteger inputLength;
-
-      private NewSeqThread(final ThreadGroup threadGroup, 
-            final String sequence, final AtomicInteger newSeqLength, 
-            final AtomicInteger inputLength)
-      {
-         super(threadGroup, "newSeq");
-         this.sequence = sequence;
-         this.newSeqLength = newSeqLength;
-         this.inputLength = inputLength;
-      }
-
-      @Override
-      public final void run()
-      {
-         final StringBuffer buf = new StringBuffer(
-            (int)(this.inputLength.get() * 1.32));
-         final Matcher m = newSeqPattern.matcher(this.sequence);
-         while (m.find())
-         {
-            m.appendReplacement(buf, "");
-            buf.append(replacements.get(m.group()));
-         }
-         m.appendTail(buf);
-         this.newSeqLength.set(buf.length());
-      }
-   }
-
-   private static final class VariantThread extends Thread
-   {
-      private final Map<String,Integer> results;
-      private final String variant;
-      private final String sequence;
-
-      private VariantThread(final ThreadGroup threadGroup, 
-            final String name, final Map<String,Integer> results, 
-            final String variant, final String sequence)
-      {
-         super(threadGroup, name);
-         this.results = results;
-         this.variant = variant;
-         this.sequence = sequence;
-      }
-
-      @Override
-      public final void run()
-      {
-         int count = 0;
-         final Matcher m = Pattern.compile(this.variant)
-                        .matcher(this.sequence);
-         while (m.find())
-         {
-            count++;
-         }
-         this.results.put(this.variant, count);
+   static {
+      for( int i = 0; i < pats.length; ++i )
+         pats[i] = Pattern.compile( strs[i] );
+      
+      int l = 0;
+      for( int i = 0; i < codes.length; ++i )
+         l = Math.max( l, codes[i][1].length() );
+      longest = l;
+      
+      repl = new byte[26 * longest + 1];
+      for( int i = 0; i < codes.length; ++i ) {
+         int off = longest * (codes[i][0].charAt( 0 ) - 'A');
+         String code = codes[i][1];
+         for( int j = 0; j < code.length(); ++j )
+            repl[off + j] = (byte) code.charAt( j );
       }
    }
    
-   private static String readInput(final AtomicInteger inputLength, 
-         final AtomicInteger seqLength)
-   throws IOException
-   {
-      final StringBuilder sb = new StringBuilder(10000000);
-      final BufferedReader r = new BufferedReader(
-         new InputStreamReader(System.in, Charset.defaultCharset()));
-      int commentLength = 0;
-      try
-      {
-         String line;
-         while ((line = r.readLine()) != null)
-         {
-            if (line.charAt(0) == '>')
-            {
-               commentLength += line.length() + 1;
-            }
-            else
-            {
-               sb.append(line);
-               commentLength += 1;
-            }
-         }
+   private static void rmComments( ByteWrapper t ) {
+
+      byte[] backing = t.backing;
+      Matcher m = comments.matcher( t );
+      
+      if( !m.find() )
+         return;
+      
+      int tail = m.start();
+      int restart = m.end();
+            
+      while( m.find() ) {
+         while( restart != m.start() )
+            backing[tail++] = backing[restart++];
+         restart = m.end();
       }
-      finally
-      {
-         r.close();
-      }
-      seqLength.set(sb.length());
-      inputLength.set(seqLength.get() + commentLength);
-      return sb.toString();
+      
+      while( restart < backing.length )
+         backing[tail++] = backing[restart++];
+      
+      t.length = tail;
    }
    
-   private static void awaitThreads(final ThreadGroup tg)
-   {
-      final Thread[] threads = new Thread[variants.length];
-      tg.enumerate(threads);
-      for (final Thread thread : threads)
-      {
-         if (thread != null)
-         {
-            while (thread.isAlive())
-            {
-               try { thread.join(); } catch (InterruptedException ie){}
-            }
-         }
+   private static void countPatterns( ByteWrapper t ) {
+            
+      for( int i = 0; i < pats.length; ++i ) {
+         int c = 0;
+         Matcher m = pats[i].matcher( t );
+         while( m.find() )
+            ++c;
+         System.out.println( strs[i] + ' ' + c );
       }
-      tg.destroy();
+   }
+   
+   private static ByteWrapper replace( ByteWrapper t ) {
+      
+      byte[] backing = t.backing;
+      byte[] buf = new byte[t.length * longest];
+      int pos = 0;
+      
+      Matcher m = codesPat.matcher( t );
+      int last = 0;
+      
+      while( m.find() ) {
+         for( ; last < m.start(); ++last )
+            buf[pos++] = backing[last];
+         for( int i = longest * (backing[last] - 'A'); repl[i] != 0; ++i )
+            buf[pos++] = repl[i];
+         ++last;
+      }
+      
+      for( ; last < t.length; ++last )
+         buf[pos++] = backing[last];
+      
+      return new ByteWrapper( buf, pos );
    }
 
-   public static void main(final String[] args)
-   throws IOException
-   {
-      final AtomicInteger inputLength = new AtomicInteger(0);
-      final AtomicInteger seqLength = new AtomicInteger(0);
-      final AtomicInteger newSeqLength = new AtomicInteger(0);
-      final Map<String,Integer> results = 
-         new HashMap<String,Integer>(variants.length);
-      {
-         final ThreadGroup threadGroup = new ThreadGroup("regexWork");
-         {
-            final String sequence = readInput(inputLength, seqLength);
-            new NewSeqThread(threadGroup, sequence, 
-               newSeqLength, inputLength).start();
-            for (final String variant : variants)
-            {
-               new VariantThread(threadGroup, variant, results, 
-                  variant, sequence).start();
-            }
-         }
-         awaitThreads(threadGroup);
-      }
-      for (final String variant : variants)
-      {
-         System.out.println(variant + " " + results.get(variant));
-      }
+   public static void main( String[] args ) throws Exception {
+
+      FileInputStream fis = new FileInputStream( FileDescriptor.in );
+      FileChannel cin = fis.getChannel();
+      ByteBuffer bb = ByteBuffer.allocate( (int) cin.size() );
+      cin.read( bb );
+      
+      ByteWrapper t = new ByteWrapper( bb.array() );
+      rmComments( t );
+
+      countPatterns( t );
+      
+      ByteWrapper w = replace( t );
+      
       System.out.println();
-      System.out.println(inputLength.get());
-      System.out.println(seqLength.get());
-      System.out.println(newSeqLength.get());
+      System.out.println( t.backing.length );
+      System.out.println( t.length() );
+      System.out.println( w.length() );
    }
+
 }

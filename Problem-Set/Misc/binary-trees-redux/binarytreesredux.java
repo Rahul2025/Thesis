@@ -1,5 +1,10 @@
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+ 
+   contributed by Jarkko Miettinen
+*/
 
-public class binarytreesredux {
+public class binarytreesredux_2 {
 
    private final static int minDepth = 4;
    

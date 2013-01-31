@@ -1,435 +1,381 @@
-#include <ctype.h>
-
-#include <malloc.h>
-
-#include <pthread.h>
-
-#include <sched.h>
+/* 
+ * The Computer Language Benchmarks Game 
+ * http://benchmarksgame.alioth.debian.org/
+ *
+ * Contributed by Mr Ledrug
+*/
 
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
-
-#include <sys/mman.h>
-
-#include <sys/stat.h>
-
 #include <unistd.h>
+#include <ctype.h>
+#include <stdint.h>
+#include <pthread.h>
 
+typedef unsigned char byte;
+byte * input;
+size_t input_len;
 
-#define HT_SIZE 2000000
+byte trans[128];
+const char *codes = "ACGT";
 
+// read in all the "acgt"s and translate them to numbers 0-3
+void get_input(void) {
+   int fd = fileno(stdin);
+   size_t buflen = 1<<20, len, i, section = 0;
 
-typedef unsigned char uint8_t;
-const uint8_t selector[] = { -1, 0,-1, 1, 3,-1,-1, 2 };
-const char table[] = {'A', 'C', 'G', 'T'};
+   input = malloc(buflen + 1);
+   input_len = 0;
 
-/* this is sligthly faster
+   while (1) {
+      len = read(fd, input, buflen);
+      for (i = 0; i < len; i++)
+         if (input[i] == '>' && ++section == 3)
+            goto found;
 
-struct ht_node *
+      if (len < buflen) return;
+   }
 
-ht_find_new(struct ht_ht *ht, ui64 key) 
+found:
+   input_len = buflen - i;
+   memmove(input, input + i, input_len);
+   input[input_len] = 0;
 
-{
+   while (1) {
+      if (buflen < input_len * 2) {
+         buflen *= 2;
+         input = realloc(input, buflen + 1);
+      }
 
-    int hash_code = ht_hashcode(ht, key);
+      len = read(fd, input + input_len, buflen - input_len);
+      input_len += len;
+      input[input_len] = 0;
 
-    struct ht_node *node = ht->tbl[hash_code];
+      if (input_len < buflen) {
+         byte *in = input, *ptr = input;
+         int c;
 
-    
+         while (*in && *in != '\n') in++;
 
-    if (node) 
+         while ((c = *in++))
+            if (c != '\n')
+               *ptr++ = trans[c];
 
-    {
-
-      if (key == node->key)
-
-          return(node);
-
-    } else {
-
-      ht->items++;
-
-      return(ht->tbl[hash_code] = ht_node_create(key));
-
-    }
-
-    
-
-    while (node->next) 
-
-    {
-
-        if (key == node->next->key)
-
-            return(node->next);
-
-        node = node->next;
-
-    }
-
-
-
-    ht->items++;
-
-    return (node->next = ht_node_create(key));
-
-}*/
-
-/* Thread pool implementation */
-
-struct tp_entry {
-    void *job;
-    void *param;
-};
-
-struct tp {
-    struct tp_entry *jobs;
-    int capacity;
-    int size;
-    pthread_mutex_t mutex;
-};
-
-struct tp *
-tp_create(int max_jobs) {
-    struct tp *pool = malloc(sizeof(*pool));
-
-    pool->jobs = malloc(sizeof(struct tp_entry)*max_jobs);
-    pool->capacity = max_jobs;
-    pool->size = 0;
-    pthread_mutex_init(&pool->mutex, 0);
-
-    return pool;
+         input_len = ptr - input;
+         input[input_len] = 0;
+         return;
+      }
+   }
 }
 
-void
-tp_destroy(struct tp *pool) {
-    free(pool->jobs);
-    pthread_mutex_destroy(&pool->mutex);
-    free(pool);
+#define SIMPLE_MAX 8
+typedef struct { int key, count; } count_t;
+count_t *counts[SIMPLE_MAX + 1];
+
+typedef uint64_t hkey_t;
+typedef struct {
+   hkey_t key;
+   int count;
+} hrec_t;
+
+typedef struct {
+   int size, cap, limit, mask;
+   hrec_t *table;
+   pthread_mutex_t lock;
+} ht_table;
+
+ht_table tables[19];
+
+void ht_init(ht_table *t) {
+   t->size = 0;
+   t->cap = 8;
+   t->limit = t->cap / 2;
+   t->mask = t->cap - 1;
+   t->table = calloc(t->cap, sizeof(hrec_t));
 }
 
-void
-tp_add_job(struct tp *pool, void *job, void *param) {
-    if (pool->size < pool->capacity) {
-        pool->jobs[pool->size].job = job;
-        pool->jobs[pool->size].param = param;
-        ++pool->size;
-    }
+void extend_htable(ht_table *t) {
+   int i;
+   int new_cap = t->cap * 2;
+   t->limit = new_cap / 2;
+   t->mask = new_cap - 1;
+
+   hrec_t *new = calloc(new_cap, sizeof(hrec_t));
+   hrec_t *old = t->table;
+
+   for (i = 0; i < t->cap; i++) {
+      if (!old[i].count) continue;
+      hrec_t *p = new + (old[i].key & t->mask);
+      if (!p->count) {
+         *p = old[i];
+         continue;
+      }
+      while (1) {
+         if (--p < new)
+            p = new + t->mask;
+         if (p->count) continue;
+         *p = old[i];
+         break;
+      }
+   }
+   t->table = new;
+   t->cap = new_cap;
 }
 
-void *
-_tp_run(void *param) {
-    struct tp *pool = param;
+// after each thread finished a slice, lock and update the overall table
+void hash_merge(ht_table *a, ht_table *b) {
+   int i;
+   hrec_t *in;
 
-    for (;;) {
-        void (*job)(void *) = 0;
-        void *param = 0;
+   pthread_mutex_lock(&a->lock);
 
-        pthread_mutex_lock(&pool->mutex);
-        if (pool->size > 0) {
-            job = pool->jobs[pool->size - 1].job;
-            param = pool->jobs[pool->size - 1].param;
-            --pool->size;
-        }
-        pthread_mutex_unlock(&pool->mutex);
-        if (job == 0) {
-            return 0;
-        } else {
-            job(param);
-        }
-    }
-}
-
-void
-tp_run(struct tp *pool, int max_threads) {
-    pthread_t threads[max_threads];
-    for (int i = 0; i < max_threads; i++) {
-        pthread_create(&threads[i], 0, &_tp_run, pool);
-    }
-
-    for (int i = 0; i < max_threads; i++) {
-        pthread_join(threads[i], 0);
-    }
-}
-
-char *
-read_stdin(int *stdin_size) {
-    struct stat stat;
-    fstat(0, &stat);
-
-    char *result = malloc(stat.st_size);
-
-    do {
-        fgets_unlocked(result, stat.st_size, stdin);
-    } while (strncmp(result, ">THREE", 6));
-
-    int read = 0;
-    while (fgets_unlocked(result + read, stat.st_size - read, stdin)) {
-        int len = strlen(result + read);
-        if (len == 0 || result[read] == '>') {
+   for (i = 0, in = b->table; i < b->cap; i++, in++) {
+      if (!in->key) continue;
+      hrec_t *p = a->table + (in->key & a->mask);
+      while (1) {
+         if (!p->key) {
+            *p = *in;
+            if (a->size++ == a->limit)
+               extend_htable(a);
             break;
-        }
-        read += len;
-        if (result[read - 1] == '\n') {
-            read--;
-        }
-    }
+         }
+         if (p->key == in->key) {
+            p->count += in->count;
+            break;
+         }
+         if (--p < a->table)
+            p = a->table + a->mask;
+      }
+   }
 
-    result[read++] = '>';
-    result = realloc(result, read);
-    *stdin_size = read;
-
-    return result;
+   pthread_mutex_unlock(&a->lock);
+   free(b->table);
 }
 
-static
-inline char *
-next_char(char *p) {
-    do {
-        ++p;
-    } while (isspace(*p));
+// hash key is just len numbers of 2-bit inters joined together
+void count_hash(byte *s, byte *e, int len, int step) {
+   int i;
 
-    return p;
+   ht_table t;
+   ht_init(&t);
+
+   void inc_key(hkey_t key) {
+      int k = key & t.mask;
+      hrec_t *p = t.table + k;
+
+      while (1) {
+         if (p->key == key) {
+            p->count++;
+            return;
+         }
+         if (!p->key) {
+            p->key = key;
+            p->count = 1;
+            if (++t.size == t.limit)
+               extend_htable(&t);
+            return;
+         }
+         if (--p < t.table)
+            p = t.table + t.mask;
+      }
+   }
+
+   e -= len;
+   while (s < e) {
+      hkey_t key = 0;
+      for (i = 0; i < len; i++)
+         key = (key << 2) | s[i];
+      inc_key(key + 1);
+      s += step;
+   }
+
+   hash_merge(tables + len, &t);
 }
 
-inline uint64_t
-push_char(uint64_t cur, uint8_t c) {
-    return (cur << 2) + selector[(c & 7)];
+// small sequences just map to array indices
+void count_simple(int slen) {
+   int i, k, mask = (1 << (2 * slen)) - 1;
+   byte *end = input_len + input;
+   byte *s = input;
+
+   int len = 1 << (2 * slen);
+   count_t *buf = counts[slen] = malloc(sizeof(count_t) * len);
+
+   for (i = 0; i < len; i++)
+      buf[i].count = 0, buf[i].key = i;
+
+   for (i = 1, k = 0; i < slen; i++)
+      k = (k << 2) | *s++;
+
+   while (s < end) {
+      k = ((k << 2) | *s++) & mask;
+      buf[k].count++;
+   }
 }
 
-uint64_t
-pack_key(char *key, int len) {
-    uint64_t code = 0;
-    for (int i = 0; i < len; i++) {
-        code = push_char(code, *key);
-        key = next_char(key);
-    }
+typedef struct work_s {
+   byte *start, *end;
+   int len, step;
+   struct work_s *next;
+} work_t;
 
-    return code;
+work_t *jobs;
+
+void add_work(byte *start, byte *end, int len, int step) {
+   work_t *w = malloc(sizeof(work_t));
+   w->next = jobs;
+   jobs = w;
+   w->len = len;
+   w->start = start;
+   w->end = end;
+   w->step = step;
 }
 
-void
-unpack_key(uint64_t key, int length, char *buffer) {
-    int i;
-
-    for (i = length - 1; i > -1; i--) {
-        buffer[i] = table[key & 3];
-        key >>= 2;
-    }
-    buffer[length] = 0;
+void add_simple_work(int len) {
+   add_work(input, input + input_len, len, 0);
 }
 
-void
-generate_seqences(char *start, int length, int frame, struct ht_ht *ht) {
-    uint64_t code = 0;
-    uint64_t mask = (1ull << 2*frame) - 1;
-    char *p = start;
-    char *end = start + length;
-
-    // Pull first frame.
-
-    for (int i = 0; i < frame; i++) {
-        code = push_char(code, *p);
-        ++p;
-    }
-    ht_find_new(ht, code)->val++;
-
-    while (p < end) {
-        code = push_char(code, *p) & mask;
-        ht_find_new(ht, code)->val++;
-        ++p;
-        if (*p & 8) {
-            if (*p & 1) {
-                ++p;
-            } else
-                break;
-        }
-    }
+void show_works(void) {
+   work_t *w = jobs;
+   while (w) {
+      printf("len %d from %p to %p\n", w->len, w->start, w->end);
+      w = w->next;
+   }
 }
 
-int
-key_count_cmp(const void *l, const void *r) {
-    const struct ht_node *lhs = l, *rhs = r;
+// lock for job control
+pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
 
-    if (lhs->val != rhs->val) {
-        return rhs->val - lhs->val;
-    } else {
-        // Overflow is possible here,
+void *worker(void *arg) {
+   while (1) {
+      pthread_mutex_lock(&mux);
+      if (!jobs) break;
+      work_t *w = jobs;
+      jobs = jobs->next;
+      pthread_mutex_unlock(&mux);
+      if (w->len <= SIMPLE_MAX)
+         count_simple(w->len);
+      else
+         count_hash(w->start, w->end, w->len, w->step);
+      free(w);
+   }
 
-        // so use comparisons instead of subtraction.
-
-        if (lhs->key < rhs->key) {
-            return -1;
-        } else if (lhs->key > rhs->key) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
+   pthread_mutex_unlock(&mux);
+   return 0;
 }
 
-struct print_freqs_param {
-    char *start;
-    int length;
-    int frame;
-    char *output;
-    int output_size;
-};
-
-struct ht_node *
-ht_values_as_vector(struct ht_ht *ht) {
-    struct ht_node *v = malloc(ht->items*sizeof(struct ht_node));
-    struct ht_node *n = ht_first(ht);
-
-    for (int i = 0; i < ht->items; i++) {
-        v[i] = *n;
-        n = ht_next(ht);
-    }
-
-    return v;
+int cmp_count(const void *a, const void *b) {
+   const count_t *aa = a, *bb = b;
+   if (aa->count < bb->count) return 1;
+   if (aa->count > bb->count) return -1;
+   if (aa->key < bb->key) return 1;
+   return -1;
 }
 
-void
-print_freqs(struct print_freqs_param *param) {
-    char *start = param->start;
-    int length = param->length;
-    int frame = param->frame;
-    char *output = param->output;
-    int output_size = param->output_size;
-
-    struct ht_ht *ht = ht_create(32);
-    char buffer[frame + 1];
-    int output_pos = 0;
-
-    generate_seqences(start, length, frame, ht);
-    
-    struct ht_node *counts = ht_values_as_vector(ht);
-    int size = ht->items;
-
-    qsort(counts, size, sizeof(struct ht_node), &key_count_cmp);
-
-    int total_count = 0;
-    for (int i = 0; i < size; i++) {
-        total_count += counts[i].val;
-    }
-
-    for (int i = 0; i < size; i++) {
-        unpack_key(counts[i].key, frame, buffer);
-        output_pos += snprintf(output + output_pos, output_size - output_pos,
-                "%s %.3f\n", buffer, counts[i].val*100.0f/total_count);
-    }
-
-    free(counts);
-    ht_destroy(ht);
+void key_print(int len, int key) {
+   char buf[32];
+   buf[len] = 0;
+   while (len--) {
+      buf[len] = codes[key & 3];
+      key >>= 2;
+   }
+   printf("%s", buf);
 }
 
-struct print_occurences_param {
-    char *start;
-    int length;
-    char *nuc_seq;
-    char *output;
-    int output_size;
-};
+void show_sorted(int len) {
+   size_t size = sizeof(count_t) << (2 * len);
+   count_t *copy = malloc(size);
+   memcpy(copy, counts[len], size);
+   qsort(copy, 1 << (2 * len), sizeof(count_t), cmp_count);
 
-void
-print_occurences(struct print_occurences_param *param) {
-    char *start = param->start;
-    int length = param->length;
-    char *nuc_seq = param->nuc_seq;
-    char *output = param->output;
-    int output_size = param->output_size;
-    int nuc_seq_len = strlen(nuc_seq);
-    struct ht_ht *ht = ht_create(HT_SIZE);
+   int i, sum = 0;
 
-    generate_seqences(start, length, nuc_seq_len, ht);
+   for (i = 0; i < 1 << (2 * len); i++)
+      sum += copy[i].count;
 
-    uint64_t key = pack_key(nuc_seq, nuc_seq_len);
-    int count = ht_find_new(ht, key)->val;
-    snprintf(output, output_size, "%d\t%s\n", count, nuc_seq);
-    
-    ht_destroy(ht);
+   for (i = 0; i < 1 << (2 * len); i++) {
+      key_print(len, copy[i].key);
+      printf(" %.3f\n", (double)copy[i].count / sum * 100);
+   }
+   puts("");
+
+   free(copy);
 }
 
-int
-get_cpu_count(void) {
-    cpu_set_t cpu_set;
+int count_lookup(char *name) {
+   hkey_t key = 0;
+   char *s = name;
+   int len = 0;
+   while (*s) {
+      key = (key << 2) | trans[(int)*s];
+      s++;
+      len++;
+   }
+   if (len <= SIMPLE_MAX)
+      return counts[len][key].count;
 
-    CPU_ZERO(&cpu_set);
-    sched_getaffinity(0, sizeof(cpu_set), &cpu_set);
+   key++;
+   ht_table *t = tables + len;
+   hrec_t *p = t->table + (key & t->mask);
 
-    return CPU_COUNT(&cpu_set);
+   while (p->key) {
+      if (p->key == key)
+         return p->count;
+      if (--p <= t->table)
+         p = t->table + t->mask;
+   }
+   return 0;
 }
 
-#define MAX_OUTPUT 1024
+int main(void) {
+   int i;
+#   define N sizeof(l) / sizeof(l[0])
 
+   for (i = 1; codes[i]; i++) {
+      trans[toupper(codes[i])] = i;
+      trans[tolower(codes[i])] = i;
+   }
 
-int
-main(void) {
-    int stdin_size;
-    char *stdin_mem = read_stdin(&stdin_size);
-    int cpu_count = get_cpu_count();
+   get_input();
 
-    char output_buffer[7][MAX_OUTPUT];
+   int n_cpus = sysconf(_SC_NPROCESSORS_ONLN);
+   if (n_cpus > 4) n_cpus = 4;
 
-#   define DECLARE_PARAM(o, n) {\
+   ht_init(tables + 12);
+   ht_init(tables + 18);
 
-    .start = stdin_mem, \
-    .length = stdin_size, \
-    .frame = n,\
-    .output = output_buffer[o],\
-    .output_size = MAX_OUTPUT }
+   // short sequences are pretty fast anyway, just let each
+   // thread do the whole piece
+   add_simple_work(1);
+   add_simple_work(2);
+   add_simple_work(3);
+   add_simple_work(4);
+   add_simple_work(6);
 
-    struct print_freqs_param freq_params[2] = {
-        DECLARE_PARAM(0, 1),
-        DECLARE_PARAM(1, 2)
-    }; 
+#define S 16
+   for (i = 0; i < S; i++) {
+      add_work(input+i, input + input_len, 12, S);
+      add_work(input+i, input + input_len, 18, S);
+   }
 
-#   undef DECLARE_PARAM
+   char *names[] = { "GGT", "GGTA", "GGTATT", "GGTATTTTAATT", "GGTATTTTAATTTATAGT", 0 };
 
+   //show_works();
 
-#   define DECLARE_PARAM(o, s) {\
+   pthread_t tid[4];
+   for (i = 0; i < n_cpus; i++)
+      pthread_create(tid + i, 0, worker, 0);
 
-    .start = stdin_mem, \
-    .length = stdin_size, \
-    .nuc_seq = s,\
-    .output = output_buffer[o],\
-    .output_size = MAX_OUTPUT }
+   for (i = 0; i < n_cpus; i++)
+      pthread_join(tid[i], 0);
 
-    struct print_occurences_param occurences_params[5] = {
-        DECLARE_PARAM(2, "GGT"),
-        DECLARE_PARAM(3, "GGTA"),
-        DECLARE_PARAM(4, "GGTATT"),
-        DECLARE_PARAM(5, "GGTATTTTAATT"),
-        DECLARE_PARAM(6, "GGTATTTTAATTTATAGT")
-    };
+   show_sorted(1);
+   show_sorted(2);
 
-#   undef DECLARE_PARAM
+   for (i = 0; names[i]; i++) {
+      printf("%d\t%s\n", count_lookup(names[i]), names[i]);
+   }
 
-
-    struct tp *tp = tp_create(7);
-
-    for (int i = 0 ; i < 2; i++) {
-        tp_add_job(tp, &print_freqs, &freq_params[i]);
-    }
-    for (int i = 0 ;i <  5; i++) {
-        tp_add_job(tp, &print_occurences, &occurences_params[i]);
-    }
-
-    tp_run(tp, cpu_count + 1);
-
-    tp_destroy(tp);
-
-    for (int i = 0; i < 2; i++) {
-        printf("%s\n", output_buffer[i]);
-    }
-    for (int i = 2; i < 7; i++) {
-        printf("%s", output_buffer[i]);
-    }
-
-    free(stdin_mem);
-
-    return 0;
+   return 0;
 }

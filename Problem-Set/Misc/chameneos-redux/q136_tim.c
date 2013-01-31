@@ -1,3 +1,12 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+
+Contributed by Dmitry Vyukov
+
+Kernel thread is created for each chameneous.
+Atomic compare-and-swap primitive is used 
+for meeting place state manipulation.
+*/
 
 #define _GNU_SOURCE
 #include <stdlib.h>
@@ -447,3 +456,4 @@ int main(int argc, char** argv)
 
     return 0;
 }
+

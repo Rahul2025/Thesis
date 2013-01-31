@@ -1,5 +1,10 @@
+/* The Great Computer Language Shootout
+   http://shootout.alioth.debian.org/
+ 
+   contributed by Jarkko Miettinen
+*/
 
-public class binarytrees_mem {
+public class binarytrees_2 {
 
 	private final static int minDepth = 4;
 	

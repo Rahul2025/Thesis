@@ -1,3 +1,23 @@
+--
+-- The Computer Language Benchmarks Game
+-- http://shootout.alioth.debian.org/
+--
+-- Contributed by Spencer Janssen, Trevor McCort, Christophe Poucet and Don Stewart
+-- Parallelised by Tim Newsham
+--
+-- Must be compiled with the -fexcess-precision flag as a pragma. GHC
+-- currently doesn't recognise the -fexcess-precision flag on the command
+-- line (!).
+--
+-- The following flags are suggested when compiling:
+--
+--      ghc -optc-march=pentium4 -optc-mfpmath=sse -optc-msse2 -threaded --make
+--
+-- Run with -N6 on a quad core (more capabilities to hide latency)
+--
+--      $ time ./A 6400 +RTS -N6
+--
+
 import System.Environment
 import System.IO
 import Foreign

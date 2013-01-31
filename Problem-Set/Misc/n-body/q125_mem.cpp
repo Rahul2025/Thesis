@@ -1,3 +1,12 @@
+/*
+ * The Computer Language Benchmarks Game
+ * http://shootout.alioth.debian.org/
+ *
+ * contributed by Christoph Bauer
+ * slightly improved by Mark Hinds
+ * SIMDified by Stefan Krause
+ */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -132,9 +141,8 @@ struct planet bodies[NBODIES] = {
 
 int main(int argc, char ** argv)
 {
-  int n;
+  int n = atoi(argv[1]);
   int i;
-  scanf("%d",&n);
 
   offset_momentum(NBODIES, bodies);
   printf ("%.9f\n", energy(NBODIES, bodies));

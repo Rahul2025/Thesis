@@ -1,3 +1,12 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+#
+# submitted by Ian Osgood
+# modified by Sokolov Yura
+# modified by bearophile
+# modified by xfm for parallelization
+# modified by Justin Peel 
+
 from sys import stdin
 from collections import defaultdict
 from multiprocessing import Pool

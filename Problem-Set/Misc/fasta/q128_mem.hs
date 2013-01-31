@@ -1,3 +1,20 @@
+--
+-- The Computer Language Benchmarks Game
+-- http://shootout.alioth.debian.org/
+-- 
+-- contributed by Jeff Newbern
+-- Modified to fastest.hs by Chris Kuklewicz, 6 Jan 2006
+-- Modified to fixed-fasta.hs by Chris Kuklewicz, 17 Jan 2006
+-- 
+-- Uses random generation code derived from Simon Marlow and Einar
+-- Karttunen's "random" test entry.  No longer uses Double during run,
+-- everything has been pre-converted to Int.  And pre-converted to a
+-- binary tree for lookup.  Ideally this tree could be constructed
+-- with the probabilities in mind, but it isn't in this version.
+-- 
+-- Compile with ghc --make resub-fasta.hs -o resub-fasta.ghc_run
+-- Run with "./rsub-fasta.ghc_run %A" where %A is the parameter
+
 import Control.Monad
 import Data.Char(chr,ord)
 import Data.List(mapAccumL)

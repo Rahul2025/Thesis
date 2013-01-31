@@ -1,3 +1,9 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+ *
+ * contributed by Christian Vosteen
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #define TRUE 1

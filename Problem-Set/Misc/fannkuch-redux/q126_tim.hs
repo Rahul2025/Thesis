@@ -1,3 +1,12 @@
+{-  The Computer Language Benchmarks Game
+    http://shootout.alioth.debian.org/
+    contributed by Louis Wasserman
+    
+    This should be compiled with:
+    	-threaded -O2 -fexcess-precision -fasm
+    and run with:
+    	+RTS -N<number of cores> -RTS <input>
+-}
 
 import Control.Concurrent
 import Control.Monad

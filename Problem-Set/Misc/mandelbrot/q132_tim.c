@@ -1,108 +1,138 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+
+  contributed by Paolo Bonzini
+  further optimized by Jason Garrett-Glaser
+  pthreads added by Eckehard Berns
+  further optimized by Ryan Henszey
+  modified by Samy Al Bahra (use GCC atomic builtins)
+  modified by Kenneth Jonsson
+*/
+
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
+
 
 typedef double v2df __attribute__ ((vector_size(16))); /* vector of two doubles */
 typedef int v4si __attribute__ ((vector_size(16))); /* vector of four ints */
 
-// 4 works best on a quiet machine at nice -20
-// 8 on a noisy machine at default priority 
-#define NWORKERS 8
 
-int w, h;
-v2df zero = { 0.0, 0.0 };
-v2df four = { 4.0, 4.0 };
-v2df nzero;
+const v2df zero = { 0.0, 0.0 };
+const v2df four = { 4.0, 4.0 };
+
+/*
+ * Constant throughout the program, value depends on N
+ */
+int bytes_per_row;
 double inverse_w;
 double inverse_h;
 
-char *whole_data;
-int y_pick;
-pthread_mutex_t y_mutex = PTHREAD_MUTEX_INITIALIZER;
+/*
+ * Program argument: height and width of the image
+ */
+int N;
 
-static void * worker(void *_args) {
-    char *data;
-    double x, y;
-    int bit_num;
-    char byte_acc = 0;
+/*
+ * Lookup table for initial real-axis value
+ */
+v2df *Crvs;
 
-    for (;;) {
-        pthread_mutex_lock(&y_mutex);
-        y = y_pick;
-        y_pick++;
-        pthread_mutex_unlock(&y_mutex);
-        if (y >= h)
-            return NULL;
-        data = &whole_data[(w >> 3) * (int)y];
+/*
+ * Mandelbrot bitmap
+ */
+uint8_t *bitmap;
 
-        for(bit_num=0,x=0;x<w;x+=2)
-        {
-            v2df Crv = { (x+1.0)*inverse_w-1.5, (x)*inverse_w-1.5 };
-            v2df Civ = { y*inverse_h-1.0, y*inverse_h-1.0 };
-            v2df Zrv = { 0.0, 0.0 };
-            v2df Ziv = { 0.0, 0.0 };
-            v2df Trv = { 0.0, 0.0 };
-            v2df Tiv = { 0.0, 0.0 };
 
-            int i = 0;
-	    int mask;
-            do {
-                Ziv = (Zrv*Ziv) + (Zrv*Ziv) + Civ;
-                Zrv = Trv - Tiv + Crv;
-                Trv = Zrv * Zrv;
-                Tiv = Ziv * Ziv;
+static void calc_row(int y) {
+    uint8_t *row_bitmap = bitmap + (bytes_per_row * y);
+    int x;
+    const v2df Civ_init = { y*inverse_h-1.0, y*inverse_h-1.0 };
 
-                /* from mandelbrot C++ GNU g++ #5 program  */
-		v2df delta = (v2df)__builtin_ia32_cmplepd( (Trv + Tiv), four );
-		mask = __builtin_ia32_movmskpd(delta);
+    for (x=0; x<N; x+=2)
+    {
+        v2df Crv = Crvs[x >> 1];
+        v2df Civ = Civ_init;
+        v2df Zrv = zero;
+        v2df Ziv = zero;
+        v2df Trv = zero;
+        v2df Tiv = zero;
+        int i = 50;
+        int two_pixels;
+        v2df is_still_bounded;
 
-            } while (++i < 50 && (mask));
+        do {
+            Ziv = (Zrv*Ziv) + (Zrv*Ziv) + Civ;
+            Zrv = Trv - Tiv + Crv;
+            Trv = Zrv * Zrv;
+            Tiv = Ziv * Ziv;
 
-            byte_acc <<= 2;
-	    byte_acc |= mask;
-            bit_num+=2;
+            /*
+             * All bits will be set to 1 if 'Trv + Tiv' is less than 4
+             * and all bits will be set to 0 otherwise. Two elements
+             * are calculated in parallel here.
+             */
+            is_still_bounded = __builtin_ia32_cmplepd(Trv + Tiv, four);
 
-            if(!(bit_num&7)) {
-                data[(bit_num>>3) - 1] = byte_acc;
-                byte_acc = 0;
-            }
-        }
+            /*
+             * Move the sign-bit of the low element to bit 0, move the
+             * sign-bit of the high element to bit 1. The result is
+             * that the pixel will be set if the calculation was
+             * bounded.
+             */
+            two_pixels = __builtin_ia32_movmskpd(is_still_bounded);
+        } while (--i > 0 && two_pixels);
 
-        if(bit_num&7) {
-            byte_acc <<= (8-w%8);
-            bit_num += 8;
-            data[bit_num>>3] = byte_acc;
-            byte_acc = 0;
-        }
+        /*
+         * The pixel bits must be in the most and second most
+         * significant position
+         */
+        two_pixels <<= 6;
+
+        /*
+         * Add the two pixels to the bitmap, all bits are
+         * initially zero since the area was allocated with
+         * calloc()
+         */
+        row_bitmap[x >> 3] |= (uint8_t) (two_pixels >> (x & 7));
     }
 }
 
-
 int main (int argc, char **argv)
 {
-    pthread_t ids[NWORKERS];
     int i;
 
-    nzero = -zero;
+    N = atoi(argv[1]);
+    bytes_per_row = (N + 7) >> 3;
 
-    w = h = atoi(argv[1]);
+    inverse_w = 2.0 / (bytes_per_row << 3);
+    inverse_h = 2.0 / N;
 
-    inverse_w = 2.0 / w;
-    inverse_h = 2.0 / h;
+    /*
+     * Crvs must be 16-bytes aligned on some CPU:s.
+     */
+    if (posix_memalign((void**)&Crvs, sizeof(v2df), sizeof(v2df) * N / 2))
+        return EXIT_FAILURE;
 
-    y_pick = 0;
-    whole_data = malloc(w * (w >> 3));
+#pragma omp parallel for
+    for (i = 0; i < N; i+=2) {
+        v2df Crv = { (i+1.0)*inverse_w-1.5, (i)*inverse_w-1.5 };
+        Crvs[i >> 1] = Crv;
+    }
 
-    for (i = 0; i < NWORKERS; i++)
-        pthread_create(&ids[i], NULL, worker, NULL);
-    for (i = 0; i < NWORKERS; i++)
-        pthread_join(ids[i], NULL);
-    pthread_mutex_destroy(&y_mutex);
+    bitmap = calloc(bytes_per_row, N);
+    if (bitmap == NULL)
+        return EXIT_FAILURE;
 
-    printf("P4\n%d %d\n",w,h);
-    fwrite(whole_data, h, w >> 3, stdout);
+#pragma omp parallel for schedule(static,1)
+    for (i = 0; i < N; i++)
+        calc_row(i);
 
-    free(whole_data);
+    printf("P4\n%d %d\n", N, N);
+    fwrite(bitmap, bytes_per_row, N, stdout);
 
-    return 0;
+    free(bitmap);
+    free(Crvs);
+
+    return EXIT_SUCCESS;
 }

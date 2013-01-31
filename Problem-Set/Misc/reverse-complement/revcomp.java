@@ -1,3 +1,10 @@
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+ 
+   contributed by Leonhard Holz
+   thanks to Anthony Donnefort for the basic mapping idea
+*/
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class revcomp
+public class revcomp_3
 {
    private static final byte[] map = new byte[256];      
    private static final int CHUNK_SIZE = 1024 * 1024 * 16;

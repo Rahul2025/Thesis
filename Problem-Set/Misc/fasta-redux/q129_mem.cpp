@@ -1,11 +1,12 @@
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+   contributed by Andrew Moon
+*/
+
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
-
 #include <algorithm>
-
 
 struct Random {
    enum { IM = 139968, IA = 3877, IC = 29573 };

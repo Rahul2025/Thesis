@@ -1,8 +1,13 @@
+/*
+ * The Computer Language Benchmarks Game
+ * http://shootout.alioth.debian.org/
+ * Contributed by Premysl Hruby
+ * convert to C++ by The Anh Tran
+ */
 
 #include <pthread.h>
 #include <sched.h>
 #include <cstdio>
-
 #include <cstdlib>
 
 typedef unsigned int uint;
@@ -54,7 +59,6 @@ int main(int argc, char** args)
    else
       token = 1000; // test case
 
-
    pthread_attr_t stack_attr;
    pthread_attr_init(&stack_attr);
 
@@ -80,3 +84,4 @@ int main(int argc, char** args)
 
    return 1;
 }
+

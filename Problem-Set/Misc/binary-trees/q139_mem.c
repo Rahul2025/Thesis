@@ -1,3 +1,11 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+
+   contributed by Kevin Carson
+   compilation:
+       gcc -O3 -fomit-frame-pointer -funroll-loops -static binary-trees.c -lm
+       icc -O3 -ip -unroll -static binary-trees.c -lm
+*/
 
 #include <malloc.h>
 #include <math.h>
@@ -66,7 +74,7 @@ int main(int argc, char* argv[])
     unsigned   N, depth, minDepth, maxDepth, stretchDepth;
     treeNode   *stretchTree, *longLivedTree, *tempTree;
 
-    N = atol(argv[1]);
+    scanf("%d",&N);
 
     minDepth = 4;
 

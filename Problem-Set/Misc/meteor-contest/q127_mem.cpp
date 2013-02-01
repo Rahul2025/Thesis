@@ -1,833 +1,591 @@
-#include <cstdio>
-
-#include <cstdlib>
-
-#include <iostream>
-
-#include <string>
+// The Computer Language Benchmarks Game
+//  http://shootout.alioth.debian.org
+//  contributed by Kevin Barnes
 
 #include <memory.h>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <set>
 
 using namespace std;
 
-#define getMask(iPos) (1 << (iPos))
+#define WEST 0
+#define EAST 1
+#define SW 2
+#define SE 3
+#define NW 4
+#define NE 5
 
+#define BIT ((long long)1)
 
-enum {X, Y, N_DIM};
-enum {EVEN, ODD, N_PARITY};
-enum {GOOD, BAD, ALWAYS_BAD};
+// constant masks
+const long long row_mask = (long long)31;
+const long long full_mask = (BIT << 50) - 1;
+const long long row_masks[] = { row_mask, row_mask << 5, row_mask << 10, row_mask << 15, row_mask << 20, row_mask << 25, row_mask << 30,
+row_mask << 35, row_mask << 40, row_mask << 45 };
+const long long all_even_rows = row_masks[0] | row_masks[2] | row_masks[4] | row_masks[6] | row_masks[8];
+const long long all_odd_rows = row_masks[1] | row_masks[3] | row_masks[5] | row_masks[7] | row_masks[9];
+const long long all_rows[2] = { all_even_rows, all_odd_rows };
 
-typedef unsigned int TUInt32;
-typedef unsigned long long TUInt64;
-typedef signed char TInt8;
-typedef TUInt32 BitVec;
+const long long even_left_edges = BIT | (BIT << 10) | (BIT << 20) | (BIT << 30 | (BIT << 40));
+const long long odd_left_edges = (BIT << 5) | (BIT << 15) | (BIT << 25) | (BIT << 35) | (BIT << 45);
+const long long left_edges = even_left_edges | odd_left_edges;
+const long long even_right_edges = even_left_edges << 4;
+const long long odd_right_edges = odd_left_edges << 4;
+const long long right_edges = left_edges << 4;
+const long long top_edge = row_masks[0];
+const long long bottom_edge = row_masks[9];
 
-static const int N_COL = 5;
-static const int N_ROW = 10;
-static const int N_CELL = N_COL * N_ROW;
-static const int N_PIECE_TYPE = 10;
+const long long illegal_move_masks[6] = {
+   left_edges, right_edges,
+   bottom_edge | even_left_edges, bottom_edge | odd_right_edges,
+   top_edge | even_left_edges, top_edge | odd_right_edges };
 
-struct Piece;
+// mapping and bit manipulation
+inline int location_of( int row, int col) { return row * 5 + col; }
+inline int row_of( int location) { return location / 5; }
+inline int col_of( int location) { return location % 5; }
+inline long long get_bit( long long value, int pos) { return value & (BIT << pos); }
+inline long long get_bit( long long value, int row, int col) { return value & (BIT << location_of(row, col)); }
+inline long long has_bit( long long value, int pos) { return get_bit(value, pos) ? true : false; }
+inline long long has_bit( long long value, int row, int col) { return get_bit(value, row, col) ? true : false;  }
+inline void set_bit( long long &value, int pos) { value |= (BIT << pos); }
+inline void set_bit( long long &value, int row, int col) { value |= (BIT << location_of(row, col)); }
+inline int get_row( long long mask, int row) { return (int)((mask >> (row * 5)) & row_mask); }
 
-struct Soln {
-   static const int NO_PIECE = -1;
-
-   void setCells(void);
-   bool lessThan(Soln & r);
-   string toString(void) const;
-   void fill(int val);
-   void spin(Soln & spun);
-
-   bool isEmpty(void) {return (m_nPiece == 0);}
-   void popPiece(void) {m_nPiece--; m_synched = false;}
-   void pushPiece(BitVec vec, int iPiece, int row) {
-      SPiece & p = m_pieces[m_nPiece++];
-      p.vec = vec;
-      p.iPiece = (short)iPiece;
-      p.row = (short)row;
+inline long long shift_east( const long long mask) { return mask << 1; }
+inline long long shift_west( const long long mask) { return mask >> 1; }
+inline long long shift_nw( const long long mask) { return ((mask & all_even_rows) >> 6) | ((mask & all_odd_rows) >> 5); }
+inline long long shift_ne( const long long mask) { return ((mask & all_even_rows) >> 5) | ((mask & all_odd_rows) >> 4); }
+inline long long shift_sw( const long long mask) { return ((mask & all_even_rows) << 4) | ((mask & all_odd_rows) << 5); }
+inline long long shift_se( const long long mask) { return ((mask & all_even_rows) << 5) | ((mask & all_odd_rows) << 6); }
+inline long long shift_mask( int direction, const long long mask) {
+   switch (direction) {
+  case WEST: return shift_west(mask);
+  case EAST: return shift_east(mask);
+  case SW: return shift_sw(mask);
+  case SE: return shift_se(mask);
+  case NW: return shift_nw(mask);
    }
-
-   Soln(int fillVal);
-   Soln() : m_synched(false), m_nPiece(0) {}
-
-   struct SPiece {
-      BitVec vec;
-      short iPiece;
-      short row;
-      SPiece() {}
-      SPiece(BitVec avec, TUInt32 apiece, TUInt32 arow) :
-      vec(avec), iPiece(short(apiece)), row(short(arow))
-      {}
-   };
-   SPiece m_pieces[N_PIECE_TYPE];
-   TUInt32 m_nPiece;
-   TInt8 m_cells[N_ROW][N_COL];
-   bool m_synched;
-};
-
-//------------------------------------
-
-struct Board {
-   static const BitVec L_EDGE_MASK =
-      (1LL <<  0) | (1LL <<  5) | (1LL << 10) | (1LL << 15) |
-      (1LL << 20) | (1LL << 25) | (1LL << 30);
-   static const BitVec R_EDGE_MASK = L_EDGE_MASK << 4;
-   static const BitVec TOP_ROW = (1 << N_COL) - 1;
-   static const BitVec ROW_0_MASK =
-      TOP_ROW | (TOP_ROW << 10) | (TOP_ROW << 20) | (TOP_ROW << 30);
-   static const BitVec ROW_1_MASK = ROW_0_MASK << 5;
-   static const BitVec BOARD_MASK = (1 << 30) - 1;
-
-   Board();
-
-   static TUInt32 getIndex(TUInt32 x, TUInt32 y) { return y * N_COL + x; }
-   static bool badRegion(BitVec & toFill, BitVec rNew);
-   static int hasBadIslands(BitVec boardVec, int row);
-   static int calcBadIslands(BitVec boardVec, int row);
-   static bool hasBadIslandsSingle(BitVec boardVec, int row);
-   static void calcAlwaysBad(void);
-
-   void genAllSolutions(BitVec boardVec, TUInt32 placedPieces, TUInt32 iNextFill);
-   void recordSolution(Soln & s);
-
-   Soln m_curSoln;
-   Soln m_minSoln;
-   Soln m_maxSoln;
-   TUInt32 m_nSoln;
-};
-
-//------------------------------------
-
-
-struct Piece {
-   struct Instance {
-      TUInt64 m_allowed;
-      BitVec m_vec;
-      int m_offset;
-   };
-
-   static const int N_ELEM = 5;
-   static const int N_ORIENT = 12;
-   static const int ALL_PIECE_MASK = (1 << N_PIECE_TYPE) - 1;
-   static const TUInt32 SKIP_PIECE = 5; // it's magic!
-
-
-   typedef int TPts[N_ELEM][N_DIM];
-
-   static const BitVec BaseVecs[N_PIECE_TYPE];
-   static Piece s_basePiece[N_PIECE_TYPE][N_ORIENT];
-
-   static const Instance & getPiece(TUInt32 iPiece, TUInt32 iOrient, TUInt32 iParity);
-   static BitVec toBitVector(const TPts & pts);
-   static void genOrientation(BitVec vec, TUInt32 iOrient, Piece & target);
-   static void setCoordList(BitVec vec, TPts & pts);
-   static void shiftUpLines(TPts & pts, int shift);
-   static int shiftToX0(TPts & pts, Instance & instance, int offsetRow);
-   void setOkPos(TUInt32 isOdd, int w, int h);
-   static void genAllOrientations(void);
-
-   Instance m_instance[N_PARITY];
-};
-
-struct OkPieces {
-   TInt8 nPieces[N_PIECE_TYPE];
-   TUInt32 pieceVec[N_PIECE_TYPE][Piece::N_ORIENT];
-};
-
-OkPieces g_okPieces[N_ROW][N_COL] = {{0}};
-
-enum {OPEN, CLOSED, N_FIXED};
-#define MAX_ISLAND_OFFSET 1024
-
-struct IslandInfo {
-   TUInt32 hasBad[N_FIXED][N_PARITY];
-   TUInt32 isKnown[N_FIXED][N_PARITY];
-   TUInt32 alwaysBad[N_PARITY];
-};
-
-IslandInfo g_islandInfo[MAX_ISLAND_OFFSET] = {0};
-int g_nIslandInfo = 0;
-
-//------------------------------------
-
-Soln::Soln(int fillVal) :
-m_nPiece(0) {
-   fill(fillVal);
+   return shift_ne(mask);
 }
 
-void Soln::fill(int val) {
-   m_synched = false;
-   memset(m_cells, val, N_CELL);
-}
 
-string Soln::toString(void) const {
-   string result;
-   result.reserve(N_CELL * 2);
+char const* dir_texts[] =       {"WEST","EAST","SW",  "SE",  "NW",  "NE"  };
+int rotation_adder[2][6] = {
+   { -1,    1,     4,     5,     -6,    -5   },
+   { -1,    1,     5,     6,     -5,    -4   } };
 
-   for (int y = 0; y < N_ROW; y++) {
-      for (int x = 0; x < N_COL; x++) {
-         int val = m_cells[y][x];
-         result += ((val == NO_PIECE) ? '.' : char('0' + val));
-         result += ' ';
+int flip_transform[6] =    { WEST,  EAST,  NW,    NE,    SW,    SE   };
+int rotate_transform[6] =  { NW,    SE,    WEST,  SW,    NE,    EAST };
+int opposite_transform[6] ={ EAST,  WEST,  NE,    NW,    SE,    SW   };
+
+int two_row_mask = 1024-1;
+int bit_counts[32];
+int first_bits[32];
+
+
+typedef struct MaskInfo {
+   bool is_legal[2];
+   int start;
+
+   MaskInfo() { is_legal[0] = is_legal[1] = true; }
+   // bool piece_allowed[10];
+};
+
+MaskInfo big_map[1024];
+
+long long flood_fill_actual( long long &mask, const int pos) {
+   set_bit(mask, pos);
+   if (pos % 5 && !has_bit( mask, pos - 1)) flood_fill_actual( mask, pos - 1);
+   if (pos % 5 < 4 && !has_bit( mask, pos + 1)) flood_fill_actual( mask, pos + 1);
+   if (pos >= 5) {
+      if (!has_bit( mask, pos - 5)) flood_fill_actual( mask, pos - 5);
+      if (pos / 10 < 5) {
+         if (pos % 5 && !has_bit( mask, mask, pos - 6)) flood_fill_actual( mask, pos - 6);
+      } else {
+         if (pos % 5 < 4 && !has_bit( mask, mask, pos - 4)) flood_fill_actual( mask, pos - 4);
       }
-      result += '\n';
-
-      // indent every second line
-
-      if (y % 2 == 0)
-         result += " ";
    }
-   return result;
+   if (pos < 45) {
+      if (!has_bit( mask, pos + 5)) flood_fill_actual( mask, pos + 5);
+      if (pos / 10 < 5) {
+         if (pos % 5 && !has_bit( mask, pos + 4)) flood_fill_actual( mask, pos + 4);
+      } else {
+         if (pos % 5 < 4 && !has_bit( mask, pos + 6)) flood_fill_actual( mask, pos + 6);
+      }
+   }
+   return mask;
 }
 
-void Soln::setCells(void) {
-   if (m_synched)
-      return;
+long long flood_fill_down( long long mask, int row, int col) {
+   if (row & row_masks[row]) {
+      flood_fill_actual( mask, location_of(row, col));
+      return mask;
+   }
 
-   for (TUInt32 iPiece = 0; iPiece < m_nPiece; iPiece++) {
-      const SPiece & p = m_pieces[iPiece];
-      BitVec vec = p.vec;
-      TInt8 pID = (TInt8)p.iPiece;
-      int rowOffset = p.row;
+   while (row < 10 && !(mask & row_masks[row])) {
+      mask |= row_masks[row];
+      row++;
+   }
 
-      int nNewCells = 0;
-      for (int y = rowOffset; y < N_ROW; y++) {
-         for (int x = 0; x < N_COL; x++) {
-            if (vec & 1) {
-               m_cells[y][x] = pID;
-               nNewCells++;
-            }
-            vec >>= 1;
+   if (row < 10) for (int i = row * 5; i < (row + 1) * 5; i++) {
+      if (!has_bit( mask, i)) flood_fill_actual( mask, i);
+   }
+   return mask;
+}
+
+long long flood_fill_up( long long mask, int row, int col) {
+   if (row & row_masks[row]) {
+      flood_fill_actual( mask, location_of(row, col));
+      return mask;
+   }
+
+   while (row >= 0 && !(mask & row_masks[row])) {
+      mask |= row_masks[row];
+      row--;
+   }
+
+   if (row >= 0) for (int i = row * 5; i < (row + 1) * 5; i++) {
+      if (!has_bit( mask, i)) flood_fill_actual( mask, i);
+   }
+   return mask;
+}
+
+typedef struct MaskData {
+   long long mask[2];
+   int height;
+   int min_col[2];
+   int max_col[2];
+
+   MaskData() {
+      mask[0] = 0;
+      mask[1] = 0;
+      height = 0;
+      min_col[0] = 0;
+      min_col[1] = 0;
+      max_col[0] = 0;
+      max_col[1] = 0;
+   }
+};
+
+typedef struct RotationData {
+   int mask;
+   int iMask;
+   int cMask;
+   int row;
+   int positions[5];
+   int number;
+};
+
+void print_mask( long long mask) {
+   for (int row = 0; row < 10; row++) {
+      if (row % 2) cout << " ";
+      for (int col = 0; col < 5; col++) {
+         cout << (get_bit( mask, row, col)?"1":"0") << " ";
+      }
+      cout << "\n";
+   }
+   cout << "\n";
+}
+
+class LList {
+public:
+   LList *next;
+   LList() { next = NULL; }
+};
+
+struct RotationSet {
+   int size;
+   RotationData rotations[12];
+
+   RotationSet() { size = 0; }
+
+   void add( RotationData &data) { rotations[ size] = data; size++; }
+};
+
+class PieceData : public LList {
+private:
+   void transform( const int matrix [], vector<int> &list ) {
+      for (int i = 0; i < list.size(); i++) {
+         list[i] = matrix[list[i]];
+      }
+   }
+
+   int get_offset( vector<int> &directions ) {
+      int offset = 0;
+      for (int i = 0; i < directions.size(); i++) {
+         if (directions[i] == SW || directions[i] == NW || directions[i] == WEST) offset++;
+         if (directions[i] == NW || directions[i] == NE) offset += 5;
+      }
+      return offset;
+   }
+
+   MaskData mask_for_directions( vector<int> &directions) {
+      MaskData data;
+
+      long long mask = 0;
+      int start_offset = get_offset( directions);
+      int location = start_offset;
+      for (int i = 0; i < directions.size(); i++) {
+         set_bit( mask, location);
+         int addition = rotation_adder[ (location / 5) % 2 ][ directions[i] ];
+         //             int row = location / 5;
+         //             int other_row = (location + addition) / 5;
+         //             char * error = NULL;
+         //             if ((directions[i] == SW || directions[i] == SE) && other_row != row + 1) error = "ERROR moving down!";
+         //             if ((directions[i] == NW || directions[i] == NE) && other_row != row - 1) error =  "ERROR moving up!";
+         //             if ((directions[i] == EAST || directions[i] == WEST) &&row != other_row) error = "ERROR moving to the side!";
+         //             if (error != NULL) {
+         //               int opposite = opposite_transform[directions[i]];
+         //               if (illegal_move_masks[opposite] & mask) {
+         //                  cout << error << " directions = ";
+         //                  for (int j = 0; j < directions.size(); j++) cout << dir_texts[directions[j]] << " ";
+         //                  cout << " [[[ current direction = " << dir_texts[directions[i]] << "]]]" << " opposite unavailable: " << dir_texts[opposite] << "\n";
+         //                  cout << "row = " << row << ", other row = " << other_row <<"\n";
+         //                  print_mask( mask);
+         //               } else {
+         //                  addition = 0;
+         //                  mask = shift_mask( opposite, mask);
+         //               }
+         //             }
+         location += addition;
+      }
+      set_bit( mask, location);
+
+      while (!(mask & top_edge)) {
+         if (illegal_move_masks[NW] & mask) {
+            if (illegal_move_masks[NE] & mask) cout << "ERROR SHIFTING UPWARD\n";
+            else mask = shift_ne(mask);
+         } else mask = shift_nw(mask);
+      }
+
+      for (int row = 0; mask & row_masks[row]; row++) data.height++;
+      while (!(mask & right_edges)) mask = shift_east(mask);
+      for (int col_on = 0; !has_bit(mask, 0, col_on); col_on++) data.max_col[0]++;
+      while (!(mask & left_edges)) mask = shift_west(mask);
+      for (int col_on = 0; !has_bit(mask, 0, col_on); col_on++) data.min_col[0]++;
+      data.mask[0] = mask >> data.min_col[0];
+
+      if (mask & illegal_move_masks[SE]) {
+         cout << "ERROR SHIFTING DOWNWARD\n";
+      } else {
+         mask = shift_se( mask);
+         while (!(mask & right_edges)) mask = shift_east(mask);
+         for (int col_on = 0; !get_bit(mask, 1, col_on); col_on++) data.max_col[1]++;
+         while (!(mask & left_edges)) mask = shift_west(mask);
+         for (int col_on = 0; !get_bit(mask, 1, col_on); col_on++) data.min_col[1]++;
+         data.mask[1] = mask >> (data.min_col[1] + 5);
+      }
+
+      //cout << "\nDIRECTIONS: " << directions[0] << directions[1] << directions[2] << directions[3] << " [" << start_offset << "]\n";
+      //cout << "height = " << data.height << ", min[0] = " << data.min_col[0] << ", max[0] = " << data.max_col[0] <<
+      //   ", min[1] = " << data.min_col[1] << ", max[1] = " << data.max_col[1] << "\n";
+      //print_mask( data.mask[1]);
+      //exit(0);
+
+      return data;
+   }
+
+   void compute_rotation_positions( long long board, RotationData &rotation) {
+      int pos = rotation.row * 5;
+      for (int num = 0; num < 5; pos++) {
+         if (has_bit(board, pos)) {
+            rotation.positions[num] = pos;
+            num++;
          }
-         if (nNewCells == Piece::N_ELEM)
+      }
+   }
+
+   void add_rotation( long long mask, int row, int col) {
+      RotationData rotation;
+      rotation.row = row;
+      rotation.mask = (int)(mask >> (5 * row));
+      rotation.number = number;
+      long long board = 0;
+      for (int i = 0; i < row; i++) board |= row_masks[i];
+      for (int i = 0; i < col; i++) set_bit( board, row, i);
+      board |= mask;
+      for (int i = 4; i >= 0; i--) {
+         if (!has_bit( board, 9, i)) {
+            board = flood_fill_up( board, 9, i);
             break;
-      }
-   }
-   m_synched = true;
-}
-
-bool Soln::lessThan(Soln & r) {
-   if (m_pieces[0].iPiece != r.m_pieces[0].iPiece) {
-      return m_pieces[0].iPiece < r.m_pieces[0].iPiece;
-   }
-
-   setCells();
-   r.setCells();
-
-   for (int y = 0; y < N_ROW; y++) {
-      for (int x = 0; x < N_COL; x++) {
-         int lval = m_cells[y][x];
-         int rval = r.m_cells[y][x];
-
-         if (lval != rval)
-            return (lval < rval);
-      }
-   }
-
-   return false; // solutions are equal
-
-}
-
-void Soln::spin(Soln & spun) {
-   setCells();
-
-   // swap cells
-
-   for (int y = 0; y < N_ROW; y++) {
-      for (int x = 0; x < N_COL; x++) {
-         TInt8 flipped = m_cells[N_ROW - y - 1][N_COL - x - 1];
-         spun.m_cells[y][x] = flipped;
-      }
-   }
-
-   // swap first and last pieces (the rest aren't used)
-
-   spun.m_pieces[0].iPiece = m_pieces[N_PIECE_TYPE - 1].iPiece;
-   spun.m_synched = true;
-}
-
-//------------------------------------
-
-
-Piece Piece::s_basePiece[N_PIECE_TYPE][N_ORIENT];
-
-const BitVec Piece::BaseVecs[] = {
-   0x10f, 0x0cb, 0x1087, 0x427, 0x465,
-   0x0c7, 0x8423, 0x0a7, 0x187, 0x08f
-};
-
-int floor(int top, int bot) {
-   int toZero = top / bot;
-   // negative numbers should be rounded down, not towards zero
-
-   if ((toZero * bot != top) && ((top < 0) != (bot <= 0)))
-      toZero--;
-
-   return toZero;
-}
-
-const TUInt32 s_firstOne[32] = {
-   0, 0, 1, 0,   2, 0, 1, 0,
-   3, 0, 1, 0,   2, 0, 1, 0,
-
-   4, 0, 1, 0,   2, 0, 1, 0,
-   3, 0, 1, 0,   2, 0, 1, 0,
-};
-
-TUInt32 getFirstOne(BitVec v, TUInt32 startPos = 0) {
-   if (v == (BitVec)0)
-      return 0;
-
-   TUInt32 iPos = startPos;
-   BitVec mask = 0xff << startPos;
-   while ((mask & v) == 0) {
-      mask <<= 8;
-      iPos += 8;
-   }
-   TUInt32 result = TUInt32((mask & v) >> iPos);
-   TUInt32 resultLow = result & 0x0f;
-   if (resultLow != 0)
-      iPos += s_firstOne[resultLow];
-   else
-      iPos += 4 + s_firstOne[result >> 4];
-
-   return iPos;
-}
-
-TUInt32 countOnes(BitVec v) {
-   TUInt32 n = 0;
-   while (v) {
-      n++;
-      v = v & (v - 1);
-   }
-
-   return n;
-}
-
-void Piece::setCoordList(BitVec vec, TPts & pts) {
-   int iPt = 0;
-   BitVec mask = 1;
-   for (int y = 0; y < N_ROW; y++) {
-      for (int x = 0; x < N_COL; x++) {
-         if (mask & vec) {
-            pts[iPt][X] = x;
-            pts[iPt][Y] = y;
-
-            iPt++;
          }
-         mask <<= 1;
       }
-   }
-}
-
-BitVec Piece::toBitVector(const TPts & pts) {
-   int y, x;
-   BitVec result = 0;
-   for (int iPt = 0; iPt < N_ELEM; iPt++) {
-      x = pts[iPt][X];
-      y = pts[iPt][Y];
-
-      int pos = Board::getIndex(x, y);
-      result |= (1 << pos);
-   }
-
-   return result;
-}
-
-void Piece::shiftUpLines(TPts & pts, int shift) {
-   // vertical shifts have a twist
-
-   for (int iPt = 0; iPt < N_ELEM; iPt++) {
-      int & rx = pts[iPt][X];
-      int & ry = pts[iPt][Y];
-
-      if (ry & shift & 0x1)
-         rx++;
-      ry -= shift;
-   }
-}
-
-int Piece::shiftToX0(TPts & pts, Instance & instance, int offsetRow)
-{
-   // .. determine shift
-
-   int x, y, iPt;
-   int xMin = pts[0][X];
-   int xMax = xMin;
-   for (iPt = 1; iPt < N_ELEM; iPt++) {
-      x = pts[iPt][X];
-      y = pts[iPt][Y];
-
-      if (x < xMin)
-         xMin = x;
-      else if (x > xMax)
-         xMax = x;
-   }
-
-   // I'm dying for a 'foreach' here
-
-   int offset = N_ELEM;
-   for (iPt = 0; iPt < N_ELEM; iPt++) {
-      int & rx = pts[iPt][X];
-      int & ry = pts[iPt][Y];
-
-      rx -= xMin;
-
-      // check offset -- leftmost cell on top line
-
-      if ((ry == offsetRow) && (rx < offset))
-         offset = rx;
-   }
-
-   instance.m_offset = offset;
-   instance.m_vec = toBitVector(pts);
-   return xMax - xMin;
-}
-
-void Piece::setOkPos(TUInt32 isOdd, int w, int h) {
-   Instance & p = m_instance[isOdd];
-   TUInt64 & allowed = p.m_allowed = 0;
-   TUInt64 posMask = 1LL << (isOdd * N_COL);
-
-   for (int y = isOdd; y < N_ROW - h; y+=2, posMask <<= N_COL) {
-      if (p.m_offset)
-         posMask <<= p.m_offset;
-
-      for (int xPos = 0; xPos < N_COL - p.m_offset; xPos++, posMask <<= 1) {
-         // check if the new position is on the board
-
-         if (xPos >= N_COL - w)
-            continue;
-
-         // move it to the desired location
-
-         BitVec pieceVec = p.m_vec << xPos;
-
-         if (Board::hasBadIslandsSingle(pieceVec, y))
-            continue;
-
-         // position is allowed
-
-         allowed |= posMask;
+      if (board == full_mask) {
+         rotation.iMask = rotation.mask;
+         rotation.cMask = 0;
+      } else {
+         int count = 0;
+         long long cMask = 0;
+         for (int pos = location_of(row, col); pos < 50; pos++) {
+            if (!has_bit(board,pos)) {
+               set_bit(cMask, pos);
+               count++;
+            }
+            if (count >= 5) {
+               cMask = 0;
+               break;
+            }
+         }
+         rotation.cMask = (int)(cMask >> (5 * row));
+         rotation.iMask = rotation.mask | rotation.cMask;
       }
-   }
-}
 
-void Piece::genOrientation(BitVec vec, TUInt32 iOrient, Piece & target)
-{
-   // get (x,y) coordinates
-
-   TPts pts;
-   setCoordList(vec, pts);
-
-   int y, x, iPt;
-   int rot = iOrient % 6;
-   int flip = iOrient >= 6;
-   if (flip) {
-      for (iPt = 0; iPt < N_ELEM; iPt++)
-         pts[iPt][Y] = -pts[iPt][Y];
+      compute_rotation_positions( mask, rotation);
+      rotation_sets[row][col].add( rotation);
    }
 
-   // rotate as necessary
-
-   while (rot--) {
-      for (iPt = 0; iPt < N_ELEM; iPt++) {
-         x = pts[iPt][X];
-         y = pts[iPt][Y];
-
-         // I just worked this out by hand. Took a while.
-
-         int xNew = floor((2 * x - 3 * y + 1), 4);
-         int yNew = floor((2 * x + y + 1), 2);
-         pts[iPt][X] = xNew;
-         pts[iPt][Y] = yNew;
+   void build_piece( vector<int> &directions) {
+      vector<MaskData> base_masks;
+      for (int i = 0; i < 2; i++) {
+         for (int j = 0; j < 6; j++) {
+            base_masks.push_back(mask_for_directions(directions));
+            transform( rotate_transform, directions);
+         }
+         transform( flip_transform, directions);
       }
-   }
 
-   // determine vertical shift
-
-   int yMin = pts[0][Y];
-   int yMax = yMin;
-   for (iPt = 1; iPt < N_ELEM; iPt++) {
-      y = pts[iPt][Y];
-
-      if (y < yMin)
-         yMin = y;
-      else if (y > yMax)
-         yMax = y;
-   }
-   int h = yMax - yMin;
-   Instance & even = target.m_instance[EVEN];
-   Instance & odd = target.m_instance[ODD];
-
-   shiftUpLines(pts, yMin);
-   int w = shiftToX0(pts, even, 0);
-   target.setOkPos(EVEN, w, h);
-   even.m_vec >>= even.m_offset;
-
-   // shift down one line
-
-   shiftUpLines(pts, -1);
-   w = shiftToX0(pts, odd, 1);
-   // shift the bitmask back one line
-
-   odd.m_vec >>= N_COL;
-   target.setOkPos(ODD, w, h);
-   odd.m_vec >>= odd.m_offset;
-}
-
-void Piece::genAllOrientations(void) {
-   for (int iPiece = 0; iPiece < N_PIECE_TYPE; iPiece++) {
-      BitVec refPiece = BaseVecs[iPiece];
-      for (int iOrient = 0; iOrient < N_ORIENT; iOrient++) {
-         Piece & p = s_basePiece[iPiece][iOrient];
-         genOrientation(refPiece, iOrient, p);
-         if ((iPiece == SKIP_PIECE) && ((iOrient / 3) & 1))
-            p.m_instance[0].m_allowed = p.m_instance[1].m_allowed = 0;
-      }
-   }
-
-   for (int iPiece = 0; iPiece < N_PIECE_TYPE; iPiece++) {
-      for (int iOrient = 0; iOrient < N_ORIENT; iOrient++) {
-         TUInt64 mask = 1;
-         for (int iRow = 0; iRow < N_ROW; iRow++) {
-            const Instance & p = getPiece(iPiece, iOrient, (iRow & 1));
-            for (int iCol = 0; iCol < N_COL; iCol++) {
-               OkPieces & allowed = g_okPieces[iRow][iCol];
-               if (p.m_allowed & mask) {
-                  TInt8 & nPiece = allowed.nPieces[iPiece];
-                  allowed.pieceVec[iPiece][nPiece] = p.m_vec << iCol;
-                  nPiece++;
+      for (int mask_on = 0; mask_on < base_masks.size(); mask_on++) {
+         MaskData data = base_masks[mask_on];
+         for (int row = 0; row <= (10 - data.height); row++) {
+            for (int col = data.min_col[row % 2]; col <= data.max_col[row % 2]; col++) {
+               long long mask = data.mask[row % 2] << (row * 5 + col);
+               long long board = mask;
+               if ( row >= 3) board = flood_fill_down( board, 0, 0);
+               else board = flood_fill_up( board, 9, 4);
+               if (board == full_mask) {
+                  add_rotation( mask, row, col);
+               } else {
+                  int count = 0;
+                  for (int t = 0; t < 10; t++) count += bit_counts[ (int)((board >> (t * 5)) & row_masks[0])];
+                  if (count % 5 == 0) {
+                     add_rotation( mask, row, col);
+                  }
                }
-
-               mask <<= 1;
             }
          }
       }
    }
+
+public:
+   int number;
+   RotationSet rotation_sets[10][5];
+
+   PieceData( int d1, int d2, int d3, int d4, int piece_number ) : LList()  {
+      number = piece_number;
+      vector<int> directions;
+      directions.push_back(d1);
+      directions.push_back(d2);
+      directions.push_back(d3);
+      directions.push_back(d4);
+      build_piece( directions);
+   }
+
+   PieceData( int d1, int d2, int d3, int d4, int d5, int piece_number ) : LList() {
+      number = piece_number;
+      vector<int> directions;
+      directions.push_back(d1);
+      directions.push_back(d2);
+      directions.push_back(d3);
+      directions.push_back(d4);
+      directions.push_back(d5);
+      build_piece( directions);
+   }
+};
+
+// GOLBAL VARIABLES MUH-HA-HA-HA
+LList *head;
+LList *tail;
+
+int num_placed = 0;
+int num_found = 0;
+int num_to_find = 0;
+int tries[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+RotationData *active_rotations[10];
+set<string> found_boards;
+
+void create_piece_maps() {
+   tail = head = new PieceData( NW, NE, EAST, EAST,  2);
+   tail->next = new PieceData( NE, SE, EAST, NE,  7);
+   tail = tail->next;
+   tail->next = new PieceData( NE, EAST, NE, NW,  1);
+   tail = tail->next;
+   tail->next = new PieceData( EAST, SW, SW, SE,  6);
+   tail = tail->next;
+   tail->next = new PieceData( EAST, NE, SE, NE,  5);
+   tail = tail->next;
+   tail->next = new PieceData( EAST, EAST, EAST, SE,  0);
+   tail = tail->next;
+   tail->next = new PieceData( NE, NW, SE, EAST, SE,  4);
+   tail = tail->next;
+   tail->next = new PieceData( SE, SE, SE, WEST,  9);
+   tail = tail->next;
+   tail->next = new PieceData( SE, SE, EAST, SE,  8);
+   tail = tail->next;
+   tail->next = new PieceData( EAST, EAST, SW, SE,  3);
+   tail = tail->next;
+}
+
+void print_board( string board_string) {
+   for (int row = 0; row < 10; row++) {
+      if (row % 2) cout << " ";
+      for (int col = 0; col < 5; col++) cout << board_string[row * 5 + col] << " ";
+      cout << "\n";
+   }
+   cout << "\n";
+}
+
+void print_results() {
+   cout << num_found << " solutions found\n\n";
+   print_board( *found_boards.begin());
+   print_board( *found_boards.rbegin());
+}
+
+void add_board_string( const char * board_string) {
+   string s = board_string;
+   if (found_boards.count(s) == 0) {
+      found_boards.insert(s);
+      num_found++;
+      if (num_to_find == num_found) {
+         print_results();
+         exit(0);
+      }
+   }
 }
 
 
-inline const Piece::Instance & Piece::getPiece(TUInt32 iPiece, TUInt32 iOrient, TUInt32 iParity) {
-   return s_basePiece[iPiece][iOrient].m_instance[iParity];
+void board_found() {
+   char board_string[51];
+   memset(board_string,'x',51);
+   for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 5; j++) {
+         board_string[active_rotations[i]->positions[j]] = '0' + active_rotations[i]->number;
+      }
+   }
+   board_string[50] = 0;
+   add_board_string( board_string);
+   for (int i = 0; i < 25; i++) { char c = board_string[i]; board_string[i] = board_string[49 - i]; board_string[49-i] = c; }
+   add_board_string( board_string);
 }
 
-// ------------------------------------
+void find( int row, int board) {
+   while ((board & 31) == 31) {
+      row++;
+      board >>= 5;
+   }
+   MaskInfo &info = big_map[board & two_row_mask];
+   if (!info.is_legal[row % 2]) return;
+   int col = info.start;
 
 
-Board::Board() :
-m_curSoln(Soln::NO_PIECE), m_minSoln(N_PIECE_TYPE),
-m_maxSoln(Soln::NO_PIECE), m_nSoln(0)
-{}
-
-bool Board::badRegion(BitVec & toFill, BitVec rNew)
-{
-   // grow empty region, until it doesn't change any more
-
-   BitVec region;
+   PieceData *start = (PieceData *)head;
    do {
-      region = rNew;
-
-      // simple grow up/down
-
-      rNew |= (region >> N_COL);
-      rNew |= (region << N_COL);
-
-      // grow right/left
-
-      rNew |= (region & ~L_EDGE_MASK) >> 1;
-      rNew |= (region & ~R_EDGE_MASK) << 1;
-
-      // tricky growth
-
-      BitVec evenRegion = region & (ROW_0_MASK & ~L_EDGE_MASK);
-      rNew |= evenRegion >> (N_COL + 1);
-      rNew |= evenRegion << (N_COL - 1);
-      BitVec oddRegion = region & (ROW_1_MASK & ~R_EDGE_MASK);
-      rNew |= oddRegion >> (N_COL - 1);
-      rNew |= oddRegion << (N_COL + 1);
-
-      // clamp against existing pieces
-
-      rNew &= toFill;
-   }
-   while ((rNew != toFill) && (rNew != region));
-
-   // subtract empty region from board
-
-   toFill ^= rNew;
-
-   TUInt32 nCells = countOnes(toFill);
-   return (nCells % Piece::N_ELEM != 0);
-}
-
-int Board::hasBadIslands(BitVec boardVec, int row)
-{
-   // skip over any filled rows
-
-   while ((boardVec & TOP_ROW) == TOP_ROW) {
-      boardVec >>= N_COL;
-      row++;
-   }
-
-   TUInt32 iInfo = boardVec & ((1 << 2 * N_COL) - 1);
-   IslandInfo & info = g_islandInfo[iInfo];
-
-   TUInt32 lastRow = (boardVec >> (2 * N_COL)) & TOP_ROW;
-   TUInt32 mask = getMask(lastRow);
-   TUInt32 isOdd = row & 1;
-   TUInt32 & alwaysBad = info.alwaysBad[isOdd];
-
-   if (alwaysBad & mask)
-      return BAD;
-
-   if (boardVec & (TOP_ROW << N_COL * 3))
-      return calcBadIslands(boardVec, row);
-
-   int isClosed = (row > 6); // because we track 3 rows
-
-   TUInt32 & isKnownVector = info.isKnown[isOdd][isClosed];
-   TUInt32 & badIsleVector = info.hasBad[isOdd][isClosed];
-
-   if (isKnownVector & mask)
-      return ((badIsleVector & mask) != 0);
-
-   if (boardVec == 0)
-      return GOOD;
-
-   int hasBad = calcBadIslands(boardVec, row);
-
-   isKnownVector |= mask;
-   if (hasBad)
-      badIsleVector |= mask;
-
-   return hasBad;
-}
-
-TUInt32 g_firstRegion[] = {
-   0x00, 0x01, 0x02, 0x03,   0x04, 0x01, 0x06, 0x07,
-   0x08, 0x01, 0x02, 0x03,   0x0c, 0x01, 0x0e, 0x0f,
-
-   0x10, 0x01, 0x02, 0x03,   0x04, 0x01, 0x06, 0x07,
-   0x18, 0x01, 0x02, 0x03,   0x1c, 0x01, 0x1e, 0x1f
-};
-
-int Board::calcBadIslands(BitVec boardVec, int row)
-{
-   BitVec toFill = ~boardVec;
-   if (row & 1) {
-      row--;
-      toFill <<= N_COL;
-   }
-
-   BitVec boardMask = BOARD_MASK; // all but the first two bits
-
-   if (row > 4) {
-      int boardMaskShift = (row - 4) * N_COL;
-      boardMask >>= boardMaskShift;
-   }
-   toFill &= boardMask;
-
-   // a little pre-work to speed things up
-
-   BitVec bottom = (TOP_ROW << (5 * N_COL));
-   bool filled = ((bottom & toFill) == bottom);
-   while ((bottom & toFill) == bottom) {
-      toFill ^= bottom;
-      bottom >>= N_COL;
-   }
-
-   BitVec startRegion;
-   if (filled || (row < 4))
-      startRegion = bottom & toFill;
-   else {
-      startRegion = g_firstRegion[toFill & TOP_ROW];
-      if (startRegion == 0)  {
-         startRegion = (toFill >> N_COL) & TOP_ROW;
-         startRegion = g_firstRegion[startRegion];
-         startRegion <<= N_COL;
-      }
-      startRegion |= (startRegion << N_COL) & toFill;
-   }
-
-   while (toFill)    {
-      if (badRegion(toFill, startRegion))
-         return (toFill ? ALWAYS_BAD : BAD);
-      int iPos = getFirstOne(toFill);
-      startRegion = getMask(iPos);
-   }
-
-   return GOOD;
-}
-
-TUInt32 g_flip[] = {
-   0x00, 0x10, 0x08, 0x18, 0x04, 0x14, 0x0c, 0x1c,
-   0x02, 0x12, 0x0a, 0x1a, 0x06, 0x16, 0x0e, 0x1e,
-
-   0x01, 0x11, 0x09, 0x19, 0x05, 0x15, 0x0d, 0x1d,
-   0x03, 0x13, 0x0b, 0x1b, 0x07, 0x17, 0x0f, 0x1f,
-};
-
-inline TUInt32 flipTwoRows(TUInt32 bits) {
-   TUInt32 flipped = g_flip[bits >> N_COL] << N_COL;
-   return (flipped | g_flip[bits & Board::TOP_ROW]);
-}
-
-inline void markBad(IslandInfo & info, TUInt32 mask, int eo, bool always) {
-   info.hasBad[eo][OPEN] |= mask;
-   info.hasBad[eo][CLOSED] |= mask;
-
-   if (always)
-      info.alwaysBad[eo] |= mask;
-}
-
-void Board::calcAlwaysBad(void) {
-   for (TUInt32 iWord = 1; iWord < MAX_ISLAND_OFFSET; iWord++) {
-      IslandInfo & isleInfo = g_islandInfo[iWord];
-      IslandInfo & flipped = g_islandInfo[flipTwoRows(iWord)];
-
-      for (TUInt32 i = 0, mask = 1; i < 32; i++, mask <<= 1) {
-         TUInt32 boardVec = (i << (2 * N_COL)) | iWord;
-         if (isleInfo.isKnown[0][OPEN] & mask)
-            continue;
-
-         int hasBad = calcBadIslands(boardVec, 0);
-         if (hasBad != GOOD) {
-            bool always = (hasBad==ALWAYS_BAD);
-            markBad(isleInfo, mask, EVEN, always);
-
-            TUInt32 flipMask = getMask(g_flip[i]);
-            markBad(flipped, flipMask, ODD, always);
+      PieceData *piece = (PieceData *)head;
+      head = piece->next;
+      piece->next = NULL;
+      RotationSet *rotations = &(piece->rotation_sets[row][col]);
+      for (int i = rotations->size-1; i >= 0; i--) {
+         //tries[num_placed]++;
+         RotationData *rotation = &rotations->rotations[i];
+         if ((board & rotation->iMask) == rotation->cMask) {
+            if (num_placed == 9) {
+               active_rotations[num_placed] = rotation;
+               board_found();
+            } else {
+               active_rotations[num_placed] = rotation;
+               num_placed++;
+               find( row, board | rotation->mask);
+               num_placed--;
+            }
          }
       }
-      flipped.isKnown[1][OPEN] = TUInt32(-1);
-      isleInfo.isKnown[0][OPEN] = TUInt32(-1);
-   }
+      if (head == NULL) head = piece;
+      else tail->next = piece;
+      tail = piece;
+   } while (start != head);
 }
 
-bool Board::hasBadIslandsSingle(BitVec boardVec, int row)
-{
-   BitVec toFill = ~boardVec;
-   bool isOdd = (row & 1);
-   if (isOdd) {
-      row--;
-      toFill <<= N_COL; // shift to even aligned
-
-      toFill |= TOP_ROW;
-   }
-
-   BitVec startRegion = TOP_ROW;
-   BitVec lastRow = TOP_ROW << (5 * N_COL);
-   BitVec boardMask = BOARD_MASK; // all but the first two bits
-
-   if (row >= 4)
-      boardMask >>= ((row - 4) * N_COL);
-   else if (isOdd || (row == 0))
-      startRegion = lastRow;
-
-   toFill &= boardMask;
-   startRegion &= toFill;
-
-   while (toFill)    {
-      if (badRegion(toFill, startRegion))
-         return true;
-      int iPos = getFirstOne(toFill);
-      startRegion = getMask(iPos);
-   }
-
-   return false;
-}
-
-void Board::genAllSolutions(BitVec boardVec, TUInt32 placedPieces, TUInt32 row)
-{
-   while ((boardVec & TOP_ROW) == TOP_ROW) {
-      boardVec >>= N_COL;
-      row++;
-   }
-   TUInt32 iNextFill = s_firstOne[~boardVec & TOP_ROW];
-   const OkPieces & allowed = g_okPieces[row][iNextFill];
-
-   int iPiece = getFirstOne(~placedPieces);
-   int pieceMask = getMask(iPiece);
-   for (; iPiece < N_PIECE_TYPE; iPiece++, pieceMask <<= 1)
-   {
-      // skip if we've already used this piece
-
-      if (pieceMask & placedPieces)
-         continue;
-
-      placedPieces |= pieceMask;
-      for (int iOrient = 0; iOrient < allowed.nPieces[iPiece]; iOrient++) {
-         BitVec pieceVec = allowed.pieceVec[iPiece][iOrient];
-
-         // check if piece conflicts with other pieces
-
-         if (pieceVec & boardVec)
-            continue;
-
-         // add the piece to the board
-
-         boardVec |= pieceVec;
-
-         if (hasBadIslands(boardVec, row)) {
-            boardVec ^= pieceVec;
-            continue;
+void find_all() {
+   num_found = 0;
+   num_placed = 1;
+   found_boards.clear();
+   PieceData *start = (PieceData *)head;
+   for (int odd = 0; odd < 2; odd++) {
+      do {
+         PieceData *piece = (PieceData *)head;
+         head = piece->next;
+         piece->next = NULL;
+         if (head != start) {
+            RotationSet *rotations = &(piece->rotation_sets[0][0]);
+            for (int i = rotations->size-1; i >= 0; i--) {
+               if (i % 2 == odd) {
+                  RotationData *rotation = &rotations->rotations[i];
+                  active_rotations[0] = rotation;
+                  find( 0, rotation->mask);
+               }
+            }
          }
+         if (head == NULL) head = piece;
+         else tail->next = piece;
+         tail = piece;
+      } while (start != head);
+   }
+}
 
-         m_curSoln.pushPiece(pieceVec, iPiece, row);
 
-         // recur or record solution
+void create_utlity_maps() {
+   for (int i = 0; i < 32; i++) {
+      bit_counts[i] = 0;
+      for (int j = 0; j < 5; j++) if ((1 << j) & i) bit_counts[i]++;
+      for (first_bits[i] = 0; (1 << first_bits[i]) & i; first_bits[i]++);
+   }
 
-         if (placedPieces != Piece::ALL_PIECE_MASK)
-            genAllSolutions(boardVec, placedPieces, row);
-         else
-            recordSolution(m_curSoln);
+   // build starts
+   for (int i = 0; i < 1024; i++) big_map[i].start = first_bits[i & 31];
 
-         // remove the piece before continuing with a new piece
-
-         boardVec ^= pieceVec;
-         m_curSoln.popPiece();
+   // build legality
+   int legal_count = 0;
+   for (int i = 0; i < 1024; i++) {
+      for (int odd = 0; odd < 2; odd++) {
+         int legal = 2;
+         int bit = 1;
+         while (legal && bit < 32) {
+            if (i & bit) {
+               if (legal == 2 && bit > 1 && ((bit >> 1) & i) == 0) legal = 0;
+               else legal = 2;
+            } else if (legal == 2) {
+               if (((bit << 5) & i) == 0) legal = 1;
+               else {
+                  if (odd) {
+                     if ( (bit < 16) && (((bit << 6) & i) == 0)) legal = 1;
+                  } else {
+                     if ( (bit > 1) && (((bit << 4) & i) == 0)) legal = 1;
+                  }
+               }
+            }
+            bit <<= 1;
+         }
+         if (legal == 2 && ((bit >> 1) & i) == 0) legal = 0;
+         big_map[i].is_legal[odd] = legal ? true : false;
+         if (legal) legal_count++;
       }
-
-      placedPieces ^= pieceMask;
    }
 }
 
-void Board::recordSolution(Soln & s) {
-   m_nSoln += 2; // add solution and its rotation
+int main (int argc, char * const argv[]) {
+   num_to_find = 2098;
+   if (argc > 1) sscanf(argv[1],"%d", &num_to_find);
 
-
-   if (m_minSoln.isEmpty()) {
-      m_minSoln = m_maxSoln = s;
-      return;
-   }
-
-   if (s.lessThan(m_minSoln))
-      m_minSoln = s;
-   else if (m_maxSoln.lessThan(s))
-      m_maxSoln = s;
-
-   Soln spun;
-   s.spin(spun);
-   if (spun.lessThan(m_minSoln))
-      m_minSoln = spun;
-   else if (m_maxSoln.lessThan(spun))
-      m_maxSoln = spun;
-}
-
-int main(int argc, char * []) {
-   if (argc > 2)
-      return 1; // spec says this is an error
-
-
-   Board b;
-   Piece::genAllOrientations();
-   Board::calcAlwaysBad();
-   b.genAllSolutions(0, 0, 0);
-
-   cout << b.m_nSoln << " solutions found\n\n";
-   cout << b.m_minSoln.toString() << '\n';
-   cout << b.m_maxSoln.toString() << endl;
+   create_piece_maps();
+   create_utlity_maps();
+   find_all();
+   print_results();
 
    return 0;
 }
+

@@ -1,3 +1,10 @@
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+
+   contributed by Mark C. Lewis
+   modified slightly by Chad Whipkey
+*/
+
 public final class nbody {
     public static void main(String[] args) {
         int n = Integer.parseInt(args[0]);
@@ -159,3 +166,4 @@ final class Body {
       return this;
    }
 }
+

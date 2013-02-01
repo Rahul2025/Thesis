@@ -1,3 +1,13 @@
+/* The Computer Language Benchmarks Game
+http://shootout.alioth.debian.org/
+
+converted to C++ from D by Rafal Rusin
+modified by Vaclav Haisman
+modified by The Anh to compile with g++ 4.3.2
+
+compile: g++ -O3 -Wall -march=native -msse2 -o fasta fasta.cpp
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <algorithm>
@@ -145,3 +155,5 @@ int main(int argc, char *argv[])
    makeRandomFasta("THREE", "Homo sapiens frequency", n*5, homosapiens,
       homosapiens + sizeof (homosapiens) / sizeof (IUB));
 }
+
+

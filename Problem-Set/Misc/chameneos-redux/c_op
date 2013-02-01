@@ -1,0 +1,29 @@
+blue + blue -> blue
+blue + red -> yellow
+blue + yellow -> red
+red + blue -> yellow
+red + red -> red
+red + yellow -> blue
+yellow + blue -> red
+yellow + red -> blue
+yellow + yellow -> yellow
+
+ blue red yellow
+4234611 zero
+2798096 zero
+4967293 zero
+ one two zero zero zero zero zero zero
+
+ blue red yellow red yellow blue red yellow red blue
+967185 zero
+4041032 zero
+1040181 zero
+897713 zero
+750721 zero
+953287 zero
+1024228 zero
+819187 zero
+645170 zero
+861296 zero
+ one two zero zero zero zero zero zero
+

@@ -41,12 +41,13 @@ void *ring_routine(void *myname)
 int main(int argc, char *argv[])
 {
    long first_token;
-   int ii;
+   int ii,n;
    pthread_attr_t attributes;
    sem_t permanent_red;
    
    /* Read first token. */
-   first_token = strtol(argv[1], NULL, 10);
+       scanf("%d",&n);
+   first_token = strtol(n, NULL, 10);
 
    /* Initialize attributes. */
    pthread_attr_init(&attributes);

@@ -1,0 +1,5 @@
+Thread-ring :::
+
+/usr/bin/gcc -pipe -Wall -O3 -fomit-frame-pointer -march=native -pthread q137_tim.c -o a.out
+/usr/bin/gcc -pipe -Wall -O3 -fomit-frame-pointer -march=native -pthread q137_mem.c -o a.out
+

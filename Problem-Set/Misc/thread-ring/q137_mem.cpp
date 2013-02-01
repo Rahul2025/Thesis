@@ -1,3 +1,10 @@
+/*
+* The Computer Language Benchmarks Game
+* http://shootout.alioth.debian.org/
+
+* contributed by Premysl Hruby
+*/
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -101,3 +108,4 @@ int main(int argc, char** argv)
 
    return 0;
 }
+

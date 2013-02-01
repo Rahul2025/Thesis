@@ -1,3 +1,7 @@
+// The Computer Language Shootout
+// http://shootout.alioth.debian.org/
+// Contributed by Paul Kitchin
+
 #include <iostream>
 #include <iterator>
 #include <vector>

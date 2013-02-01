@@ -1,28 +1,23 @@
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+
+   Contributed by Andrew Moon
+*/
+
+
 #include <stdio.h>
-
 #include <stdlib.h>
-
 #include <string.h>
-
 #include <cstdlib>
-
 #include <iostream>
-
 #include <iomanip>
-
 #include <vector>
-
 #include <algorithm>
 
-
 #include <sched.h>
-
 #include <pthread.h>
-
 #include <ext/pb_ds/assoc_container.hpp>
-
 #include <ext/pb_ds/hash_policy.hpp>
-
 
 typedef unsigned long long u64;
 typedef unsigned int u32;
@@ -48,13 +43,9 @@ struct CPUs {
 
 
 /*
-
    Smart selection of u32 or u64 based on storage needs
 
-
-
    PreferU64 will use u32 if (size == 4 && system = 32bit), otherwise u64.
-
 */
 
 template< u32 N > struct TypeSelector;
@@ -73,27 +64,16 @@ template<> struct PreferU64<4> {
 };
 
 /*
-
    DNASource handles enum defs we're interested in and extracting
-
    DNA sequences from an -unpacked- DNA stream
 
-
-
    Will use 64 bits for the state on 64bit machines, otherwise
-
    32/64 bits depending on the size of the DNA sequence
-
-
 
    All reads from the unpacked stream are dword aligned
 
-
-
    left0 = # of nucleotides left in state
-
    left1 = # of nucleotides left in the upcoming tstore, lower[1]
-
 */
 
 template< u32 N >
@@ -126,7 +106,6 @@ struct DNASource {
       u8 *out = (u8 *)&lower[slot];
 
       // 00000dd0:00000cc0-00000bb0:00000aa0 -> ddccbbaa
-
       for ( u32 i = 0; i < bytes; i++, in += 4 ) {
          u32 conv = ( *(const u32 *)in >> 1 ) & 0x03030303;
          *out++ = conv | ( conv >> 6 ) | ( conv >> 12 ) | ( conv >> 18 );
@@ -135,7 +114,6 @@ struct DNASource {
 
    inline void getandadvance( tint &out, const u32 increment = N ) {
       // reload if needed
-
       if ( ( N > maxsequences / 2 ) || ( left0 < N ) ) {
          u32 want = maxsequences - left0;
          state |= ( lower[1] >> ( ( maxsequences - left1 ) * 2 ) ) << ( left0 * 2 );
@@ -145,7 +123,6 @@ struct DNASource {
             lower[0] = lower[1];
             left1 += left0;
             pack(1); // need more state in lower1
-
          }
          if ( left1 != maxsequences )
             state |= ( lower[1] << ( left1 * 2 ) );
@@ -153,7 +130,6 @@ struct DNASource {
       }
 
       // load the nucleotides
-
       if ( sequencebits != bits ) {
          tstore shift = sequencebits, mask = ( tstore(1) << shift ) - 1;
          out = tint(state & mask);
@@ -171,19 +147,12 @@ protected:
 };
 
 /*
-
    A packed DNA key. Each nucleotide is packed down to 2 bits (we only have
-
    4 to keep track of).
 
-
-
    0000:0xx0 are the bits we want. A,C,G,T and a,c,g,t both map to the same
-
    four values with this bitmask, but not in alphabetical order. Convert
-
    the key to a string to sort!
-
 */
 
 template< u32 N >
@@ -192,7 +161,6 @@ struct Key {
 
    struct Ops {
       // hash
-
       u32 operator() ( const Key &k ) const {
          if ( N <= 4 ) {
             return u32(~k);
@@ -206,14 +174,12 @@ struct Key {
       }
 
       // equals
-
       bool operator() ( const Key &a, const Key &b ) const { return ~a == ~b; }
    };
 
    Key() {}
 
    // packing this way isn't efficient, but called rarely
-
    Key( const char *in ) : packed(0) {
       u8 *bytes = (u8 *)&packed;
       for ( u32 i = 0; i < N; i++ )
@@ -221,7 +187,6 @@ struct Key {
    }
 
    // up to 2 instances active at once
-
    const char *tostring() const {
       static char names[2][N+1], table[4] = { 'A', 'C', 'T', 'G' };
       static u32 on = 0;
@@ -234,13 +199,11 @@ struct Key {
    }
 
    // for sorting
-
    bool operator< ( const Key &b ) const {
       return strcmp( tostring(), b.tostring() ) < 0;
    }
 
    // direct access
-
    tint &operator~ () { return packed; }
    const tint &operator~ () const { return packed; }
 
@@ -249,47 +212,32 @@ protected:
 };
 
 // hash table wrapper
-
 template< u32 N >
    class KeyHash :
       public __gnu_pbds::cc_hash_table <
          Key<N>, // key
-
          u32, // value
-
          typename Key<N>::Ops, // hash
-
          typename Key<N>::Ops // equality
-
       > {};
 
 static const u32 lengths[] = { 1, 2, 3, 4, 6, 12, 18 }, numLengths = 7;
 static const u32 lineLength = 60;
 
 /*
-
    For sequences <= sequentialMax, process them sequentially in one pass
-
    instead of splitting them in to multiple tasks
 
-
-
    Things stay fast until 9, where processing sequentially really kills
-
    performance for some reason I have no figured out!
-
 */
 
 static const u32 sequentialMax = 8;
 
 /*
-
    A DNA block to analyze. Requires a single block of memory to
-
    hold the block for efficiency. Block starts at 4mb and grows
-
    exponentially
-
 */
 
 struct Block {
@@ -300,7 +248,6 @@ struct Block {
    ~Block() { free( data ); }
 
    // read the block in until the end of the sequence or a new sequence starts
-
    void read() {
       data[lineLength] = -1;
       while ( fgets_unlocked( data + count, lineLength + 2, stdin ) ) {
@@ -308,7 +255,6 @@ struct Block {
             return;
          
          // -1 trick should keep us from calling strlen
-
          if ( data[count + lineLength] != 0xa ) {
             count += u32(strlen( data + count )) - 1;
             data = (char *)realloc( data, count + 64 * 2 );
@@ -326,7 +272,6 @@ struct Block {
    }
 
    // read lines until we get a match
-
    bool untilheader( const char *match ) {
       size_t len = strlen( match );
       const u32 *in = (const u32 *)data, *want = (const u32 *)match;
@@ -345,15 +290,10 @@ protected:
 };
 
 /*
-
    Queue hands out work states to process
-
    
-
    st holds two u16 values, the current offset in the sequence, and the
-
    current length of the sequence
-
 */
 
 struct Queue {
@@ -366,12 +306,10 @@ struct Queue {
             return false;
 
          // try to claim the next set
-
          if ( __sync_val_compare_and_swap( &st, cur, nextstate( cur ) ) != cur )
             continue;
 
          // it's ours
-
          sequence = lengths[cur >> 16];
          offset = cur & 0xffff;
          return true;
@@ -492,9 +430,7 @@ void printfreq( Worker *workers ) {
    typedef pair< Key<N>, u32 > sequence;
    vector<sequence> seqs( sum.begin(), sum.end() );
    stable_sort( seqs.begin(), seqs.end(), CompareFirst<sequence>() ); // by name
-
    stable_sort( seqs.begin(), seqs.end(), CompareSecond<sequence>() ); // by count
-
 
    typename vector<sequence>::iterator iter = seqs.begin(), end = seqs.end();
    for ( ; iter != end; ++iter )

@@ -147,9 +147,11 @@ static void offset_momentum()
 
 int main(int argc, char ** argv)
 {
+	long double N;
+	 scanf("%ld",&N);
   offset_momentum();
   printf ("%.9f\n", energy());
-  advance(atoi(argv[1]));
+  advance(N);
   printf ("%.9f\n", energy());
   return 0;
 }

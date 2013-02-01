@@ -1,3 +1,9 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+ *
+ * Contributed by Sebastien Loisel
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -43,3 +49,4 @@ int main(int argc, char *argv[])
   printf("%0.9f\n",sqrt(vBv/vv));
   return 0;
 }
+

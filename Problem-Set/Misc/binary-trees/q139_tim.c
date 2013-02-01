@@ -1,123 +1,151 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+ *
+ * Contributed by Eckehard Berns
+ * Based on code by Kevin Carson
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
 
-typedef off_t off64_t;
-#include <apr_pools.h>
+typedef struct node {
+   struct node *left, *right;
+   long item;
+} node;
 
-const size_t	LINE_SIZE = 64;
-
-struct node
+static node *
+new_node(node *left, node *right, long item)
 {
-  int i;
-  struct node *left;
-  struct node *right;
+   node *ret;
+
+   ret = malloc(sizeof(node));
+   ret->left = left;
+   ret->right = right;
+   ret->item = item;
+
+   return ret;
+}
+
+static long
+item_check(node *tree)
+{
+   if (tree->left == NULL)
+      return tree->item;
+   else
+      return tree->item + item_check(tree->left) -
+          item_check(tree->right);
+}
+
+static node *
+bottom_up_tree(long item, int depth)
+{
+   if (depth > 0)
+      return new_node(bottom_up_tree(2 * item - 1, depth - 1),
+          bottom_up_tree(2 * item, depth - 1), item);
+   else
+      return new_node(NULL, NULL, item);
+}
+
+static void
+delete_tree(node *tree)
+{
+   if (tree->left != NULL) {
+      delete_tree(tree->left);
+      delete_tree(tree->right);
+   }
+   free(tree);
+}
+
+struct worker_args {
+   long iter, check;
+   int depth;
+   pthread_t id;
+   struct worker_args *next;
 };
 
-int
-node_check(const struct node *n)
+static void *
+check_tree_of_depth(void *_args)
 {
-  if (n->left)
-    {
-      int lc = node_check (n->left);
-      int rc = node_check (n->right);
-      return lc + n->i - rc;
-    }
+   struct worker_args *args = _args;
+   long i, iter, check, depth;
+   node *tmp;
 
-  return n->i;
-}
+   iter = args->iter;
+   depth = args->depth;
 
-struct node *
-node_get_avail (apr_pool_t *pool)
-{
-  return apr_palloc (pool, sizeof(struct node));
-}
+   check = 0;
+   for (i = 1; i <= iter; i++) {
+      tmp = bottom_up_tree(i, depth);
+      check += item_check(tmp);
+      delete_tree(tmp);
 
-struct node *
-make (int i, int depth, apr_pool_t *pool)
-{
-  struct node *curr = node_get_avail (pool);
+      tmp = bottom_up_tree(-i, depth);
+      check += item_check(tmp);
+      delete_tree(tmp);
+   }
 
-  curr->i = i;
-
-  if (depth > 0)
-    {
-      curr->left  = make (2*i-1, depth - 1, pool);
-      curr->right = make (2*i  , depth - 1, pool);
-    }
-  else
-    {
-      curr->left  = NULL;
-      curr->right = NULL;
-    }
-
-  return curr;
+   args->check = check;
+   return NULL;
 }
 
 int
-main(int argc, char *argv[])
+main(int ac, char **av)
 {
-  apr_pool_t *long_lived_pool;
-  int min_depth = 4;
-  int req_depth = (argc == 2 ? atoi(argv[1]) : 10);
-  int max_depth = (req_depth > min_depth + 2 ? req_depth : min_depth + 2);
-  int stretch_depth = max_depth+1;
+   node *stretch, *longlived;
+   struct worker_args *args, *targs, *hargs;
+   int n, depth, mindepth, maxdepth, stretchdepth;
 
-  apr_initialize();
+   n = ac > 1 ? atoi(av[1]) : 10;
+   if (n < 1) {
+      fprintf(stderr, "Wrong argument.\n");
+      exit(1);
+   }
 
-  /* Alloc then dealloc stretchdepth tree */
-  {
-    apr_pool_t *store;
-    struct node *curr;
+   mindepth = 4;
+   maxdepth = mindepth + 2 > n ? mindepth + 2 : n;
+   stretchdepth = maxdepth + 1;
 
-    apr_pool_create (&store, NULL);
-    curr = make (0, stretch_depth, store);
-    printf ("stretch tree of depth %i\t check: %i\n", stretch_depth, 
-	    node_check (curr));
-    apr_pool_destroy (store);
-  }
+   stretch = bottom_up_tree(0, stretchdepth);
+   printf("stretch tree of depth %u\t check: %li\n", stretchdepth,
+       item_check(stretch));
+   delete_tree(stretch);
 
-  apr_pool_create (&long_lived_pool, NULL);
+   longlived = bottom_up_tree(0, maxdepth);
 
-  {
-    struct node *long_lived_tree = make(0, max_depth, long_lived_pool);
+   hargs = NULL;
+   targs = NULL;
+   for (depth = mindepth; depth <= maxdepth; depth += 2) {
 
-    /* buffer to store output of each thread */
-    char *outputstr = (char*) malloc(LINE_SIZE * (max_depth +1) * sizeof(char));
-    int d;
-
-#pragma omp parallel for
-    for (d = min_depth; d <= max_depth; d += 2)
-      {
-        int iterations = 1 << (max_depth - d + min_depth);
-	apr_pool_t *store;
-        int c = 0, i;
-
-	apr_pool_create (&store, NULL);
-
-        for (i = 1; i <= iterations; ++i)
-	  {
-	    struct node *a, *b;
-
-	    a = make ( i, d, store);
-	    b = make (-i, d, store);
-            c += node_check (a) + node_check (b);
-	    apr_pool_clear (store);
-        }
-	apr_pool_destroy (store);
-	
-	/* each thread write to separate location */
-	sprintf(outputstr + LINE_SIZE * d, "%d\t trees of depth %d\t check: %d\n", (2 * iterations), d, c);
+      args = malloc(sizeof(struct worker_args));
+      args->iter = 1 << (maxdepth - depth + mindepth);
+      args->depth = depth;
+      args->next = NULL;
+      if (targs == NULL) {
+         hargs = args;
+         targs = args;
+      } else {
+         targs->next = args;
+         targs = args;
       }
+      pthread_create(&args->id, NULL, check_tree_of_depth, args);
+   }
 
-    /* print all results */
-    for (d = min_depth; d <= max_depth; d += 2)
-      printf("%s", outputstr + (d * LINE_SIZE) );
-    free(outputstr);
+   while (hargs != NULL) {
+      args = hargs;
+      pthread_join(args->id, NULL);
+      printf("%ld\t trees of depth %d\t check: %ld\n",
+          args->iter * 2, args->depth, args->check);
+      hargs = args->next;
+      free(args);
+   }
 
-    printf ("long lived tree of depth %i\t check: %i\n", max_depth, 
-	    node_check (long_lived_tree));
+   printf("long lived tree of depth %d\t check: %ld\n", maxdepth,
+       item_check(longlived));
 
-    return 0;
-  }
+   /* not in original C version: */
+   delete_tree(longlived);
+
+   return 0;
 }
+

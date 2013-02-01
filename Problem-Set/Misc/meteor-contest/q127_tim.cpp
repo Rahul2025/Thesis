@@ -1,8 +1,18 @@
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+
+   contributed by Stefan Westen
+
+   loosely based on Ben St. John's and Kevin Barnes' implementation
+
+   Main improvements:
+      - Check for isolated cells instead of bad islands
+      - Pre-calculate lists based on availability of 3 neighbouring cells
+      - OpenMP tasks
+*/
 
 #include <stdio.h>
-
 #include <omp.h>
-
 
 const int nPieceCount = 10;
 const int pieces[10][5][2]  = {
@@ -155,7 +165,6 @@ void Initialise()
    }
    
    // copy rows 2 and 3 to other rows
-
    
    for (int nYBase=0;nYBase<10;nYBase++)
    {
@@ -324,7 +333,6 @@ void searchLinear(unsigned int board, unsigned int pos, unsigned int used,
    if (placed==10)
    {
       #pragma omp critical
-
       RecordSolution(current_solution);
    }
    else
@@ -413,7 +421,6 @@ void searchParallel(unsigned int board, unsigned int pos, unsigned int used,
    }
    else
    {   // placed==1
-
       while (*masks)
       {
          while ((*masks)&board_and_used)
@@ -424,7 +431,6 @@ void searchParallel(unsigned int board, unsigned int pos, unsigned int used,
          {
             mask = *masks++;
             #pragma omp task default(none) firstprivate(board, mask, pos, used, placed, first_piece)
-
             {
                unsigned int current_solution[10];
                current_solution[0] = first_piece;
@@ -448,10 +454,8 @@ int main(int argc, char* argv[])
    g_solutions = 0;
 
    #pragma omp parallel
-
    {
       #pragma omp single
-
       {
          searchParallel(0,0,0,0,0);
       }

@@ -1,3 +1,14 @@
+// The Computer Language Benchmarks Game
+// http://shootout.alioth.debian.org/
+//
+// Original C contributed by Sebastien Loisel
+// Conversion to C++ by Jon Harrop
+// OpenMP parallelize by The Anh Tran
+// Add SSE by The Anh Tran
+
+// Fastest with this flag: -Os
+// g++ -pipe -Os -fomit-frame-pointer -march=native -fopenmp -mfpmath=sse -msse2 ./spec.c++ -o ./spec.run
+
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
@@ -262,3 +273,4 @@ main(int argc, char *argv[])
    printf("%.9f\n", spectral_game(N));
    return 0;
 }
+

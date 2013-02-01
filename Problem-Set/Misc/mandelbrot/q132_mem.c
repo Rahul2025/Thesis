@@ -20,7 +20,8 @@ int main (int argc, char **argv)
     double x, y, limit = 2.0;
     double Zr, Zi, Cr, Ci, Tr, Ti;
     
-    w = h = atoi(argv[1]);
+    scanf("%d",&h);
+    w = h;
 
     printf("P4\n%d %d\n",w,h);
 

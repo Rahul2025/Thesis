@@ -1,3 +1,14 @@
+// The Computer Language Benchmarks Game
+// http://shootout.alioth.debian.org/
+//
+// Original C contributed by Sebastien Loisel
+// Conversion to C++ by Jon Harrop
+// OpenMP parallelize by The Anh Tran
+// Add SSE by The Anh Tran
+// Additional SSE optimization by Krzysztof Jakubowski
+
+// Same as #6 but compiled with -O0
+
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
@@ -121,3 +132,4 @@ int main(int argc, char *argv[]) {
     printf("%.9f\n", spectral_game(N));
     return 0;
 }
+

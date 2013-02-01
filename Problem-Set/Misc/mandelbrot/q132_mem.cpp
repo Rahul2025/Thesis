@@ -1,3 +1,9 @@
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
+   contributed by Greg Buchholz
+   compile:  g++ -O3
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include<iostream>

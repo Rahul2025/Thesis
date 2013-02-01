@@ -1,3 +1,9 @@
+/* The Computer Language Benchmarks Game
+ * http://shootout.alioth.debian.org/
+ *
+ * Contributed by Jon Harrop
+ * Modified by Alex Mizrahi
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,3 +61,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+

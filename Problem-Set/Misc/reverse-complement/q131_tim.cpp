@@ -1,15 +1,15 @@
+/* The Computer Language Benchmarks Game
+http://shootout.alioth.debian.org/
+
+Contributed by Andrew Moon
+*/
+
 #include <cstdlib>
-
 #include <cstdio>
-
 #include <iostream>
-
 #include <fstream>
-
 #include <vector>
-
 #include <string.h>
-
 
 struct CPUs {
    CPUs() {
@@ -68,7 +68,6 @@ struct Chunker {
       size_t cur = mark - chunkBase;
       chunks.push_back( Chunk( chunkBase, cur ) );
       chunkBase += ( cur + ( cur & 1 ) ); // keep it word aligned
-
       mark = chunkBase;
    }
 
@@ -126,7 +125,6 @@ struct Chunker {
    }
 
    // fseek on stdin seems flaky so this hack. not called often
-
    void Backup() {
       while ( true ) {
          if ( fgetc_unlocked( stdin ) == '>' ) {
@@ -138,7 +136,6 @@ struct Chunker {
    }
 
    // input buffer can hold all of stdin, so no size checking
-
    size_t Read( char *data ) {
       if ( feof( stdin ) )
          return 0;
@@ -155,7 +152,6 @@ struct Chunker {
          }
 
          // mark trick should keep us from calling strlen
-
          mark += ( mark[lineLength] != 0xa ) ? strlen( mark ) - 1 : lineLength;
          if ( mark - chunkBase > chunkSize )
             NewChunk();
@@ -186,7 +182,6 @@ struct Chunker {
             *top = tmp;
          }
          // if size is odd, final byte would reverse to the start (skip it)
-
          if ( chunk.size & 1 )
             chunk.data++;
       }
@@ -198,7 +193,6 @@ struct Chunker {
          return;
 
       // this takes so little time it's almost not worth parallelizing
-
       vector2<WorkerState> threads;
       threads.reserve( cpus.count );
       size_t divs = chunks.size() / cpus.count;
@@ -225,13 +219,11 @@ protected:
 };
 
 // used to order chunk printing
-
 volatile int Chunker::printQueue = 0;
 
 struct ReverseComplement {
    ReverseComplement() {
       // get stdin file size
-
       long start = ftell( stdin );
       fseek( stdin, 0, SEEK_END );
       size = ftell( stdin ) - start;
@@ -265,7 +257,6 @@ struct ReverseComplement {
             break;
 
          // spawn off a thread to finish this guy up while we read another chunk in
-
          threads.push_back( 0 );
          pthread_create( &threads.last(), 0, ChunkerThread, chunkers.last() );
       }

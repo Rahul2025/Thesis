@@ -1,3 +1,10 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+
+   based on C++ program by Andrew Moon
+   contributed by Damien Grassart
+*/
+
 #define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>

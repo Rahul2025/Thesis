@@ -102,7 +102,7 @@ int main (int argc, char **argv)
 {
     int i;
 
-    N = atoi(argv[1]);
+    scanf("%d",&N);
     bytes_per_row = (N + 7) >> 3;
 
     inverse_w = 2.0 / (bytes_per_row << 3);

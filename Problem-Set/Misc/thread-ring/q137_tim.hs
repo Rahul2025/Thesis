@@ -1,3 +1,9 @@
+-- The Computer Language Benchmarks Game
+-- http://shootout.alioth.debian.org/
+-- Contributed by Jed Brown with improvements by Spencer Janssen, Don Stewart and Alex Mason
+--
+-- Compile with: <ghc> --make -O2 -fglasgow-exts -threaded threadring.ghc-4.hs -o threadring.ghc-4.ghc_run
+
 import Control.Monad
 import Control.Concurrent
 import System.Environment

@@ -212,7 +212,7 @@ public final class chameneosredux {
 
     public static void program_main(final String[] args, final boolean isWarm) {
 
-        int n = 600;
+        int n = 6000000;
         try {
             n = Integer.parseInt(args[0]);
         } catch (final Exception e) {

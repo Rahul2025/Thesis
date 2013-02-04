@@ -39,7 +39,7 @@ final class ByteWrapper implements CharSequence {
 }
 
 
-public final class regexdna_7 {
+public final class regexdna_mem {
    
    private static Pattern comments = Pattern.compile(">.*\n|\n");
    

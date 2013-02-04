@@ -1,17 +1,22 @@
 #!/bin/bash
 
 #input directory
-cd /home/Rahul/Desktop/Thesis/Scripts/Sample
+cd /home/Rahul/Desktop/Thesis/Problem-Set/Misc
 
-
-for i in *.java
+for folder in *
 {
-	#compile 'JAVA' program
-	/usr/bin/time -f "%e\t%M " javac $i 
+	echo $folder
+	cd $folder
+	for file in *.java
+	{
+		echo $file
+		#compile 'JAVA' program
+		/usr/bin/time -f "%e\t%M " javac $file 
 	
 	#If there were no compilation errors, run the program
 	if [[ $? -eq 0 ]]; then
-      /usr/bin/time -f "%e\t%M" java >op3
+      /usr/bin/time -f "%e\t%M" java ${file%%.java} <ip >java_op
 	fi
-	echo $i
+	}	
+	cd ..
 }

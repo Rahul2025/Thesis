@@ -4,12 +4,12 @@
    contributed by Jarkko Miettinen
 */
 
-public class binarytreesredux_2 {
+public class binarytreesredux {
 
    private final static int minDepth = 4;
    
    public static void main(String[] args){
-      int n = 0;
+      int n = 20;
       if (args.length > 0) n = Integer.parseInt(args[0]);
       
       int maxDepth = (minDepth + 2 > n) ? minDepth + 2 : n;

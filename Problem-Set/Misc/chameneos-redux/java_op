@@ -1,0 +1,29 @@
+blue + blue -> blue
+blue + red -> yellow
+blue + yellow -> red
+red + blue -> yellow
+red + red -> red
+red + yellow -> blue
+yellow + blue -> red
+yellow + red -> blue
+yellow + yellow -> yellow
+
+ blue red yellow
+5427941 zero
+3246271 zero
+3325788 zero
+ one two zero zero zero zero zero zero
+
+ blue red yellow red yellow blue red yellow red blue
+1105947 zero
+1195460 zero
+1133350 zero
+1303010 zero
+998299 zero
+1253967 zero
+1242439 zero
+1262907 zero
+1256668 zero
+1247953 zero
+ one two zero zero zero zero zero zero
+

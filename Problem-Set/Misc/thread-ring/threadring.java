@@ -6,7 +6,7 @@
 
 import java.util.concurrent.locks.LockSupport;
 
-public class threadring_3 {
+public class threadring {
   static final int THREAD_COUNT = 503;
 
   public static class MessageThread extends Thread {
@@ -44,8 +44,9 @@ public class threadring_3 {
   }
 
   public static void main(String args[]) throws Exception{
-    int hopCount = Integer.parseInt(args[0]);
-
+	int hopCount = 50000000;
+        if (args.length > 0) 
+            hopCount = Integer.parseInt(args[0]);
     MessageThread first = null;
     MessageThread last = null;
     for (int i = THREAD_COUNT; i >= 1 ; i--) {

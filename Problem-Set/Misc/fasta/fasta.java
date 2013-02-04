@@ -9,7 +9,7 @@
 import java.io.IOException;
 import java.io.OutputStream;
 
-class fasta_4 {
+class fasta {
    static final int IM = 139968;
    static final int IA = 3877;
    static final int IC = 29573;
@@ -54,12 +54,12 @@ class fasta_4 {
                 0.3015094502008d}
           );
 
-   static final void makeRandomfasta_4(String id, String desc,
+   static final void makeRandomfasta(String id, String desc,
          FloatProbFreq fpf, int nChars, OutputStream writer)
          throws IOException
    {
-      final int LINE_LENGTH = fasta_4.LINE_LENGTH;
-      final int BUFFER_SIZE = fasta_4.BUFFER_SIZE;
+      final int LINE_LENGTH = fasta.LINE_LENGTH;
+      final int BUFFER_SIZE = fasta.BUFFER_SIZE;
       byte[] buffer = new byte[BUFFER_SIZE];
 
       if (buffer.length % (LINE_LENGTH + 1) != 0) {
@@ -95,15 +95,15 @@ class fasta_4 {
       writer.write(buffer, 0, bufferIndex);
    }
 
-    static final void makeRepeatfasta_4(
+    static final void makeRepeatfasta(
           String id, String desc, String alu,
           int nChars, OutputStream writer) throws IOException
     {
        final byte[] aluBytes = alu.getBytes();
        int aluIndex = 0;
 
-       final int LINE_LENGTH = fasta_4.LINE_LENGTH;
-       final int BUFFER_SIZE = fasta_4.BUFFER_SIZE;
+       final int LINE_LENGTH = fasta.LINE_LENGTH;
+       final int BUFFER_SIZE = fasta.BUFFER_SIZE;
        byte[] buffer = new byte[BUFFER_SIZE];
 
        if (buffer.length % (LINE_LENGTH + 1) != 0) {
@@ -146,17 +146,17 @@ class fasta_4 {
 
     public static void main(String[] args) throws IOException
     {
-        int n = 1000;
+       int n = 25000000;
 //        int n = 25000000;
         if (args.length > 0) {
          n = Integer.parseInt(args[0]);
       }
-
-        OutputStream out = System.out;
-        makeRepeatfasta_4("ONE", "Homo sapiens alu", ALU, n * 2, out);
-        makeRandomfasta_4("TWO", "IUB ambiguity codes", IUB, n * 3, out);
-        makeRandomfasta_4("THREE", "Homo sapiens frequency", HOMO_SAPIENS, n * 5, out);
-        out.close();
+System.out.println(n);
+    //    OutputStream out = System.out;
+   //     makeRepeatfasta("ONE", "Homo sapiens alu", ALU, n * 2, out);
+   //     makeRandomfasta("TWO", "IUB ambiguity codes", IUB, n * 3, out);
+    //    makeRandomfasta("THREE", "Homo sapiens frequency", HOMO_SAPIENS, n * 5, out);
+     //   out.close();
     }
 
     public static final class FloatProbFreq {

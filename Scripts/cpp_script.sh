@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #input directory
-cd /home/Rahul/Desktop/Thesis/Problem-Set/Basic
-rm /home/Rahul/Desktop/Thesis/Scripts/cpp_time
-rm /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
-rm /home/Rahul/Desktop/Thesis/Scripts/cpp_run
+cd /home/Rahul/Desktop/Thesis/Problem-Set/bench
+#rm /home/Rahul/Desktop/Thesis/Scripts/cpp_time
+#rm /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
+#rm /home/Rahul/Desktop/Thesis/Scripts/cpp_run
 
 for i in *
 {
@@ -14,25 +14,27 @@ for i in *
 	{
 	if [[ -f $j ]]; then
 		#compile 'C' program
-		   /usr/bin/time -f "%e\t%M " -o output g++ $j 2>/dev/null 
-		  cat output >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
+		echo $j
+		/usr/bin/g++ -c -pipe -O3 -fomit-frame-pointer -march=native -std=c++0x $j -o $j.o && /usr/bin/g++ $j.o -lpthread
+		#   /usr/bin/time -f "%e\t%M " -o output g++ $j 2>/dev/null 
+	#	  cat output >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
 	#If there were no compilation errors, run the program
-	if [[ $? -eq 0 ]]; then
-			/usr/bin/time -f "%M" -o output ./a.out <ip >cpp_op
-        cat output >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
-         (time ./a.out <ip >cpp_op ) 2>op
-        cat op >> /home/Rahul/Desktop/Thesis/Scripts/cpp_run
+	#if [[ $? -eq 0 ]]; then
+	#		/usr/bin/time -f "%M" -o output ./a.out <ip >cpp_op
+   #     cat output >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
+   #      (time ./a.out <ip >cpp_op ) 2>op
+    #    cat op >> /home/Rahul/Desktop/Thesis/Scripts/cpp_run
 	fi
-	else 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp 
-		echo 0 >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
+	#else 
+	#	echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp 
+	#	echo 0 >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
 		#cat '0' >> /home/Rahul/Desktop/Thesis/Scripts/cpp_run
-	fi
+	#fi
 	#else
 	#echo $?
 	}
 	cd ..
 }
 
-cd /home/Rahul/Desktop/Thesis/Scripts
-bash cpp_runtime_script.sh
+#cd /home/Rahul/Desktop/Thesis/Scripts
+#bash cpp_runtime_script.sh

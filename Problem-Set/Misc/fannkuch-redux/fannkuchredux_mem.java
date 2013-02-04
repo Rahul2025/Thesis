@@ -5,7 +5,7 @@
    converted to Java by Oleg Mazurov
 */
 
-public class fannkuchredux_2
+public class fannkuchredux_mem
 {
    public static int fannkuch(int n) {
       int[] perm = new int[n];
@@ -62,7 +62,7 @@ public class fannkuchredux_2
    }
 
    public static void main(String[] args){
-      int n = 7;
+      int n = 12;
       if (args.length > 0) n = Integer.parseInt(args[0]);
       System.out.println("Pfannkuchen("+n+") = "+fannkuch(n));
    }

@@ -6,7 +6,7 @@
 
 import java.util.*;
 
-public final class meteor_2
+public final class meteor
 {
     static final int X = 0;
     static final int Y = 1;

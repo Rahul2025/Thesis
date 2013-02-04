@@ -19,7 +19,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 
-public class threadring_6 {
+public class threadring_mem {
     public static void main(String[] args) {
         Node[] ring = new Node[503];
         for (int i=0; i<ring.length; i++) {
@@ -29,7 +29,9 @@ public class threadring_6 {
             int nextIndex = (ring[i].label % ring.length);
             ring[i].next = ring[nextIndex];            
         }
-        int nHops = Integer.parseInt(args[0]);
+        int nHops = 50000000;
+        if (args.length > 0) 
+            nHops = Integer.parseInt(args[0]);
         new Thread(new Consumer()).start();
         ring[0].sendMessage(nHops);
     }

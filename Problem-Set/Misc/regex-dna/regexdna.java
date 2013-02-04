@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class regexdna_5 {
+public final class regexdna {
 
    private static final Map<String, String> replacements = new HashMap<String, String>();
 

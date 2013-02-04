@@ -10,16 +10,16 @@
 import java.text.DecimalFormat;
 import java.text.NumberFormat; 
 
-public class spectralnorm
+public class spectralnorm_mem
 {
 	
 	private static final NumberFormat formatter = new DecimalFormat("#.000000000");
 	
 	public static void main(String[] args) {
-		int n = 100;
+		int n = 5500;
 		if (args.length > 0) n = Integer.parseInt(args[0]);
 		
-		System.out.println(formatter.format(new spectralnorm().Approximate(n)));
+		System.out.println(formatter.format(new spectralnorm_mem().Approximate(n)));
 	}
 	
 	private final double Approximate(int n) {

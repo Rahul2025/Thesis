@@ -1,7 +1,13 @@
 #!/bin/bash
 
-#input filename.py
-file_name=sample1.py
+#input directory
+cd /home/Rahul/Desktop/Thesis/Problem-Set/Misc
 
-#run the program
-python $filename >op
+
+for i in *.py
+{
+	echo $i
+	#interpret 'Python' program
+	/usr/bin/time -f "%e\t%M " python $i <ip
+	
+}

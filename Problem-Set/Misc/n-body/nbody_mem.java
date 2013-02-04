@@ -1,8 +1,17 @@
-public final class nbody {
-    public static void main(String[] args) {
-        int n = Integer.parseInt(args[0]);
+/* The Computer Language Benchmarks Game
+   http://shootout.alioth.debian.org/
 
-        NBodySystem bodies = new NBodySystem();
+   contributed by Mark C. Lewis
+   modified slightly by Chad Whipkey
+*/
+
+public final class nbody_mem {
+    public static void main(String[] args) {
+        int n = 50000000;
+        if (args.length > 0) 
+            n = Integer.parseInt(args[0]);
+
+        nbody_memSystem bodies = new nbody_memSystem();
         System.out.printf("%.9f\n", bodies.energy());
         for (int i=0; i<n; ++i)
            bodies.advance(0.01);
@@ -10,10 +19,10 @@ public final class nbody {
     }
 }
 
-final class NBodySystem {
+final class nbody_memSystem {
    private Body[] bodies;
 
-   public NBodySystem(){
+   public nbody_memSystem(){
       bodies = new Body[]{
             Body.sun(),
             Body.jupiter(),
@@ -159,3 +168,4 @@ final class Body {
       return this;
    }
 }
+

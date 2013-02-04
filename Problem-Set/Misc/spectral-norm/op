@@ -1,0 +1,5 @@
+a.out: user error (Pattern match failure in do expression at q130_mem.hs:11:8-12)
+
+real	0m0.002s
+user	0m0.000s
+sys	0m0.001s

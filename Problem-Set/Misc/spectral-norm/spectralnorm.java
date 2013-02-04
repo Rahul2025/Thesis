@@ -11,20 +11,20 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.concurrent.CyclicBarrier;
 
-public class spectralnorm_2
+public class spectralnorm
 {
     private static final NumberFormat formatter = new DecimalFormat ("#.000000000");
     
     public static void main (String[] args)
     {
-        int n = 1000;
+        int n = 5500;
         if (args.length > 0) n = Integer.parseInt (args[0]);
         
-        System.out.println (formatter.format (spectralnorm_2Game (n)) );
+        System.out.println (formatter.format (spectralnormGame (n)) );
     }
     
     
-    private static final double spectralnorm_2Game (int n)
+    private static final double spectralnormGame (int n)
     {
         // create unit vector
         double[] u = new double[n];

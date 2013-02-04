@@ -7,7 +7,9 @@
 
 public final class nbody {
     public static void main(String[] args) {
-        int n = Integer.parseInt(args[0]);
+        int n = 50000000;
+        if (args.length > 0) 
+            n = Integer.parseInt(args[0]);
 
         NBodySystem bodies = new NBodySystem();
         System.out.printf("%.9f\n", bodies.energy());

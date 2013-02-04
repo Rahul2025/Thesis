@@ -1,159 +1,125 @@
+/* The Great Computer Language Shootout
+   http://shootout.alioth.debian.org/
+ 
+   contributed by Isaac Gouy
+*/
 
+import java.math.BigInteger;
 
 public class pidigits_mem {
+   static final int L = 10;
+
+   public static void main(String args[]) { 
+      int n = 10000;
+        if (args.length > 0) 
+            n = Integer.parseInt(args[0]);
+      int j = 0;
    
-   final GmpInteger q = new GmpInteger(), r = new GmpInteger(),
-   s = new GmpInteger(), t = new GmpInteger(); 
-   final GmpInteger u = new GmpInteger(), v = new GmpInteger(),
-   w = new GmpInteger(); 
-
-   int i, k, c; 
-   int digit;
-   int d;
-   StringBuffer strBuf = new StringBuffer(20);
-   final int n;
-   
-   private pidigits_mem(int n)
-   {
-      this.n=n;
-   }
-   
-   private void compose_r(int bq, int br, int bs, int bt)
-   {
-     u.mul(r, bs);
-     r.mul(r, bq);
-     v.mul(t, br);
-     r.add(r, v);
-     t.mul(t, bt);
-     t.add(t, u);
-     s.mul(s, bt);
-     u.mul(q, bs);
-     s.add(s, u);
-     q.mul(q, bq);
-   }
-
-   /* Compose matrix with numbers on the left. */
-   private void compose_l(int bq, int br, int bs, int bt)
-   {
-     r.mul(r, bt);
-     u.mul(q, br);
-     r.add(r, u);
-     u.mul(t, bs);
-     t.mul(t, bt);
-     v.mul(s, br);
-     t.add(t, v);
-     s.mul(s, bq);
-     s.add(s, u);
-     q.mul(q, bq);
-   }
-
-   /* Extract one digit. */
-   private int extract(int j)
-   {
-     u.mul(q, j);
-     u.add(u, r);
-     v.mul(s, j);
-     v.add(v, t);
-     w.div(u, v);
-     return w.intValue();
-   }
-
-   /* Print one digit. Returns 1 for the last digit. */
-   private boolean prdigit(int y)
-   {
-      strBuf.append(y);
-      if (++i % 10 == 0 || i == n) {
-         if (i%10!=0) for (int j=10-(i%10);j>0;j--) { strBuf.append(" "); }
-         strBuf.append("\t:");
-         strBuf.append(i);
-         System.out.println(strBuf);
-         strBuf = new StringBuffer(20);
-      }
-      return i == n;
-   }
-
-   /* Generate successive digits of PI. */
-   void pidigits_mem()
-   {
-     int k = 1;
-     d = 0;
-     i = 0;
-     q.set(1);
-     r.set(0);
-     s.set(0);
-     t.set(1);
-     for (;;) {
-       int y = extract(3);
-       if (y == extract(4)) {
-         if (prdigit(y)) return;
-         compose_r(10, -10*y, 0, 1);
-       } else {
-         compose_l(k, 4*k+2, 0, 2*k+1);
-         k++;
-       }
-     }
-   }
+      pidigits_mempigot digits = new pidigits_mempigot();
       
-   public static void main(String[] args) {
-      pidigits_mem m = new pidigits_mem(Integer.parseInt(args[0]));
-      m.pidigits_mem();
+      while (n > 0){
+         if (n >= L){
+            for (int i=0; i<L; i++) System.out.print( digits.next() );
+            j += L;
+         } else {
+            for (int i=0; i<n; i++) System.out.print( digits.next() );
+            for (int i=n; i<L; i++) System.out.print(" ");  
+            j += n;   
+         }
+         System.out.print("\t:"); System.out.println(j);
+         n -= L;           
+      }               
    }
 }
 
 
+class pidigits_mempigot {
+   Transformation z, x, inverse;            
+       
+   public pidigits_mempigot(){
+      z = new Transformation(1,0,0,1);
+      x = new Transformation(0,0,0,0);
+      inverse = new Transformation(0,0,0,0);
+   }   
+   
+   public int next(){
+      int y = digit();
+      if (isSafe(y)){ 
+         z = produce(y); return y;
+      } else {
+         z = consume( x.next() ); return next();   
+      }
+   }    
+      
+   public int digit(){
+      return z.extract(3);
+   }        
+   
+   public boolean isSafe(int digit){
+      return digit == z.extract(4);
+   }   
+   
+   public Transformation produce(int i){
+      return ( inverse.qrst(10,-10*i,0,1) ).compose(z);
+   }     
+      
+   public Transformation consume(Transformation a){
+      return z.compose(a);
+   }                   
+} 
 
-class GmpInteger {
-   
-   // Public methods
-   
-   public GmpInteger() {
-      mpz_init();
+
+class Transformation {
+   BigInteger q, r, s, t;
+   int k;              
+       
+   public Transformation(int q, int r, int s, int t){
+      this.q = BigInteger.valueOf(q);
+      this.r = BigInteger.valueOf(r);
+      this.s = BigInteger.valueOf(s);
+      this.t = BigInteger.valueOf(t);                  
+      k = 0;
    }
-
-   public GmpInteger(int value) {
-      this();
-      mpz_set_si(pointer, value);
-   }
    
-   public void set(int value) { mpz_set_si(pointer, value); }
-
-   public void mul(GmpInteger src, int val) { mpz_mul_si(pointer, src.pointer, val); }
+   public Transformation(BigInteger q, BigInteger r, BigInteger s, BigInteger t){
+      this.q = q;
+      this.r = r;
+      this.s = s;
+      this.t = t;                  
+      k = 0;
+   }        
    
-   public void add(GmpInteger op1, GmpInteger op2) { mpz_add(pointer, op1.pointer, op2.pointer); }
+   public Transformation next(){
+      k++;
+      q = BigInteger.valueOf(k);
+      r = BigInteger.valueOf(4 * k + 2);
+      s = BigInteger.valueOf(0);
+      t = BigInteger.valueOf(2 * k + 1); 
+      return this;                 
+   }      
    
-   public void div(GmpInteger op1, GmpInteger op2) { mpz_tdiv_q(pointer, op1.pointer, op2.pointer); }
+   public int extract(int j){
+      BigInteger bigj = BigInteger.valueOf(j);
+      BigInteger numerator = (q.multiply(bigj)).add(r);
+      BigInteger denominator = (s.multiply(bigj)).add(t);                  
+      return ( numerator.divide(denominator) ).intValue();                    
+   }     
    
-   public int intValue() { return mpz_get_si(pointer); }
-   
-   public double doubleValue() { return mpz_get_d(pointer); } 
-
-   // Non public stuff
-   
-   static {
-      System.loadLibrary("jgmplib");
-   }
-   private long pointer;
-   
-   protected void finalize()  {
-      mpz_clear(pointer);
-   }
-   
-   private native void mpz_init();
-
-   private native void mpz_clear(long src);
-
-   private static native void mpz_mul_si(long dest, long src,
-         int val);
-
-   private static native void mpz_add(long dest, long src,
-         long src2);
-
-   private static native void mpz_tdiv_q(long dest, long src,
-         long src2);
-
-   private static native void mpz_set_si(long src, int value);
-
-   private static native int mpz_get_si(long src);
-
-   private static native double mpz_get_d(long src);
+   public Transformation qrst(int q, int r, int s, int t){
+      this.q = BigInteger.valueOf(q);
+      this.r = BigInteger.valueOf(r);
+      this.s = BigInteger.valueOf(s);
+      this.t = BigInteger.valueOf(t); 
+      k = 0;  
+      return this;                             
+   }         
+  
+   public Transformation compose(Transformation a){      
+      return new Transformation(
+         q.multiply(a.q)
+         ,(q.multiply(a.r)).add( (r.multiply(a.t)) ) 
+         ,(s.multiply(a.q)).add( (t.multiply(a.s)) ) 
+         ,(s.multiply(a.r)).add( (t.multiply(a.t)) )                   
+         );                    
+   }          
 }

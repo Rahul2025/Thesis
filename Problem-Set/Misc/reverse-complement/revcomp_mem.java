@@ -15,7 +15,7 @@ import java.nio.channels.*;
 import java.util.ArrayList;
 import java.util.concurrent.*;
 
-public class revcomp_7 extends RecursiveTask<ArrayList<revcomp_7>> {
+public class revcomp_mem extends RecursiveTask<ArrayList<revcomp_mem>> {
   private static final byte[] map = new byte[128];
   private static final ByteBuffer bytes;
   private static final Semaphore processed = new Semaphore(0);
@@ -99,13 +99,13 @@ public class revcomp_7 extends RecursiveTask<ArrayList<revcomp_7>> {
     }
     bytes.flip();
 
-    revcomp_7 t = new revcomp_7(bytes);
+    revcomp_mem t = new revcomp_mem(bytes);
     jobs.execute(t);
 
-    ArrayList<revcomp_7> bs = t.flatten();
+    ArrayList<revcomp_mem> bs = t.flatten();
     ArrayList<ByteBuffer> head = new ArrayList<ByteBuffer>(bs.size()*2);
     ArrayList<ByteBuffer> tail = new ArrayList<ByteBuffer>(bs.size()*2);
-    for( revcomp_7 b: bs ) b.foldl( head, tail );
+    for( revcomp_mem b: bs ) b.foldl( head, tail );
 
     reverse(tail.toArray(new ByteBuffer[0]));
 
@@ -128,22 +128,22 @@ public class revcomp_7 extends RecursiveTask<ArrayList<revcomp_7>> {
   int firstt;
   int lastf;
 
-  public revcomp_7(ByteBuffer b) {
+  public revcomp_mem(ByteBuffer b) {
     buf = b;
   }
 
-  public revcomp_7(ByteBuffer[] bs) {
+  public revcomp_mem(ByteBuffer[] bs) {
     bufs = bs;
   }
 
-  protected ArrayList<revcomp_7> compute() {
+  protected ArrayList<revcomp_mem> compute() {
     if (bufs != null) {
       reverse(bufs);
       processed.release(1);
       return null;
     }
 
-    ArrayList<revcomp_7> al = new ArrayList<revcomp_7>();
+    ArrayList<revcomp_mem> al = new ArrayList<revcomp_mem>();
 
     while( buf.remaining() > THRESHOLD ) {
       int next = (buf.position() + buf.limit()) / 2;
@@ -153,7 +153,7 @@ public class revcomp_7 extends RecursiveTask<ArrayList<revcomp_7>> {
       ByteBuffer b = buf.slice();
       b.limit(next+1-buf.position());
       buf.position(next+1);
-      revcomp_7 t = new revcomp_7(b);
+      revcomp_mem t = new revcomp_mem(b);
       jobs.execute(t);
       al.add(t);
     }
@@ -182,10 +182,10 @@ public class revcomp_7 extends RecursiveTask<ArrayList<revcomp_7>> {
     return al;
   }
 
-  public ArrayList<revcomp_7> flatten() throws InterruptedException, ExecutionException {
-    ArrayList<revcomp_7> pre = get();
-    ArrayList<revcomp_7> r = pre.isEmpty() ? pre: new ArrayList<revcomp_7>();
-    for( revcomp_7 p: pre ) r.addAll( p.flatten() );
+  public ArrayList<revcomp_mem> flatten() throws InterruptedException, ExecutionException {
+    ArrayList<revcomp_mem> pre = get();
+    ArrayList<revcomp_mem> r = pre.isEmpty() ? pre: new ArrayList<revcomp_mem>();
+    for( revcomp_mem p: pre ) r.addAll( p.flatten() );
     r.add(this);
     return r;
   }
@@ -202,7 +202,7 @@ public class revcomp_7 extends RecursiveTask<ArrayList<revcomp_7>> {
 
       tail.add(first);
     }
-    jobs.execute(new revcomp_7(tail.toArray(new ByteBuffer[0])));
+    jobs.execute(new revcomp_mem(tail.toArray(new ByteBuffer[0])));
     tails++;
     head.addAll(tail);
     head.add(buf);

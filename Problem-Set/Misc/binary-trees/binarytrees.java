@@ -13,7 +13,7 @@ public class binarytrees {
    
    public static void main(String[] args)
    {
-      int n = 0;
+      int n = 20;
       if (args.length > 0) n = Integer.parseInt(args[0]);
       int maxDepth = (minDepth + 2 > n) ? minDepth + 2 : n;
 

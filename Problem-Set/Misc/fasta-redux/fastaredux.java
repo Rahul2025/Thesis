@@ -8,7 +8,7 @@
 
 import java.io.*;
 
-public class fastaredux_3 {
+public class fastaredux {
 
     static final int LINE_LENGTH = 60;
     static final int OUT_BUFFER_SIZE = 256*1024;
@@ -149,7 +149,7 @@ public class fastaredux_3 {
 
 
     public static void main(String[] args) throws IOException {
-        int n = 2500000;
+        int n = 25000000;
         if (args.length > 0) 
             n = Integer.parseInt(args[0]);
 

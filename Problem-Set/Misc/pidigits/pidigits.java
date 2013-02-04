@@ -10,7 +10,9 @@ public class pidigits {
    static final int L = 10;
 
    public static void main(String args[]) { 
-      int n = Integer.parseInt(args[0]);
+      int n = 10000;
+        if (args.length > 0) 
+            n = Integer.parseInt(args[0]);
       int j = 0;
    
       PiDigitSpigot digits = new PiDigitSpigot();
@@ -121,6 +123,3 @@ class Transformation {
          );                    
    }          
 }
-
-
-  

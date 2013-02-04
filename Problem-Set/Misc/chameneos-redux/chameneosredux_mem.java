@@ -7,14 +7,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class chameneosredux_3 {
+public class chameneosredux_mem {
 
    static MeetingPlace meetingPlace;
    static CountDownLatch latch;
    static AtomicInteger meetingsLeft;
 
    public static void main(String[] args) throws InterruptedException {
-      int N = 6_000_000;
+      int N = 6000000;
       if (args.length > 0) {
          try {
             N = Integer.parseInt(args[0]);

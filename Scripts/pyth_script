@@ -1,12 +1,14 @@
 #!/bin/bash
 
 #input directory
-cd /home/Rahul/Desktop/Thesis/Scripts/Sample
+cd /home/Rahul/Desktop/Thesis/Problem-Set/Misc
 
 
 for i in *.py
 {
-	#interpret 'Python' program
-	/usr/bin/time -f "%e\t%M " python $i >op4
+	if [[ -f $j ]]; then
 	echo $i
+	#interpret 'Python' program
+	/usr/bin/time -f "%e\t%M " python $i <ip
+	fi	
 }

@@ -9,7 +9,7 @@
 import java.io.IOException;
 import java.io.OutputStream;
 
-class fasta_2 {
+class fasta_mem {
     public static final int IM = 139968;
     public static final int IA = 3877;
     public static final int IC = 29573;
@@ -79,7 +79,7 @@ class fasta_2 {
     static int BUFFER_SIZE = 1024;
     static int index = 0;
     static byte[] bbuffer = new byte[BUFFER_SIZE];
-    static final void makeRandomfasta_2(String id, String desc,frequency[] a, int n, OutputStream writer) throws IOException
+    static final void makeRandomfasta_mem(String id, String desc,frequency[] a, int n, OutputStream writer) throws IOException
     {
         index = 0;
         int m = 0;
@@ -100,7 +100,7 @@ class fasta_2 {
         if(index != 0) writer.write(bbuffer, 0, index);
     }    
     
-    static final void makeRepeatfasta_2(String id, String desc, String alu, int n, OutputStream writer) throws IOException
+    static final void makeRepeatfasta_mem(String id, String desc, String alu, int n, OutputStream writer) throws IOException
     {
         index = 0;
         int m = 0;
@@ -128,13 +128,13 @@ class fasta_2 {
     public static void main(String[] args) throws IOException {
         makeCumulative(HomoSapiens);
         makeCumulative(IUB);
-        int n = 2500000;
+        int n = 25000000;
         if (args.length > 0)
             n = Integer.parseInt(args[0]);
         OutputStream out = System.out;
-        makeRepeatfasta_2("ONE", "Homo sapiens alu", ALU, n * 2, out);
-        makeRandomfasta_2("TWO", "IUB ambiguity codes", IUB, n * 3, out);
-        makeRandomfasta_2("THREE", "Homo sapiens frequency", HomoSapiens, n * 5, out);
+        makeRepeatfasta_mem("ONE", "Homo sapiens alu", ALU, n * 2, out);
+        makeRandomfasta_mem("TWO", "IUB ambiguity codes", IUB, n * 3, out);
+        makeRandomfasta_mem("THREE", "Homo sapiens frequency", HomoSapiens, n * 5, out);
         out.close();
     }
 

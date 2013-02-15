@@ -1,3 +1,12 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+# Contributed by Sebastien Loisel
+# Fixed by Isaac Gouy
+# Sped up by Josh Goldfoot
+# Dirtily sped up by Simon Descarpentries
+# Concurrency by Jason Stitt
+# 2to3
+
 from multiprocessing import Pool
 from math            import sqrt
 

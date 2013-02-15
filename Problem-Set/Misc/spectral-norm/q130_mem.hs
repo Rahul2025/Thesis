@@ -8,8 +8,9 @@ import System.Environment
 import Numeric
 
 main = do 
-        [arg] <- getArgs
-        let n = (read arg) - 1 
+        --[arg] <- getArgs
+        --let n = (read arg) - 1
+	n <- readLn
         let init = listArray (0,n) (repeat 1.0)
         let (v:u:rest) = drop 19 $ iterate (eval_AtA_times_u n) init
         let vBv = sum [(u!i)*(v!i) |i<-[0..n]]

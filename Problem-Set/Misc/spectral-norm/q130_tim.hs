@@ -26,7 +26,8 @@ import GHC.Conc
 type Reals = Ptr Double
 
 main = do
-    n <- getArgs >>= readIO . head
+    --n <- getArgs >>= readIO . head
+    n <- readLn
     allocaArray n $ \ u -> allocaArray n $ \ v -> do
       forM_ [0..n-1] $ \i -> pokeElemOff u i 1 >> pokeElemOff v i 0
 

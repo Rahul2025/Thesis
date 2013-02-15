@@ -1,5 +1,6 @@
-a.out: Prelude.head: empty list
+Stack space overflow: current size 8388608 bytes.
+Use `+RTS -Ksize -RTS' to increase it.
 
-real	0m0.004s
-user	0m0.000s
-sys	0m0.003s
+real	0m7.721s
+user	0m7.599s
+sys	0m0.099s

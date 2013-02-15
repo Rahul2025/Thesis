@@ -1,5 +1,4 @@
-a.out: Prelude.head: empty list
 
-real	0m0.003s
-user	0m0.002s
-sys	0m0.000s
+real	0m11.370s
+user	0m11.331s
+sys	0m0.015s

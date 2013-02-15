@@ -20,6 +20,7 @@ import System.Environment
 import Text.Printf
 
 main = do
+    --n <- getArgs
     n <- getArgs >>= readIO.head
     initialize
     offset_momentum

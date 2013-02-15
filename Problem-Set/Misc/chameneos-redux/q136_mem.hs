@@ -89,6 +89,7 @@ main = do
         [unwords [show a, "+", show b, "->", show $ complement a b]
             | a <- [B..Y], b <- [B..Y]]
 
-    n <- readIO . head =<< getArgs
+    --n <- readIO . head =<< getArgs
+    n <- readLn
     actions <- zipWithM (run n) [0..] [[B..Y],[B,R,Y,R,Y,B,R,Y,R,B]]
     sequence_ actions

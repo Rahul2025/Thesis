@@ -147,7 +147,9 @@ static IUB homosapiens[] =
 
 int main(int argc, char *argv[])
 {
-   unsigned const n = argc > 1 ? atoi(argv[1]) : 1;
+   unsigned const n=25000;
+   // = argc > 1 ? atoi(argv[1]) : 1;
+   scanf("%d",&n);
 
    makeRepeatFasta("ONE", "Homo sapiens alu", n*2);
    makeRandomFasta("TWO", "IUB ambiguity codes", n*3, iub,

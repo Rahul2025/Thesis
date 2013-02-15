@@ -141,9 +141,10 @@ struct planet bodies[NBODIES] = {
 
 int main(int argc, char ** argv)
 {
-  int n = atoi(argv[1]);
-  int i;
-
+  int n,i;
+  // = atoi(argv[1]);
+  //int i;
+	scanf("%d",&n);
   offset_momentum(NBODIES, bodies);
   printf ("%.9f\n", energy(NBODIES, bodies));
   v2df dtdt = {0.01, 0.01};

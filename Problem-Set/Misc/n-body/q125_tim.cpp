@@ -199,8 +199,9 @@ class NBodySystem {
 };
 
 int main(int argc, char** argv) {
-        int n = atoi(argv[1]);
-
+        int n;
+        // = atoi(argv[1]);
+			scanf("%d",&n);
         NBodySystem bodies;
         printf("%.9f\n", bodies.energy());
         for (int i=0; i<n; ++i)

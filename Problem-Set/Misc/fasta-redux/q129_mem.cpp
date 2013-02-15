@@ -161,8 +161,9 @@ static const char alu[] =
    "CACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA";
 
 int main( int argc, const char *argv[] ) {
-   const size_t n = ( argc > 1 ) ? atoi( argv[1] ) : 512;
-
+   const size_t n=25000;
+   // = ( argc > 1 ) ? atoi( argv[1] ) : 512;
+	scanf("%d",&n);
    Repeater(alu)
       .run( "ONE", "Homo sapiens alu", n*2 );
    Randomized(iub)

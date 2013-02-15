@@ -1,0 +1,29 @@
+blue + blue -> blue
+blue + red -> yellow
+blue + yellow -> red
+red + blue -> yellow
+red + red -> red
+red + yellow -> blue
+yellow + blue -> red
+yellow + red -> blue
+yellow + yellow -> yellow
+
+ blue red yellow
+4018085 zero
+3997660 zero
+3984255 zero
+ one two zero zero zero zero zero zero
+
+ blue red yellow red yellow blue red yellow red blue
+1194883 zero
+1189924 zero
+1206404 zero
+1200518 zero
+1218126 zero
+1189391 zero
+1194592 zero
+1206218 zero
+1201162 zero
+1198782 zero
+ one two zero zero zero zero zero zero
+

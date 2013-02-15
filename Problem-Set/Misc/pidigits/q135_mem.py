@@ -1,34 +1,60 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+#
+# contributed by anon
+# modified by Pilho Kim (first GMP version)
+# modified by 2to3 and Daniel Nanz
 
+import sys
+from itertools import islice
 from gmpy import mpz
-from sys import argv
 
-try:
-  N = int(argv[1])
-except:
-  N = 100
+ 
+(MPZ0, MPZ1, MPZ2, MPZ3, MPZ4, MPZ10) = (mpz(i) for i in (0, 1, 2, 3, 4, 10))
 
-i = k = ns = 0
-k1 = 1
-n,a,d,t,u = map(mpz,(1,0,1,0,0))
-while(1):
-  k += 1
-  t = n<<1
-  n *= k
-  a += t
-  k1 += 2
-  a *= k1
-  d *= k1
-  if a >= n:
-    t,u = divmod(n*3 +a,d)
-    u += n
-    if d > u:
-      ns = ns*10 + t
-      i += 1
-      if i % 10 == 0:
-        print ('%010d\t:%d' % (ns, i))
-        ns = 0
-      if i >= N:
-        break
-      a -= d*t
-      a *= 10
-      n *= 10
+
+def gen_x(zero=MPZ0, one=MPZ1, two=MPZ2, four=MPZ4):
+
+    a, b, d = zero, two, one
+    while True:
+        a += one
+        b += four
+        d += two
+        yield (a, b, zero, d)
+
+
+def compose(q1, q2):
+
+    a, b, c, d = q1
+    e, f, g, h = q2
+    return (a * e,  a * f + b * h,  c * e + d * g,  c * f + d * h)
+
+
+def extract(q, j):
+    
+    a, b, c, d = q
+    return (a * j + b) // (c * j + d)
+
+
+def pi_digits(x=gen_x(), extr=extract, comp=compose, zero=MPZ0, 
+              one=MPZ1, three=MPZ3, four=MPZ4, ten=MPZ10, mten=-MPZ10):
+
+    z = (one, zero, zero, one)
+    while True:
+        y = extr(z, three)
+        while y != extr(z, four):
+            z = comp(z, next(x))
+            y = extr(z, three)
+        z = comp((ten, mten * y, zero, one), z)
+        yield str(y)
+
+
+def main(n, digits=pi_digits(), width=10, line='{}\t:{}'):
+
+    for i in range(width, n+1, width):
+        print(line.format(''.join(islice(digits, width)), i))
+    if n % width > 0:
+        print(line.format(''.join(islice(digits, n % width)).ljust(width), n))
+
+
+main(int(sys.argv[1]))

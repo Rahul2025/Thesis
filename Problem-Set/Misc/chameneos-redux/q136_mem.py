@@ -111,7 +111,7 @@ def let_them_meet(meetings_left, input_zoo,
             report(input_zoo, met, self_met)
 
            
-def chameneosiate(n):
+def main(n):
 
     check_complement()
     let_them_meet(n, ['blue', 'red', 'yellow'])
@@ -120,4 +120,7 @@ def chameneosiate(n):
     #print ''
 
 
-chameneosiate(int(sys.argv[1]))       
+#chameneosiate(int(sys.argv[1]))       
+if __name__ == '__main__':
+	n = int(input())
+	main(n)

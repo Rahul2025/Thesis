@@ -1,3 +1,8 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+
+# transliterated from Mike Pall's Lua program
+# contributed by Mario Pernici
 
 from gmpy import mpz
 from sys import argv
@@ -32,3 +37,4 @@ while(1):
       a -= d*t
       a *= 10
       n *= 10
+

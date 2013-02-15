@@ -57,8 +57,9 @@ int main(int argc, char** args)
    if (argc >= 2)
       token = atoi(args[1]);
    else
-      token = 1000; // test case
-
+   {   //token = 1000; // test case
+   scanf("%d",&token);
+	}
    pthread_attr_t stack_attr;
    pthread_attr_init(&stack_attr);
 

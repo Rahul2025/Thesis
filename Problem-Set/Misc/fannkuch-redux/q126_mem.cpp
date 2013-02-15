@@ -108,7 +108,8 @@ void fannkuch(int n)
 int main(int argc, char** argv)
 {
    int n = 7;
-   if(argc > 1)n = atoi(argv[1]);
+//   if(argc > 1)n = atoi(argv[1]);
+   scanf("%d",&n);
    if(n < 3 || n > 12)
    {
       printf("n should be between 3 and 12\n");

@@ -81,9 +81,9 @@ public:
 
 int main(int argc, char** argv)
 {
-   token = (argc == 2) ? atoi( argv[1] ) : 1000;
+   //token = (argc == 2) ? atoi( argv[1] ) : 1000;
    //std::cout << token;
-
+	scanf("%d",&token);
    // must set stack size for each thread. Otherwise, can't spawn 503 threads :)
    pthread_attr_t stack_att;
    pthread_attr_init( &stack_att );

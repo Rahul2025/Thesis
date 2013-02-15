@@ -1,11 +1,14 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+# Contributed by Antti Kervinen
+# Modified by Tupteq
+# 2to3
 
 import sys
 import _thread
 
 # Set minimum stack size for threads, otherwise the program may fail
-
 # to create such a many threads
-
 _thread.stack_size(32*1024)
 
 def threadfun(number, lock_acquire, next_release):
@@ -20,7 +23,6 @@ def threadfun(number, lock_acquire, next_release):
             main_lock.release()
 
 # main
-
 n = int(sys.argv[1])
 main_lock = _thread.allocate_lock()
 main_lock.acquire()

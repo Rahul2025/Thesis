@@ -1,6 +1,4 @@
-a.out: Prelude.head: empty list
-a.out: thread blocked indefinitely in an MVar operation
 
-real	0m0.324s
-user	0m0.002s
-sys	0m0.007s
+real	0m0.021s
+user	0m0.005s
+sys	0m0.018s

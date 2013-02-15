@@ -1,3 +1,12 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+#
+# Contributed by Sebastien Loisel
+# Fixed by Isaac Gouy
+# Sped up by Josh Goldfoot
+# Dirtily sped up by Simon Descarpentries
+# Sped up by Joseph LaFata
+
 from array     import array
 from math      import sqrt
 from sys       import argv

@@ -8,3 +8,22 @@ yellow + blue -> red
 yellow + red -> blue
 yellow + yellow -> yellow
 
+ blue red yellow
+3909269 zero
+4041391 zero
+4049340 zero
+ one two zero zero zero zero zero zero
+
+ blue red yellow red yellow blue red yellow red blue
+1200001 zero
+1200002 zero
+1200001 zero
+1200000 zero
+1200000 zero
+1200000 zero
+1200000 zero
+1200000 zero
+1199998 zero
+1199998 zero
+ one two zero zero zero zero zero zero
+

@@ -113,4 +113,5 @@ def main(n, ref='sun'):
     report_energy()
 
 if __name__ == '__main__':
-    main(int(sys.argv[1]))
+	n = int(input())
+	main(n)

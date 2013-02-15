@@ -1,3 +1,10 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+#
+# contributed by Jacob Lee, Steven Bethard, et al
+# 2to3, fixed by Daniele Varrazzo
+# modified by Daniel Nanz
+
 import sys
 
 

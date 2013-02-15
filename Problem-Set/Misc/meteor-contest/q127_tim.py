@@ -1,3 +1,9 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+#
+# contributed by Olof Kraigher
+# modified by Tupteq
+# 2to3
 
 import sys
 
@@ -116,19 +122,15 @@ def generateBitmasks():
 def solveCell(cell, board):
     if to_go <= 0:
         # Got enough solutions
-
         pass
     elif board == 0x3FFFFFFFFFFFF:
         # Solved
-
         addSolutions()
     elif board & (1 << cell) != 0:
         # Cell full
-
         solveCell(cell-1, board)
     elif cell < 0:
         # Out of board
-
         pass
     else:
         for color in range(10):
@@ -155,14 +157,12 @@ def addSolutions():
             mask <<= 1
 
     # Inverse
-
     ns = ''
     for y in range(height):
         for x in range(width):
             ns += s[width - x - 1 + (width - y - 1) * width]
 
     # Finally append
-
     solutions.append(s)
     solutions.append(ns)
     to_go -= 2

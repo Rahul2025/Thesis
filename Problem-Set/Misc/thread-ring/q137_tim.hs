@@ -26,7 +26,9 @@ thread ret i l r = go
               else print i >> putMVar ret ()
 
 main = do
-  a <- newMVar . read . head =<< getArgs
+  --a <- newMVar . read . head =<< getArgs
+  a <- readLn
+  a <- newMVar(a)
   ret <- newEmptyMVar
   z <- foldM (new ret) a [2..ring]
   forkOnIO numCapabilities (thread ret 1 z a)

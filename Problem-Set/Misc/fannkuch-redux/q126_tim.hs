@@ -92,7 +92,8 @@ unrank !idx !n f = allocaArray n $ \ p -> allocaArray n $ \ count ->
 	f p count
 
 main = do
-   n <- fmap (read.head) getArgs
+   --n <- fmap (read.head) getArgs
+   n <- readLn
    let fact = product [1..n]
    let bk = fact `quot` 4
    vars <- forM [0,bk..fact-1] $ \ ix -> do

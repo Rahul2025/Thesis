@@ -1,10 +1,13 @@
+# The Computer Language Benchmarks Game
+# http://shootout.alioth.debian.org/
+# contributed by Daniel Nanz 2008-04-10
+# 2to3
 
 import sys
 import _thread
 import time
 
 # colors and matching
-
 creature_colors = ['blue', 'red', 'yellow']
 
 def complement(c1, c2):
@@ -34,7 +37,6 @@ def check_complement(colors=creature_colors, compl=compl_dict):
 
 
 # reporting
-
 def spellout(n):
     
     numbers = ['zero', 'one', 'two', 'three', 'four',
@@ -51,24 +53,18 @@ def report(input_zoo, met, self_met):
 
 
 # the zoo
-
 def creature(my_id, venue, my_lock_acquire, in_lock_acquire, out_lock_release):
 
     while True:
         my_lock_acquire()   # only proceed if not already at meeting place
-
         in_lock_acquire()   # only proceed when holding in_lock
-
         venue[0] = my_id    # register at meeting place
-
         out_lock_release()  # signal "registration ok"
-
 
 
 def let_them_meet(meetings_left, input_zoo,
                   compl=compl_dict, allocate=_thread.allocate_lock):
     # prepare
-
     c_no = len(input_zoo)
     venue = [-1]
     met = [0] * c_no
@@ -77,9 +73,7 @@ def let_them_meet(meetings_left, input_zoo,
     
     in_lock = allocate()
     in_lock_acquire = in_lock.acquire     # function aliases
-
     in_lock_release = in_lock.release     # (minor performance gain)
-
     in_lock_acquire()
     out_lock = allocate()
     out_lock_release = out_lock.release
@@ -88,17 +82,13 @@ def let_them_meet(meetings_left, input_zoo,
     locks = [allocate() for c in input_zoo]
     
     # let creatures wild
-
     for ci in range(c_no):
         args = (ci, venue, locks[ci].acquire, in_lock_acquire, out_lock_release)
         new = _thread.start_new_thread(creature, args)
     time.sleep(0.05)     # to reduce work-load imbalance
-
     
     in_lock_release()   # signal "meeting_place open for registration"
-
     out_lock_acquire()  # only proceed with a "registration ok" signal
-
     id1 = venue[0]
     while meetings_left > 0:
         in_lock_release()
@@ -116,13 +106,12 @@ def let_them_meet(meetings_left, input_zoo,
         meetings_left -= 1
         if meetings_left > 0:
             locks[id1].release()  # signal "you were kicked from meeting place"
-
             id1 = id2
         else:
             report(input_zoo, met, self_met)
 
            
-def chameneosiate(n):
+def main(n):
 
     check_complement()
     let_them_meet(n, ['blue', 'red', 'yellow'])
@@ -131,5 +120,7 @@ def chameneosiate(n):
     #print ''
 
 
-
-chameneosiate(int(sys.argv[1]))       
+#chameneosiate(int(sys.argv[1]))       
+if __name__ == '__main__':
+	n = int(input())
+	main(n)

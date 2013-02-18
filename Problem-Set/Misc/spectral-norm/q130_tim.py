@@ -41,7 +41,8 @@ def part_At_times_u(xxx_todo_changeme1):
     return partial_sum
 
 def main():
-    n = int(argv[1])
+    #n = int(argv[1])
+    n = int(input())
     u = [1] * n
 
     for dummy in range (10):

@@ -261,7 +261,8 @@ solveCell !row !todo !board !soln results
               solveCell row (delete c todo) (untag m .|. board) (m:soln) results
 
 main = do
-    n <- return.read.head =<< getArgs
+    --n <- return.read.head =<< getArgs
+    n <- readLn
     let nsolutions = take n solutions
     putStrLn $ (show $ length nsolutions) ++ " solutions found\n"
     putStrLn . format False . minimum $ nsolutions

@@ -38,6 +38,7 @@ permut n = foldr perm [[1..n]] [2..n] where
    perm x lst = concat [take x $ iterate (rotate x) l | l <- lst]
 
 main = do
-   n <- read.head <$> getArgs
+   --n <- read.head <$> getArgs
+   n <- readLn
    let (chksm, mflops) = pfold (0,0) $ map (\(i, p) -> let flops = flopS p in (checksum i flops, flops)) $ zip [0..] (permut n)
    putStrLn $ (show chksm) ++ "\nPfannkuchen(" ++ (show n) ++ ") = " ++ (show $ mflops)

@@ -67,7 +67,8 @@ def main():
         print(usage)
         return 1
 
-    length = int(sys.argv[1])
+    #length = int(sys.argv[1])
+    length = int(input())
     if length < 3 or length > MAX_PROBLEM_SIZE:
         print(usage)
         return 2

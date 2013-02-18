@@ -23,7 +23,8 @@ def threadfun(number, lock_acquire, next_release):
             main_lock.release()
 
 # main
-n = int(sys.argv[1])
+#n = int(sys.argv[1])
+n = int(input())
 main_lock = _thread.allocate_lock()
 main_lock.acquire()
 

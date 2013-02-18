@@ -19,4 +19,7 @@ pidgits n = 0 % (0 # (1,0,1)) where
   where k = j+1; t@(n,a,d)=k&s; (q,r)=(n*3+a)`divMod`d
  j&(n,a,d) = (n*j,(a+n*2)*y,d*y) where y=(j*2+1)
 
-main = putStr.pidgits.read.head =<< getArgs
+--main = putStr.pidgits.read.head =<< getArgs
+main = do
+	n <- readLn
+	putStr(pidgits n)

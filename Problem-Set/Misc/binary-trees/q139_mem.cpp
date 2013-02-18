@@ -30,9 +30,9 @@ Node *make(int i, int d) {
 int main(int argc, char *argv[]) {
   int min_depth = 4,stretch_depth,max_depth;
     //max_depth = std::max(min_depth+2,
-	//		 (argc == 2 ? atoi(argv[1]) : 10)),
-    scanf("%d",&max_depth);
-    stretch_depth = max_depth+1;
+		//	 (argc == 2 ? atoi(argv[1]) : 10)),
+     scanf("%d",&max_depth);
+     stretch_depth = max_depth+1;
 
   {
     Node *c = make(0, stretch_depth);

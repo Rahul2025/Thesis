@@ -187,8 +187,10 @@ def solve(n):
 
 
 if __name__ == "__main__":
-    solve(int(sys.argv[1]))
-
-    print("%d solutions found\n" % len(solutions))
-    printSolution(min(solutions))
-    printSolution(max(solutions))
+	#solve(int(sys.argv[1]))
+	n = int(input())
+	solve(n)
+	print("%d solutions found\n" % len(solutions))
+	printSolution(min(solutions))
+	printSolution(max(solutions))
+	

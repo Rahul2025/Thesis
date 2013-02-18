@@ -21,7 +21,8 @@ import Text.Printf
 
 main = do
     --n <- getArgs
-    n <- getArgs >>= readIO.head
+    --n <- getArgs >>= readIO.head
+    n <- readLn
     initialize
     offset_momentum
     energy 0 planets >>= printf "%.9f\n"

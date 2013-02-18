@@ -53,7 +53,8 @@ def eval_AtA_times_u (u, out, tmp):
     eval_At_times_u (tmp, out)
 
 def main():
-    n = int (argv [1])
+    #n = int (argv [1])
+    n = int(input())
     u = array("d", [1]) * n
     v = array("d", [1]) * n
     tmp = array("d", [1]) * n

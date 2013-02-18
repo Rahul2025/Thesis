@@ -49,7 +49,8 @@ search m i p ps = let (q,r) = divMod i 10 in
 rows ps = [[i | x <- [0..4], (i,m) <- ps, shiftL 1 (y*5+x) .&. m /= 0] | y <- [0..9]]
 
 main = do
-    n <- readIO . head =<< getArgs
+    --n <- readIO . head =<< getArgs
+    n <- readLn
     let sols = map rows (take n (search (-shiftL 1 50 :: Word64) 0 (0 :: Word) []))
     putStrLn (show (length sols) ++ " solutions found\n")
     mapM (putStrLn . unlines . (zipWith (++) (cycle [""," "]))

@@ -131,13 +131,16 @@ def solve(n, i_min, free, curr_board, pieces_left, solutions,
     return
 
 def main(n):
+	free = frozenset(range(len(board)))
+	curr_board = [-1] * len(board)
+	pieces_left = list(range(len(pieces)))
+	solutions = []
+	solve(n, 0, free, curr_board, pieces_left, solutions)
+	print(len(solutions),  'solutions found\n')
+	for i in (0, -1): print_board(solutions[i])
 
-    free = frozenset(range(len(board)))
-    curr_board = [-1] * len(board)
-    pieces_left = list(range(len(pieces)))
-    solutions = []
-    solve(n, 0, free, curr_board, pieces_left, solutions)
-    print(len(solutions),  'solutions found\n')
-    for i in (0, -1): print_board(solutions[i])
-
-main(int(sys.argv[1]))
+#main(int(sys.argv[1]))
+if __name__ == '__main__':
+	n = int(input())
+	main(n)
+	

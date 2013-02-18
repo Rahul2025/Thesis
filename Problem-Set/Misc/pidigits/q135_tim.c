@@ -1,3 +1,8 @@
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+ *
+ * Contributed by Mr Ledrug
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,8 +37,8 @@ void next_term(ui k) {
 
 int main(int argc, char **argv) {
    ui d, k, i;
-   int n = atoi(argv[1]);
-
+   int n; // = atoi(argv[1]);
+	scanf("%d",&n);
    mpz_init(tmp1);
    mpz_init(tmp2);
 

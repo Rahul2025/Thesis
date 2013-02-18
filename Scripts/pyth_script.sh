@@ -12,7 +12,7 @@ for i in *
 		if [[ -f $j ]]; then
 			echo $j
 			#interpret 'Python' program
-			/usr/bin/time -f "%e\t%M " python $j <ip
+			/usr/bin/time -f "%e\t%M " python3 $j <ip >pyth_op
 		fi	
 	}
 	cd ..

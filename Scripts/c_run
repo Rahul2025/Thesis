@@ -1,74 +1,30 @@
-0.014000
-0.010000
-0.001000
-0.001000
-0.006000
-0.005000
-0.000000
-0.000000
-0.000000
-0.000000
-0.001000
-0.001000
-0.013000
-0.015000
-0.002000
-0.004000
-0.001000
-0.001000
-0.000000
-0.001000
-0.001000
-0.001000
-0.001000
-0.001000
-0.007000
-0.003000
-0.001000
-0.001000
-0.000000
-0.000000
-0.001000
-0.000000
-0.001000
-0.000000
-0.000000
-0.000000
-0.011000
-0.004000
-0.011000
-0.002000
-0.000000
-0.001000
-0.000000
-0.000000
-0.000000
-0.000000
-0.000000
-0.000000
-0.000000
-0.000000
-0.001000
-0.001000
 
-real	0m46.558s
-user	0m46.365s
-sys	0m0.067s
+real	0m46.026s
+user	0m45.874s
+sys	0m0.037s
 
-real	0m0.012s
-user	0m0.035s
+real	0m0.010s
+user	0m0.030s
+sys	0m0.001s
+
+real	0m0.635s
+user	0m1.839s
+sys	0m0.372s
+
+real	0m0.458s
+user	0m1.518s
+sys	0m0.134s
+
+real	0m0.002s
+user	0m0.001s
 sys	0m0.000s
 
-real	0m0.485s
-user	0m1.628s
-sys	0m0.195s
+real	0m0.001s
+user	0m0.000s
+sys	0m0.000s
 
-real	0m0.445s
-user	0m1.554s
-sys	0m0.145s
-
-real	0m0.003s
-user	0m0.001s
+real	0m0.002s
+user	0m0.000s
 sys	0m0.001s
 
 real	0m0.001s
@@ -80,42 +36,42 @@ user	0m0.002s
 sys	0m0.000s
 
 real	0m0.002s
-user	0m0.000s
-sys	0m0.001s
-
-real	0m0.002s
-user	0m0.000s
-sys	0m0.002s
-
-real	0m0.002s
-user	0m0.000s
-sys	0m0.001s
+user	0m0.001s
+sys	0m0.000s
 
 real	0m0.044s
-user	0m0.089s
-sys	0m0.031s
+user	0m0.093s
+sys	0m0.026s
 
-real	0m0.041s
-user	0m0.089s
-sys	0m0.025s
+real	0m0.042s
+user	0m0.090s
+sys	0m0.026s
 
-real	0m0.144s
-user	0m0.126s
-sys	0m0.001s
-
-real	0m0.145s
-user	0m0.125s
-sys	0m0.004s
-
-real	0m0.002s
-user	0m0.000s
+real	0m0.120s
+user	0m0.120s
 sys	0m0.000s
 
-real	0m15.590s
-user	0m15.530s
-sys	0m0.020s
+real	0m0.119s
+user	0m0.119s
+sys	0m0.000s
 
-real	0m0.038s
+real	0m0.001s
+user	0m0.000s
+sys	0m0.001s
+
+real	0m15.481s
+user	0m15.445s
+sys	0m0.001s
+
+real	0m5.031s
+user	0m5.013s
+sys	0m0.004s
+
+real	0m5.013s
+user	0m5.000s
+sys	0m0.000s
+
+real	0m0.003s
 user	0m0.000s
 sys	0m0.002s
 
@@ -123,18 +79,18 @@ real	0m0.002s
 user	0m0.000s
 sys	0m0.001s
 
-real	0m2.581s
-user	0m2.572s
+real	0m2.556s
+user	0m2.546s
+sys	0m0.004s
+
+real	0m0.406s
+user	0m1.602s
 sys	0m0.001s
 
-real	0m0.415s
-user	0m1.626s
-sys	0m0.000s
+real	12m13.179s
+user	2m17.881s
+sys	8m5.980s
 
-real	10m49.706s
-user	1m59.630s
-sys	7m28.760s
-
-real	9m13.208s
-user	1m37.254s
-sys	6m27.287s
+real	11m42.319s
+user	2m10.352s
+sys	7m57.635s

@@ -18,25 +18,39 @@ for i in *
 	rm -r *.hi
 	echo $j
 		#compile 'Haskell' program
-		if  [[ $i == "binary-trees" ]] || [[ $i == "binary-trees-redux" ]] || [[ $i == "fannkuch-redux" ]] || [[ $i == "fasta" ]] || [[ $i == "k-nucleotide" ]] || [[ $i == "meteor-contest" ]] || [[ $i == "n-body" ]] || [[ $i == "pidigits" ]] || [[ $i == "thread-ring" ]]; 
+		if   [[ $i == "binary-trees-redux" ]] || [[ $i == "fannkuch-redux" ]] || [[ $i == "fasta" ]] || [[ $j == "q139_tim.hs" ]] || [[ $i == "k-nucleotide" ]] || [[ $i == "meteor-contest" ]] || [[ $i == "n-body" ]] || [[ $i == "pidigits" ]] || [[ $i == "thread-ring" ]]; 
 			then
-		   	/usr/bin/time -f "%e\t%M " ghc --make -O2 -XBangPatterns -threaded $j #-o a.out 2>/dev/null 		
+		   	/usr/bin/time -f "%e\t%M " ghc --make -O2 -XBangPatterns -threaded $j -o a.out #2>/dev/null 		
+		elif [[ $i == "thread-ring" ]];
+			then
+				/usr/bin/time -f "%e\t%M" ghc --make -O2 -fglasgow-exts -threaded $j -o a.out		
+		elif [[ $i == "binary-trees" ]];
+			then
+				/usr/bin/time -f "%e\t%M " ghc --make -O2 -XBangPatterns -threaded -funbox-strict-fields $j -o a.out
 		elif [[ $i == "chameneos-redux" ]]; 
 			then
 				/usr/bin/time -f "%e\t%M " ghc --make -O2 -XBangPatterns -threaded -XCPP -XGeneralizedNewtypeDeriving $j -o a.out
+		elif [[ $i == "spectral-norm" ]];
+			then
+				/usr/bin/time -f "%e\t%M " ghc --make -O2 -XBangPatterns -threaded -XMagicHash -fexcess-precision $j -o a.out
 		else
-			/usr/bin/time -f "%e\t%M " ghc --make -O2 -XBangPatterns -threaded -funfolding-use-threshold=32 -XMagicHash -XUnboxedTuples -fexcess-precision $j -o a.out 2>/dev/null
+			/usr/bin/time -f "%e\t%M " ghc --make -O2 -XBangPatterns -threaded -funfolding-use-threshold=32 -XMagicHash -XUnboxedTuples -fexcess-precision $j -o a.out #2>/dev/null
 			# -o output  ghc --make -O2 -XBangPatterns -threaded -XMagicHash  $j
 			# -o output  ghc --make -O2 -XBangPatterns -fexcess-precision $j	
 		fi	
 	#  cat output >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
 	#If there were no compilation errors, run the program
 		if [[ $? -eq 0 ]]; then
-			/usr/bin/time -f "%M" -o output ./a.out +RTS -N4 -RTS <ip >hs_op
-      #  cat output >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
+			if [[ $i == "binary-trees" ]]; then
+				/usr/bin/time -f "%M" -o output ./a.out +RTS -N4 -K128M -H -RTS <ip >hs_op
+			else
+				/usr/bin/time -f "%M" -o output ./a.out +RTS -N4 -RTS <ip >hs_op
+       
+      	fi
+      # cat output >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
          (time ./a.out <ip >hs_op ) 2>op
       #  cat op >> /home/Rahul/Desktop/Thesis/Scripts/hs_run
-		#fi
+		fi
 	else 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp 
 		echo 0 >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
@@ -44,7 +58,7 @@ for i in *
 	fi
 	#else
 	#echo $?
-	fi
+	#fi
 	}
 	cd ..
 }

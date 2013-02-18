@@ -67,7 +67,7 @@ for i in /home/Rahul/Desktop/Thesis/Problem-Set/Misc/*
 	}
 	
 	if [ "x$j" == "x" ]; then
-		echo 0;
+		echo "No Data";
 		fi	 
 }
 

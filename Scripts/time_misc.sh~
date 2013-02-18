@@ -219,4 +219,4 @@ for i in *
 
 cd /home/Rahul/Desktop/Thesis/Scripts
 gcc make_table_time.c
-./a.out >time_misc
+./a.out >time_basic

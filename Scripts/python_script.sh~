@@ -17,7 +17,7 @@ for i in *
 		   
 		#If there were no compilation errors, run the program
 		if [[ $? -eq 0 ]]; then
-      	 /usr/bin/time -f "%e\t%M " python3 $j <ip >pyth_op
+      	 /usr/bin/time -f "%e\t%M" -o output python $j <ip >py_op
        	cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
 		fi
 	#else./a.out $j

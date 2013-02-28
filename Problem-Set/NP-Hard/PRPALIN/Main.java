@@ -1,5 +1,5 @@
 import java.util.*;
-class PrimePali
+class Main
 {
 	public static void main(String [] args)throws Exception
 	{

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class revcomp
+public class revcomp_3
 {
    private static final byte[] map = new byte[256];      
    private static final int CHUNK_SIZE = 1024 * 1024 * 16;

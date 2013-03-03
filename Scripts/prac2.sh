@@ -1,17 +1,19 @@
 #!/bin/bash
 
 #input directory
-cd /home/Rahul/Desktop/Thesis/Scripts
+cd /home/Rahul/Desktop/Thesis/Scripts/Sample1
 
-gcc LOC_final.c
-
-for i in Sample1/*
-{	echo $i
-	=1
-	for j in $i/*
+for i in *
+{
+	echo $i
+	cd $i
+	for j in *.py
 	{
-		if[
-		echo $j
+	if !([[ $j == "setup.py" ]] || [[ $j == "run.py" ]]); then
+		if [[ -f $j ]]; then
+			echo $j	
+		fi	
+	fi
 	}
+	cd ..
 }
-

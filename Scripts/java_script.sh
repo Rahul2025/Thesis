@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #input directory
-cd /home/Rahul/Desktop/Thesis/Problem-Set/Misc
+cd /home/Rahul/Desktop/Thesis/Scripts/Sample
 
 for folder in *
 {

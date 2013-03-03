@@ -4,13 +4,14 @@
 /* pre defined*/
 //#define ROWS 24
 //#define COLS 2
-#define LANG 5
-#define PROG 75
+#define LANG 6
+#define PROG 100
 #define C 0
 #define CPP 1
 #define HASK 2
 #define JAVA 3
 #define PYTH 4
+#define CYTH 5
 
 /*Globals*/
 //float mat[PROG][LANG];
@@ -125,23 +126,24 @@ int make_table()
 int main()
 {
 	FILE *op;
-	int i,j,prog0,prog1,prog2,prog3,prog4;
-	float tot_cmp_tim[LANG]={0,0,0,0,0},ratio_cmp_tim[LANG],mod_tot_cmp_tim[LANG]={0,0,0,0,0},pen_mod_tot_cmp_tim[LANG]={0,0,0,0,0};
-	float tot_cmp_mem[LANG]={0,0,0,0,0},ratio_cmp_mem[LANG],mod_tot_cmp_mem[LANG]={0,0,0,0,0},pen_mod_tot_cmp_mem[LANG]={0,0,0,0,0};
-	float tot_run_tim[LANG]={0,0,0,0,0},ratio_run_tim[LANG],mod_tot_run_tim[LANG]={0,0,0,0,0},pen_mod_tot_run_tim[LANG]={0,0,0,0,0};
-	float tot_run_mem[LANG]={0,0,0,0,0},ratio_run_mem[LANG],mod_tot_run_mem[LANG]={0,0,0,0,0},pen_mod_tot_run_mem[LANG]={0,0,0,0,0};
+	int i,j,prog0,prog1,prog2,prog3,prog4,prog5;
+	float tot_cmp_tim[LANG]={0,0,0,0,0,0},ratio_cmp_tim[LANG],mod_tot_cmp_tim[LANG]={0,0,0,0,0,0},pen_mod_tot_cmp_tim[LANG]={0,0,0,0,0,0};
+	float tot_cmp_mem[LANG]={0,0,0,0,0,0},ratio_cmp_mem[LANG],mod_tot_cmp_mem[LANG]={0,0,0,0,0,0},pen_mod_tot_cmp_mem[LANG]={0,0,0,0,0,0};
+	float tot_run_tim[LANG]={0,0,0,0,0,0},ratio_run_tim[LANG],mod_tot_run_tim[LANG]={0,0,0,0,0,0},pen_mod_tot_run_tim[LANG]={0,0,0,0,0,0};
+	float tot_run_mem[LANG]={0,0,0,0,0,0},ratio_run_mem[LANG],mod_tot_run_mem[LANG]={0,0,0,0,0,0},pen_mod_tot_run_mem[LANG]={0,0,0,0,0,0};
 	
 	prog0=make_cmp_tim("c_time",C);
 	prog1=make_cmp_tim("cpp_time",CPP);
 	prog2=make_cmp_tim("hs_time",HASK);
 	prog3=make_cmp_tim("java_time",JAVA);
 	prog4=make_cmp_tim("pyth_time",PYTH);
+	prog5=make_cmp_tim("cyth_time",CYTH);	
 	
 	
-	
-	if(prog0 && prog1 && prog2 && prog3 && prog4)
+	if(prog0 && prog1 && prog2 && prog3 && prog4 && prog5)
 	{	
-		op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_ranks","a");
+		op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_data","a");
+		fprintf(op,"\n\n");
 		printf("\n\n\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
 		printf("\t-\t\t---\t\t-------\t\t----\t\t------");
 		for(i=0;i<prog0;i++)
@@ -160,12 +162,12 @@ int main()
 			printf("\t%f",tot_cmp_tim[i]);
 		}
 		for(i=0;i<prog0;i++)
-			for(j=0;j<LANG-1;j++)
+			for(j=0;j<LANG-2;j++)
 				if(cmp_tim[i][j] == 0)
 					ratio_cmp_tim[j] = ratio_cmp_tim[j] - cmp_tim[i][C];
 		printf("\n");	
 		printf("\t----\t\t----\t\t----\t\t----\n");
-		for(i=0;i<LANG-1;i++)	
+		for(i=0;i<LANG-2;i++)	
 		{
 			ratio_cmp_tim[i] = tot_cmp_tim[i]/ratio_cmp_tim[i];
 			printf("\t%f",ratio_cmp_tim[i]);
@@ -174,14 +176,18 @@ int main()
 		printf("\t-\t\t---\t\t------\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{
-			for(j=0;j<LANG-1;j++)
+			for(j=0;j<LANG-2;j++)
 			{
 				if(cmp_tim[i][j] == 0)
 				{
 					if(cmp_tim[i][C] != 0)
 						mod_cmp_tim[i][j] = ratio_cmp_tim[j]*cmp_tim[i][C];
-					else
+					else if (cmp_tim[i][CPP] != 0)
 						mod_cmp_tim[i][j] = (ratio_cmp_tim[j]/ratio_cmp_tim[CPP])*cmp_tim[i][CPP];
+					else if (cmp_tim[i][JAVA] != 0)
+						mod_cmp_tim[i][j] = (ratio_cmp_tim[j]/ratio_cmp_tim[JAVA])*cmp_tim[i][JAVA];
+					else
+						mod_cmp_tim[i][j] = (ratio_cmp_tim[j]/ratio_cmp_tim[HASK])*cmp_tim[i][HASK];
 				//	if(j==C) || (j==CPP)
 					pen_mod_cmp_tim[i][j] = penalty(mod_cmp_tim[i][j],j);
 				}
@@ -193,7 +199,7 @@ int main()
 		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
-			for(j=0;j<LANG-1;j++)
+			for(j=0;j<LANG-2;j++)
 			{
 				if(cmp_tim[i][j])
 					printf("\t%f",mod_cmp_tim[i][j]);
@@ -207,7 +213,7 @@ int main()
 		
 		printf("\t----\t\t----\t\t----\t\t----\n");
 	//	printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
-		for(i=0;i<LANG-1;i++)	
+		for(i=0;i<LANG-2;i++)	
 		{
 			//ratio[i] = total[0];
 			printf("\t%f",mod_tot_cmp_tim[i]);
@@ -216,7 +222,7 @@ int main()
 		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
-			for(j=0;j<LANG-1;j++)
+			for(j=0;j<LANG-2;j++)
 			{
 				if(cmp_tim[i][j])
 					printf("\t%f",pen_mod_cmp_tim[i][j]);
@@ -230,7 +236,7 @@ int main()
 		
 		printf("\t----\t\t----\t\t----\t\t----\n");
 		//printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
-		for(i=0;i<LANG-1;i++)	
+		for(i=0;i<LANG-2;i++)	
 		{
 			//ratio[i] = total[0];
 			printf("\t%f",pen_mod_tot_cmp_tim[i]);
@@ -257,12 +263,12 @@ int main()
 			printf("\t%f",tot_cmp_mem[i]);
 		}
 		for(i=0;i<prog0;i++)
-			for(j=0;j<LANG-1;j++)
+			for(j=0;j<LANG-2;j++)
 				if(cmp_mem[i][j] == 0)
 					ratio_cmp_mem[j] = ratio_cmp_mem[j] - cmp_mem[i][C];
 		printf("\n");	
 		printf("\t----\t\t----\t\t----\t\t----\n");
-		for(i=0;i<LANG-1;i++)	
+		for(i=0;i<LANG-2;i++)	
 		{
 			ratio_cmp_mem[i] = tot_cmp_mem[i]/ratio_cmp_mem[i];
 			printf("\t%f",ratio_cmp_mem[i]);
@@ -271,14 +277,18 @@ int main()
 		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{
-			for(j=0;j<LANG-1;j++)
+			for(j=0;j<LANG-2;j++)
 			{
 				if(cmp_mem[i][j] == 0)
 				{
 					if(cmp_mem[i][C] != 0)
 						mod_cmp_mem[i][j] = ratio_cmp_mem[j]*cmp_mem[i][C];
-					else
+					else if (cmp_mem[i][CPP] != 0)
 						mod_cmp_mem[i][j] = (ratio_cmp_mem[j]/ratio_cmp_mem[CPP])*cmp_mem[i][CPP];
+					else if (cmp_mem[i][JAVA] != 0)
+						mod_cmp_mem[i][j] = (ratio_cmp_mem[j]/ratio_cmp_mem[JAVA])*cmp_mem[i][JAVA];
+					else
+						mod_cmp_mem[i][j] = (ratio_cmp_mem[j]/ratio_cmp_mem[HASK])*cmp_mem[i][HASK];
 				//	if(j==C) || (j==CPP)
 					pen_mod_cmp_mem[i][j] = penalty(mod_cmp_mem[i][j],j);
 				}
@@ -290,7 +300,7 @@ int main()
 		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
-			for(j=0;j<LANG-1;j++)
+			for(j=0;j<LANG-2;j++)
 			{
 				if(cmp_mem[i][j])
 					printf("\t%f",mod_cmp_mem[i][j]);
@@ -303,7 +313,7 @@ int main()
 		}
 		
 		printf("\t----\t\t----\t\t----\t\t----\n");
-		for(i=0;i<LANG-1;i++)	
+		for(i=0;i<LANG-2;i++)	
 		{
 			//ratio[i] = total[0];
 			printf("\t%f",mod_tot_cmp_mem[i]);
@@ -312,7 +322,7 @@ int main()
 		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
 		for(i=0;i<prog0;i++)
 		{	
-			for(j=0;j<LANG-1;j++)
+			for(j=0;j<LANG-2;j++)
 			{
 				if(cmp_mem[i][j])
 					printf("\t%f",pen_mod_cmp_mem[i][j]);
@@ -325,7 +335,7 @@ int main()
 		}
 		
 		printf("\t----\t\t----\t\t----\t\t----\n");
-		for(i=0;i<LANG-1;i++)	
+		for(i=0;i<LANG-2;i++)	
 		{
 			//ratio[i] = total[0];
 			printf("\t%f",pen_mod_tot_cmp_mem[i]);
@@ -371,10 +381,16 @@ int main()
 			{
 				if(run_tim[i][j] == 0)
 				{
-					if(run_tim[i][C] != 0)
+					if (run_tim[i][C] != 0)
 						mod_run_tim[i][j] = ratio_run_tim[j]*run_tim[i][C];
-					else
+					else if (run_tim[i][CPP] != 0)
 						mod_run_tim[i][j] = (ratio_run_tim[j]/ratio_run_tim[CPP])*run_tim[i][CPP];
+					else if (run_tim[i][JAVA] != 0)
+						mod_run_tim[i][j] = (ratio_run_tim[j]/ratio_run_tim[JAVA])*run_tim[i][JAVA];
+					else if (run_tim[i][PYTH] != 0)
+						mod_run_tim[i][j] = (ratio_run_tim[j]/ratio_run_tim[PYTH])*run_tim[i][PYTH];
+					else
+						mod_run_tim[i][j] = (ratio_run_tim[j]/ratio_run_tim[HASK])*run_tim[i][HASK];
 				//	if(j==C) || (j==CPP)
 					pen_mod_run_tim[i][j] = penalty(mod_run_tim[i][j],j);
 				}
@@ -468,8 +484,14 @@ int main()
 				{
 					if(run_mem[i][C] != 0)
 						mod_run_mem[i][j] = ratio_run_mem[j]*run_mem[i][C];
-					else
+					else if (run_mem[i][CPP] != 0)
 						mod_run_mem[i][j] = (ratio_run_mem[j]/ratio_run_mem[CPP])*run_mem[i][CPP];
+					else if (run_mem[i][JAVA] != 0)
+						mod_run_mem[i][j] = (ratio_run_mem[j]/ratio_run_mem[JAVA])*run_mem[i][JAVA];
+					else if (run_mem[i][PYTH] != 0)
+						mod_run_mem[i][j] = (ratio_run_mem[j]/ratio_run_mem[PYTH])*run_mem[i][PYTH];
+					else
+						mod_run_mem[i][j] = (ratio_run_mem[j]/ratio_run_mem[HASK])*run_mem[i][HASK];
 				//	if(j==C) || (j==CPP)
 					pen_mod_run_mem[i][j] = penalty(mod_run_mem[i][j],j);
 				}

@@ -13,6 +13,7 @@ rm /home/Rahul/Desktop/Thesis/Scripts/hs_run
 rm /home/Rahul/Desktop/Thesis/Scripts/hs_time
 rm /home/Rahul/Desktop/Thesis/Scripts/java_time
 rm /home/Rahul/Desktop/Thesis/Scripts/pyth_time
+rm /home/Rahul/Desktop/Thesis/Scripts/cyth_time
 
 for i in *
 {
@@ -143,24 +144,72 @@ for i in *
 	cd $i
 	for j in *.py
 	{
+	echo $j
 	if [[ -f $j ]]; then
+		if !([[ $j == "setup.py" ]] || [[ $j == "run.py" ]] ); then
 			#compile 'Python' program
-		  echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
+		 	echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
 		   
 		#If there were no compilation errors, run the program
-		if [[ $? -eq 0 ]]; then
-      	 /usr/bin/time -f "%e\t%M" -o output python $j <ip >py_op
-       	cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
+			if [[ $? -eq 0 ]]; then
+      		/usr/bin/time -f "%e\t%M " -o output python $j <ip >pyth_op
+       		cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
+			fi
 		fi
 	#else./a.out $j
 	else 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
-		 
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
 	fi
 
+	#echo $?
+	}
+	cd ..
+}
+
+for i in *
+{
+	echo $i
+	cd $i
+	for j in *.py
+	{
+	if [[ -f $j ]]; then
+		if !([[ $j == "setup.py" ]] || [[ $j == "run.py" ]] ); then
+			#compile 'Cython' program
+			echo $j
+		 	echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time
+		 	if [[ $j == "qq58_tim.py" ]] || [[ $j == "qq15_mem.py" ]] || [[ $j == "qq15_tim.py" ]]; then
+				echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time
+			#If there were no compilation errors, run the program
+			else
+					src=$j
+					targt=$j"x"
+					# copy file 
+					cp $src $targt
+					status=$?	# store exit status of above cp command. It is use to determine  if shell command operations is successful or not
+					if !([[ $status -eq 0 ]]); then
+						echo 'Problem copying file...'
+					fi
+					file=${j%%.py}
+					gcc /home/Rahul/Desktop/Thesis/Scripts/make_setup.c 
+					./a.out $file
+					python setup.py build_ext --inplace
+					gcc /home/Rahul/Desktop/Thesis/Scripts/make_run.c 
+					./a.out $file
+					/usr/bin/time -f "%M" -o output python run.py <ip >cy_op
+					cat output >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
+			fi
+		fi
+	#else./a.out $j
+	else 
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
+		 
+	fi
 	#echo $?
 	}
 	cd ..

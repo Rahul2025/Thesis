@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 	//char filename[100]="";
 	//scanf("%s",filename);
 	prog=make_mat(argv[1]);
-	op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_ranks","a");
+	op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_data","a");
 	if(prog)
 	{		
 		//printf("\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
 			printf("\t%f",pen_mod_total[i]);
 			fprintf(op,"\n\t%f",pen_mod_total[i]);
 		}		
-		fprintf(op,"\n\t------------");
+		fprintf(op,"\n");
 		printf("\n");
 		printf("---------------------------------------------------------------------------\n");
 		fclose(op);

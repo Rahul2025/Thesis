@@ -5,9 +5,13 @@ cd /home/Rahul/Desktop/Thesis/Scripts
 rm /home/Rahul/Desktop/Thesis/Scripts/all_time
 
 bash time_basic.sh
+sleep 300
 bash time_graph.sh
+#sleep 1000
 #bash time_misc.sh
+sleep 300
 bash time_np.sh
+sleep 300
 bash time_numerical.sh
 #bash time_web.sh
 

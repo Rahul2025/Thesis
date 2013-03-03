@@ -1,10 +1,23 @@
 #!/bin/bash
 
-FILE = /home/Rahul/Desktop/Thesis/Problem-Set/Basic/CREDE2/ip
- 
-#[ -f "$FILE" ] || continue
+#input directory
+cd /home/Rahul/Desktop/Thesis/Scripts
+#rm /home/Rahul/Desktop/Thesis/Scripts/all_time
 
-iconv -c -f UTF8 -t ASCII "$FILE" > /tmp/$$ && cat /tmp/$$ > "$FILE"
+#bash time_basic.sh
+#sleep 300
+#bash time_graph.sh
+#sleep 1000
+#bash time_misc.sh
+#sleep 1000
+bash time_np.sh
+sleep 300
+bash time_numerical.sh
+#bash time_web.sh
 
-
-rm -f /tmp/$$
+cat time_basic >> all_time
+cat time_graph >> all_time
+cat time_misc >> all_time
+cat time_np >> all_time
+cat time_numerical >> all_time
+#cat time_web >> all_time

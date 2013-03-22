@@ -112,12 +112,10 @@ def let_them_meet(meetings_left, input_zoo,
 
            
 def main(n):
-
-    check_complement()
-    let_them_meet(n, ['blue', 'red', 'yellow'])
-    let_them_meet(n, ['blue', 'red', 'yellow', 'red', 'yellow',
-                      'blue', 'red', 'yellow', 'red', 'blue'])
-    #print ''
+	check_complement()
+	let_them_meet(n, ['blue', 'red', 'yellow'])
+	let_them_meet(n, ['blue', 'red', 'yellow', 'red', 'yellow','blue', 'red', 'yellow', 'red', 'blue'])
+	#print ''
 
 
 #chameneosiate(int(sys.argv[1]))       

@@ -21,7 +21,7 @@ def main():
 	#stdout.write(','.join(map(str,list1))+"\n")
 	#stdout.write(','.join(map(str,list2))+"\n")
 	#stdout.write(','.join(map(str,list3))+"\n")
- 	dupList = []
+	dupList = []
 	dupMap = {}	
 	mergeDups(mergeDups(list1,list2,dupList,dupMap),list3,dupList,dupMap)
 	stdout.write(str(len(dupList))+"\n")

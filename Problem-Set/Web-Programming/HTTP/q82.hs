@@ -6,7 +6,7 @@ httpreq = do
       rsp <- Network.Browser.browse $ do
                  setAllowRedirects True
 		 setOutHandler $ const (return ())
-                 request $ getRequest "http://www.rosettacode.org/"
+                 request $ getRequest "http://www.facebook.com/"
  
       putStrLn $ rspBody $ snd rsp
  

@@ -2,7 +2,7 @@
 
 import time
 start = (time.time()) * 1000000
-import qq58_tim
+import qq58_mem
 end = (time.time()) * 1000000
 f = open('/home/Rahul/Desktop/Thesis/Scripts/cyth_time', 'a')
 f.write(str(end-start))

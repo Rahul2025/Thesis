@@ -5,7 +5,7 @@ import java.net.URL;
 import java.net.URLConnection;
  
  
-public class WebTime{
+public class Main{
 	public static void main(String[] args){
 		try{
 			URL address = new URL(

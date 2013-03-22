@@ -9,16 +9,17 @@ br = Browser()
 br.addheaders = [("User-agent", USER_AGENT)]
  
 # remove comment if you get debug output
-# br.set_debug_redirects(True)
-# br.set_debug_responses(True)
-# br.set_debug_http(True)
+br.set_debug_redirects(True)
+br.set_debug_responses(True)
+br.set_debug_http(True)
  
 br.open("https://www.facebook.com")
  
 br.select_form("loginform")
-br['email'] = "xxxxxxx@xxxxx.com"
-br['pass'] = "xxxxxxxxx"
+br['email'] = "shwetagupta370@gmail.com"
+br['pass'] = "vishalgupta"
 br['persistent'] = ["1"]
  
 response = br.submit()
-print response.read()
+#print 
+response.read()

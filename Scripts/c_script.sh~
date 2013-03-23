@@ -19,9 +19,9 @@ for i in *
 	#If there were no compilation errors, run the program
 	if [[ $? -eq 0 ]]; then
 		if [[ $i == "MIME2" ]]; then
-					/usr/bin/time -f "%e\t%M" ./a.out <ip >c_op
+					/usr/bin/time -f "%e\t%M" ./a.out <ip >java_op
 				else
-					/usr/bin/time -f "%e\t%M" ./a.out >c_op
+					/usr/bin/time -f "%e\t%M" ./a.out >java_op
        # cat op >> /home/Rahul/Desktop/Thesis/Scripts/c_run
        fi
 	fi

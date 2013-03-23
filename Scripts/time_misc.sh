@@ -55,7 +55,7 @@ for i in *
 	cd ..
 }
 
-sleep 300
+sleep 600
 
 for i in *
 {
@@ -104,7 +104,7 @@ for i in *
 	cd ..
 }
 
-sleep 500
+sleep 600
 
 for i in *
 {
@@ -170,7 +170,7 @@ for i in *
 #bash runtime_script.sh
 
 #cd /home/Rahul/Desktop/Thesis/Problem-Set/Misc
-sleep 500
+sleep 600
 for folder in *
 {
 	echo $folder
@@ -191,7 +191,7 @@ for folder in *
 	cd ..
 }
 
-sleep 1000
+sleep 1500
 
 for i in *
 {
@@ -207,8 +207,13 @@ for i in *
 		   
 		#If there were no compilation errors, run the program
 			if [[ $? -eq 0 ]]; then
-      		/usr/bin/time -f "%e\t%M " -o output python3 $j <ip >pyth_op
-       		cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
+				if [[$i == pidigits]]; then
+					/usr/bin/time -f "%e\t%M " -o output python $j <ip >pyth_op
+       			cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
+				else
+      			/usr/bin/time -f "%e\t%M " -o output python3 $j <ip >pyth_op
+       			cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
+       		fi 
 			fi
 		fi
 	#else./a.out $j
@@ -224,6 +229,7 @@ for i in *
 	cd ..
 }
 
+sleep 1200
 for i in *
 {
 	echo $i
@@ -235,7 +241,7 @@ for i in *
 			#compile 'Cython' program
 			echo $j
 		 	echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time
-		 	if [[ $j == "qq126_tim.py" ]] || [[ $j == "qq133_mem.py" ]] || [[ $j == "qq133_tim.py" ]] || [[ $j == "qq128_tim.py" ]]; then
+		 	if [[ $j == "qq126_tim.py" ]] || [[ $j == "qq133_mem.py" ]] || [[ $j == "qq133_tim.py" ]] || [[ $j == "qq128_tim.py" ]] || [[ $j == "qq127_mem.py" ]] || [[ $j == "qq127_tim.py" ]] || [[ $j == "qq134_mem.py" ]] || [[ $j == "qq131_tim.py" ]] || [[ $j == "qq131_mem.py" ]] || [[ $j == "qq137_tim.py" ]] || [[ $j == "qq137_mem.py" ]] || [[ $j == "qq130_tim.py" ]]; then
 				echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time
 			#If there were no compilation errors, run the program
 			else
@@ -270,6 +276,7 @@ for i in *
 	cd ..
 }
 
+sleep 200
 cd /home/Rahul/Desktop/Thesis/Scripts
 gcc make_table_time.c
 ./a.out >time_misc

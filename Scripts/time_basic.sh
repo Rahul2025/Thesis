@@ -19,6 +19,14 @@ for i in *
 {
 	echo $i
 	cd $i
+	rm stats
+	cd ..
+}
+
+for i in *
+{
+	echo $i
+	cd $i
 	for j in *.c
 	{
 	if [[ -f $j ]]; then
@@ -45,7 +53,7 @@ for i in *
 
 for i in *
 {
-	#echo $i
+	echo $i
 	cd $i
 	for j in *.cpp
 	{
@@ -106,8 +114,10 @@ for i in *
 
 cd /home/Rahul/Desktop/Thesis/Scripts
 bash runtime_script.sh
+bash make_stats.sh
 
 cd /home/Rahul/Desktop/Thesis/Problem-Set/Basic
+bash /home/Rahul/Desktop/Thesis/Scripts/make_final_stats.sh
 
 for i in *
 {
@@ -123,14 +133,17 @@ for i in *
 		#If there were no compilation errors, run the program
 		if [[ $? -eq 0 ]]; then
       	 /usr/bin/time -f "%e\t%M" -o output java ${j%%.java} <ip >java_op
-       	cat output >> /home/Rahul/Desktop/Thesis/Scripts/java_time 
+       	cat output >> /home/Rahul/Desktop/Thesis/Scripts/java_time
+       	cat output >> stats
 		fi
 	#else./a.out $j
 	else 
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time 	
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time		
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time 
+		echo 0 0 >> stats		
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time  
+		echo 0 0 >> stats	
 	fi
 
 	#echo $?
@@ -144,7 +157,7 @@ for i in *
 	cd $i
 	for j in *.py
 	{
-	echo $j
+	#echo $j
 	if [[ -f $j ]]; then
 		if !([[ $j == "setup.py" ]] || [[ $j == "run.py" ]] ); then
 			#compile 'Python' program
@@ -154,14 +167,17 @@ for i in *
 			if [[ $? -eq 0 ]]; then
       		/usr/bin/time -f "%e\t%M " -o output python $j <ip >pyth_op
        		cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
+       		cat output >> stats
 			fi
 		fi
 	#else./a.out $j
 	else 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time  
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time   
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time   
+		echo 0 0 >> stats	
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time  
+		echo 0 0 >> stats	
 	fi
 
 	#echo $?
@@ -178,7 +194,7 @@ for i in *
 	if [[ -f $j ]]; then
 		if !([[ $j == "setup.py" ]] || [[ $j == "run.py" ]] ); then
 			#compile 'Cython' program
-			echo $j
+			#echo $j
 		 	echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time
 		 	if [[ $j == "qq90_tim.py" ]] || [[ $j == "qq59_tim.py" ]]; then
 				echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time
@@ -198,17 +214,16 @@ for i in *
 					python setup.py build_ext --inplace
 					gcc /home/Rahul/Desktop/Thesis/Scripts/make_run.c 
 					./a.out $file
-					/usr/bin/time -f "%M" -o output python run.py <ip >cy_op
+					/usr/bin/time -f " %M" -o output python run.py <ip >cy_op
 					cat output >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
 			fi
 		fi
 	#else./a.out $j
 	else 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
-		 
+ 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time   
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time   
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time   
 	fi
 	#echo $?
 	}

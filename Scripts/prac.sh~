@@ -29,16 +29,11 @@ for i in *
 
 for i in *
 {
+	read line < /home/Rahul/Desktop/Thesis/Scripts/stats
+	tail -n+2 /home/Rahul/Desktop/Thesis/Scripts/stats > /home/Rahul/Desktop/Thesis/Scripts/temp
+	mv /home/Rahul/Desktop/Thesis/Scripts/temp /home/Rahul/Desktop/Thesis/Scripts/stats
 	cd $i
 	
-	read line < /home/Rahul/Desktop/Thesis/Scripts/stats
-	tail -n+2 /home/Rahul/Desktop/Thesis/Scripts/stats > /home/Rahul/Desktop/Thesis/Scripts/temp
-	mv /home/Rahul/Desktop/Thesis/Scripts/temp /home/Rahul/Desktop/Thesis/Scripts/stats
-	echo $line >> /home/Rahul/Desktop/Thesis/Problem-Set/Basic/$i/stats
-	
-	read line < /home/Rahul/Desktop/Thesis/Scripts/stats
-	tail -n+2 /home/Rahul/Desktop/Thesis/Scripts/stats > /home/Rahul/Desktop/Thesis/Scripts/temp
-	mv /home/Rahul/Desktop/Thesis/Scripts/temp /home/Rahul/Desktop/Thesis/Scripts/stats
 	echo $line >> /home/Rahul/Desktop/Thesis/Problem-Set/Basic/$i/stats
 	
 	cd ..

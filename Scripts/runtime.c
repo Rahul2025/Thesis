@@ -80,7 +80,11 @@ void c_runtime()
 				val4 = 0.000100;
 		}
 		else 
+		{
 			val4 = 0;			
+			fprintf(file2,"%f %f\n",val1,val2);
+			fprintf(file2,"%f %f\n",val4,val3);
+		}
 		fprintf(file2,"%f %f\n",val1,val2);
 		fprintf(file2,"%f %f\n",val4,val3);
 		}
@@ -150,7 +154,11 @@ void cpp_runtime()
 				val4 = 0.000100;
 		}
 		else 
+		{	
 			val4 = 0;			
+			fprintf(file2,"%f %f\n",val1,val2);
+			fprintf(file2,"%f %f\n",val4,val3);
+		}
 		fprintf(file2,"%f %f\n",val1,val2);
 		fprintf(file2,"%f %f\n",val4,val3);
 		}
@@ -220,7 +228,11 @@ void hs_runtime()
 				val4 = 0.000100;
 		}
 		else 
+		{
 			val4 = 0;			
+			fprintf(file2,"%f %f\n",val1,val2);
+			fprintf(file2,"%f %f\n",val4,val3);
+		}
 		fprintf(file2,"%f %f\n",val1,val2);
 		fprintf(file2,"%f %f\n",val4,val3);
 		}

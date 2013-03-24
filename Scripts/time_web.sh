@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #input directory
-cd /home/Rahul/Desktop/Thesis/Problem-Set/NP-Hard
+cd /home/Rahul/Desktop/Thesis/Problem-Set/Web-Programming
 rm /home/Rahul/Desktop/Thesis/Scripts/c_cmp
 rm /home/Rahul/Desktop/Thesis/Scripts/c_run
 rm /home/Rahul/Desktop/Thesis/Scripts/c_time
@@ -23,14 +23,20 @@ for i in *
 	{
 	if [[ -f $j ]]; then
 		#compile 'C' program
-		  /usr/bin/time -f "%e\t%M " -o output gcc -lm $j 2>/dev/null 
+		  /usr/bin/time -f "%e\t%M " -o output gcc -lcurl $j 2>/dev/null 
 		  cat output >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp
 	#If there were no compilation errors, run the program
 	if [[ $? -eq 0 ]]; then
+		if [[ $i == "MIME2" ]]; then
 			/usr/bin/time -f "%M" -o output ./a.out <ip >c_op
-        cat output >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp
+        	cat output >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp
          (time ./a.out <ip >c_op ) 2>op
-        cat op >> /home/Rahul/Desktop/Thesis/Scripts/c_run
+        	cat op >> /home/Rahul/Desktop/Thesis/Scripts/c_run
+		else
+			/usr/bin/time -f "%M" -o output ./a.out >c_op
+        	cat output >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp
+         (time ./a.out >c_op ) 2>op
+        	cat op >> /home/Rahul/Desktop/Thesis/Scripts/c_run
 	fi
 	else 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp 
@@ -217,4 +223,4 @@ for i in *
 
 cd /home/Rahul/Desktop/Thesis/Scripts
 gcc make_table_time.c
-./a.out >time_np
+./a.out >time_web

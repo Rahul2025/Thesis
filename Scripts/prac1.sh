@@ -2,22 +2,23 @@
 
 #input directory
 cd /home/Rahul/Desktop/Thesis/Scripts
-#rm /home/Rahul/Desktop/Thesis/Scripts/all_time
 
-#bash time_basic.sh
-#sleep 300
-#bash time_graph.sh
-#sleep 1000
-#bash time_misc.sh
-#sleep 1000
-bash time_np.sh
-sleep 300
-bash time_numerical.sh
-#bash time_web.sh
 
-cat time_basic >> all_time
-cat time_graph >> all_time
-cat time_misc >> all_time
-cat time_np >> all_time
-cat time_numerical >> all_time
-#cat time_web >> all_time
+tail -n+2 /home/Rahul/Desktop/Thesis/Scripts/c_time > /home/Rahul/Desktop/Thesis/Scripts/temp
+mv /home/Rahul/Desktop/Thesis/Scripts/temp /home/Rahul/Desktop/Thesis/Scripts/c_time
+
+while read line
+do
+	tail -n+2 /home/Rahul/Desktop/Thesis/Scripts/c_time > /home/Rahul/Desktop/Thesis/Scripts/temp
+	mv /home/Rahul/Desktop/Thesis/Scripts/temp /home/Rahul/Desktop/Thesis/Scripts/c_time
+	count=$[count+1]
+#	read line
+#	if [[ `expr $count % 2` == 0]]; then
+#	if [ `expr $count % 2` -eq 0 ]
+#	then
+#		echo $count
+		echo $line 
+	tail -n+2 /home/Rahul/Desktop/Thesis/Scripts/c_time > /home/Rahul/Desktop/Thesis/Scripts/temp
+	mv /home/Rahul/Desktop/Thesis/Scripts/temp /home/Rahul/Desktop/Thesis/Scripts/c_time
+#	fi
+done < /home/Rahul/Desktop/Thesis/Scripts/c_time

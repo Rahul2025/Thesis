@@ -7,6 +7,7 @@ for i in *
 {
 	echo $i
 	cd $i
+#	rm -rf build
 	rm c_op
 	for j in *
 	{
@@ -24,7 +25,7 @@ for i in *
 		
 		#echo $file
 		#if [ "$j" == "$file" ]
-		if [[ $j == *.c ]] || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+		if ([[ $j == *.c ]] && [[ $j != qq* ]]) || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ $j == "stats" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
 			then
 				echo $j	
 		else

@@ -39,6 +39,7 @@ for i in *
 		#	 -o output 
 					/usr/bin/time -f "%e\t%M" -o output ./a.out <ip >c_op
         cat output >> /home/Rahul/Desktop/Thesis/Scripts/c_time
+        cat output >> stats
        #  (time ./a.out <ip >c_op ) 2>op
       #  cat op >> /home/Rahul/Desktop/Thesis/Scripts/c_run
 	fi
@@ -46,7 +47,9 @@ for i in *
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/c_time 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/c_time
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/c_time 
+		echo 0 0 >> stats
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/c_time
+		echo 0 0 >> stats
 		#cat '0' >> /home/Rahul/Desktop/Thesis/Scripts/c_run
 	fi
 	#else
@@ -87,6 +90,7 @@ for i in *
 	if [[ $? -eq 0 ]]; then
 			 /usr/bin/time -f "%e\t%M" -o output ./a.out <ip >cpp_op
         cat output >> /home/Rahul/Desktop/Thesis/Scripts/cpp_time
+        cat output >> stats
    #      (time ./a.out <ip >cpp_op ) 2>op
     #    cat op >> /home/Rahul/Desktop/Thesis/Scripts/cpp_run
 	fi
@@ -94,7 +98,9 @@ for i in *
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cpp_time 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cpp_time
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cpp_time 
+		echo 0 0 >> stats
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cpp_time
+		echo 0 0 >> stats
 		#cat '0' >> /home/Rahul/Desktop/Thesis/Scripts/cpp_run
 	fi
 	#else
@@ -143,8 +149,10 @@ for i in *
 		if [[ $? -eq 0 ]]; then
 			if [[ $i == "binary-trees" ]]; then
 				/usr/bin/time -f "%e\t%M" -o output ./a.out +RTS -N4 -K128M -H -RTS <ip >hs_op
+				cat output >> stats
 			else
 				/usr/bin/time -f "%e\t%M" -o output ./a.out +RTS -N4 -RTS <ip >hs_op
+				cat output >> stats
        
       	fi
        cat output >> /home/Rahul/Desktop/Thesis/Scripts/hs_time
@@ -155,7 +163,9 @@ for i in *
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/hs_time 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/hs_time
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/hs_time 
+		echo 0 0 >> stats
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/hs_time
+		echo 0 0 >> stats
 		#cat '0' >> /home/Rahul/Desktop/Thesis/Scripts/hs_run
 	fi
 	#else
@@ -186,6 +196,7 @@ for folder in *
 	if [[ $? -eq 0 ]]; then
       /usr/bin/time -f "%e\t%M " -o output java ${file%%.java} <ip >java_op
       cat output >> /home/Rahul/Desktop/Thesis/Scripts/java_time
+      cat output >> stats
 	fi
 	}	
 	cd ..
@@ -210,9 +221,11 @@ for i in *
 				if [[$i == pidigits]]; then
 					/usr/bin/time -f "%e\t%M " -o output python $j <ip >pyth_op
        			cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
+       			cat output >> stats
 				else
       			/usr/bin/time -f "%e\t%M " -o output python3 $j <ip >pyth_op
        			cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
+       			cat output >> stats
        		fi 
 			fi
 		fi
@@ -221,7 +234,9 @@ for i in *
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
+		echo 0 0 >> stats
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
+		echo 0 0 >> stats
 	fi
 
 	#echo $?

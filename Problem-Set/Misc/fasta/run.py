@@ -1,10 +1,8 @@
 # filename : run.py
 
 import time
-start = (time.time()) * 1000000
-import qfasta_tim
-end = (time.time()) * 1000000
 f = open('/home/Rahul/Desktop/Thesis/Scripts/cyth_time', 'a')
-f.write(str(end-start))
-f.write('\n')
+start = time.time()
+import qq128_mem
+f.write(str(time.time() - start))
 f.close

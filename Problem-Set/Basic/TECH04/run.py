@@ -5,5 +5,4 @@ f = open('/home/Rahul/Desktop/Thesis/Scripts/cyth_time', 'a')
 start = time.time()
 import qq6_tim
 f.write(str(time.time() - start))
-f.write('\n')
 f.close

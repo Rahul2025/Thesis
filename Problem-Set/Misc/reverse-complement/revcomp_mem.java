@@ -6,7 +6,7 @@
  */
 
 import java.io.*;
-public class revcomp_4 {
+public class revcomp_mem {
    static final byte[] cmp = new byte[128];
    static {
       for (int i = 0; i < cmp.length; i++) cmp[i] = (byte) i;

@@ -142,8 +142,8 @@ int main()
 	
 	if(prog0 && prog1 && prog2 && prog3 && prog4 && prog5)
 	{	
-		op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_data","a");
-		fprintf(op,"\n\n");
+		op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_cmp_tim.csv","a");
+//		fprintf(op,"\n\n");
 		printf("\n\n\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
 		printf("\t-\t\t---\t\t-------\t\t----\t\t------");
 		for(i=0;i<prog0;i++)
@@ -240,13 +240,19 @@ int main()
 		{
 			//ratio[i] = total[0];
 			printf("\t%f",pen_mod_tot_cmp_tim[i]);
-			fprintf(op,"\n\t%f",pen_mod_tot_cmp_tim[i]);
+//			fprintf(op,"\n\t%f",pen_mod_tot_cmp_tim[i]);
+			if ( i == LANG-3 )
+				fprintf(op,"%f\n",pen_mod_tot_cmp_tim[i]);
+			else 
+				fprintf(op,"%f,",pen_mod_tot_cmp_tim[i]);
 		}		
 		printf("\n");
+		fclose(op);
 		
 		
 	printf("\n\n\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
 		printf("\t-\t\t---\t\t-------\t\t----\t\t------\n");
+		op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_cmp_mem.csv","a");
 		for(i=0;i<prog0;i++)
 		{
 			printf("\n");
@@ -339,14 +345,19 @@ int main()
 		{
 			//ratio[i] = total[0];
 			printf("\t%f",pen_mod_tot_cmp_mem[i]);
-			fprintf(op,"\n\t%f",pen_mod_tot_cmp_mem[i]);
+//			fprintf(op,"\n\t%f",pen_mod_tot_cmp_mem[i]);
+			if ( i == LANG-3 )
+				fprintf(op,"%f\n",pen_mod_tot_cmp_mem[i]);
+			else 
+				fprintf(op,"%f,",pen_mod_tot_cmp_mem[i]);
 		}		
 		printf("\n");
-
+		fclose(op);
 
 		
 	printf("\n\n\tC\t\tCPP\t\tJAVA\t\tPYTHON\n");
 		printf("\t-\t\t---\t\t----\t\t------");
+		op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_run_tim.csv","a");
 		for(i=0;i<prog0;i++)
 		{
 			printf("\n");
@@ -441,13 +452,19 @@ int main()
 		{
 			//ratio[i] = total[0];
 			printf("\t%f",pen_mod_tot_run_tim[i]);
-			fprintf(op,"\n\t%f",pen_mod_tot_run_tim[i]);
+//			(op,"\n\t%f",pen_mod_tot_run_tim[i]);
+			if ( i == LANG-1 )
+				fprintf(op,"%f\n",pen_mod_tot_run_tim[i]);
+			else 
+				fprintf(op,"%f,",pen_mod_tot_run_tim[i]);
 		}		
 		printf("\n");	
+		fclose(op);
 		
 		
 	printf("\n\n\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
 		printf("\t-\t\t---\t\t----\t\t------");
+		op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_run_mem.csv","a");
 		for(i=0;i<prog0;i++)
 		{
 			printf("\n");
@@ -542,7 +559,11 @@ int main()
 		{
 			//ratio[i] = total[0];
 			printf("\t%f",pen_mod_tot_run_mem[i]);
-						fprintf(op,"\n\t%f",pen_mod_tot_run_mem[i]);
+//						fprintf(op,"\n\t%f",pen_mod_tot_run_mem[i]);
+			if ( i == LANG-1 )
+				fprintf(op,"%f\n",pen_mod_tot_run_mem[i]);
+			else 
+				fprintf(op,"%f,",pen_mod_tot_run_mem[i]);
 		}		
 		printf("\n");
  /*     printf("\n\n\tC\t\tCPP\t\tJAVA\t\tPYTHON\n");

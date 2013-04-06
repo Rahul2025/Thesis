@@ -20,6 +20,8 @@ for i in *
 	echo $i
 	cd $i
 	rm stats
+	rm run.py
+	rm setup.py
 	cd ..
 }
 
@@ -58,7 +60,7 @@ for i in *
 	for j in *.cpp
 	{
 	if [[ -f $j ]]; then
-		#compile 'C' program
+		#compile 'CPP' program
 		   /usr/bin/time -f "%e\t%M " -o output g++ $j 2>/dev/null 
 		  cat output >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
 	#If there were no compilation errors, run the program
@@ -165,7 +167,7 @@ for i in *
 		   
 		#If there were no compilation errors, run the program
 			if [[ $? -eq 0 ]]; then
-      		/usr/bin/time -f "%e\t%M " -o output python $j <ip >pyth_op
+      		/usr/bin/time -f "%e\t%M" -o output python $j <ip >pyth_op
        		cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
        		cat output >> stats
 			fi
@@ -214,7 +216,7 @@ for i in *
 					python setup.py build_ext --inplace
 					gcc /home/Rahul/Desktop/Thesis/Scripts/make_run.c 
 					./a.out $file
-					/usr/bin/time -f " %M" -o output python run.py <ip >cy_op
+					/usr/bin/time -f "%M" -o output python run.py <ip >cy_op
 					cat output >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time 
 			fi
 		fi
@@ -226,10 +228,45 @@ for i in *
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cyth_time   
 	fi
 	#echo $?
+	
+	
 	}
+	cd ..
+}
+
+for i in *
+{
+	echo $i
+	
+	cd $i
+#	rm temp
+	g++ /home/Rahul/Desktop/Thesis/Scripts/make_csv.cpp
+	./a.out
+	
+#	rm stats
+	mv temp stats
+#	rm temp
+	for j in *
+	{
+			if   [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+				then
+	#				echo $j
+					id=${j#"q"}
+		#			echo $id","
+				fi
+				
+#			if [[ $j == "stats" ]]
+			
+	}
+	echo $id","| cat - stats > temp 
+#	mv temp stats
+	sed 's/\(.*\)./\1/' temp >stats
+	rm temp
+	
 	cd ..
 }
 
 cd /home/Rahul/Desktop/Thesis/Scripts
 gcc make_table_time.c
 ./a.out >time_basic
+

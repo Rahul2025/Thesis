@@ -14,7 +14,7 @@ for i in *
 		if [[ -f $j ]]; then
 			if [[ $i == "MIME2" ]]; then
 				/usr/bin/time -f "%e\t%M " python $j <ip >pyth_op
-			elif [[ $i == "HTTP" ]] || [[ $i == "HTTPS" ]] || [[ $i == "HTTPS_Authenticated" ]]; then
+			elif [[ $i == "HTTP" ]] || [[ $i == "HTTPS" ]]; then
 				/usr/bin/time -f "%e\t%M " python3 $j >pyth_op
 			else
 				/usr/bin/time -f "%e\t%M " python $j >pyth_op

@@ -3,7 +3,9 @@
 #input directory
 cd /home/Rahul/Desktop/Thesis/Scripts
 rm /home/Rahul/Desktop/Thesis/Scripts/all_loc
+rm /home/Rahul/Desktop/Thesis/Scripts/final_loc.csv
 
+echo "c,cpp,haskell,java,python,cython" >final_loc.csv
 bash loc_basic.sh >loc
 bash loc_graph.sh >loc
 bash loc_misc.sh >loc

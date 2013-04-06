@@ -10,6 +10,7 @@
 #define HASK 2
 #define JAVA 3
 #define PYTH 4
+#define CYTH 5
 
 
 /*Globals*/
@@ -102,7 +103,7 @@ int main(int argc, char *argv[])
 	//char filename[100]="";
 	//scanf("%s",filename);
 	prog=make_mat(argv[1]);
-	op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_data","a");
+	op = fopen("/home/Rahul/Desktop/Thesis/Scripts/final_loc.csv","a");
 	if(prog)
 	{		
 		//printf("\tC\t\tCPP\t\tHASKELL\t\tJAVA\t\tPYTHON\n");
@@ -192,11 +193,15 @@ int main(int argc, char *argv[])
 		}
 		
 		printf("\t----\t\t----\t\t----\t\t----\t\t----\n");
+//		fprintf(op,"c,cpp,haskell,java,python\n");
 		for(i=0;i<LANG;i++)	
 		{
 			//ratio[i] = total[0];
 			printf("\t%f",pen_mod_total[i]);
-			fprintf(op,"\n\t%f",pen_mod_total[i]);
+			if ( i == LANG-1 )
+				fprintf(op,"%f,%f",pen_mod_total[i],pen_mod_total[i]);
+			else 
+				fprintf(op,"%f,",pen_mod_total[i]);
 		}		
 		fprintf(op,"\n");
 		printf("\n");

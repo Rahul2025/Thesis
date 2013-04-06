@@ -19,6 +19,16 @@ for i in *
 {
 	echo $i
 	cd $i
+	rm stats
+	rm run.py
+	rm setup.py
+	cd ..
+}
+
+for i in *
+{
+	echo $i
+	cd $i
 	for j in *.c
 	{
 	if [[ -f $j ]]; then
@@ -106,8 +116,10 @@ for i in *
 
 cd /home/Rahul/Desktop/Thesis/Scripts
 bash runtime_script.sh
+bash make_stats.sh
 
 cd /home/Rahul/Desktop/Thesis/Problem-Set/Graph_Algorithms
+bash /home/Rahul/Desktop/Thesis/Scripts/make_final_stats.sh
 
 for i in *
 {
@@ -124,13 +136,16 @@ for i in *
 		if [[ $? -eq 0 ]]; then
       	 /usr/bin/time -f "%e\t%M" -o output java ${j%%.java} <ip >java_op
        	cat output >> /home/Rahul/Desktop/Thesis/Scripts/java_time 
+       	cat output >> stats
 		fi
 	#else./a.out $j
 	else 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time  
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time
+		echo 0 0 >> stats 
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time
+		echo 0 0 >> stats  
 	fi
 
 	#echo $?
@@ -152,8 +167,9 @@ for i in *
 		   
 		#If there were no compilation errors, run the program
 			if [[ $? -eq 0 ]]; then
-      		/usr/bin/time -f "%e\t%M " -o output python $j <ip >pyth_op
+      		/usr/bin/time -f "%e\t%M" -o output python $j <ip >pyth_op
        		cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
+       		cat output >> stats
 			fi
 		fi
 	#else./a.out $j
@@ -161,7 +177,9 @@ for i in *
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
+		echo 0 0 >> stats
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
+		echo 0 0 >> stats
 	fi
 
 	#echo $?
@@ -212,6 +230,40 @@ for i in *
 	fi
 	#echo $?
 	}
+	
+
+	cd ..
+}
+
+for i in *
+{
+	echo $i
+	
+	cd $i
+#	rm temp
+	g++ /home/Rahul/Desktop/Thesis/Scripts/make_csv.cpp
+	./a.out
+	
+#	rm stats
+	mv temp stats
+#	rm temp
+	for j in *
+	{
+			if   [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+				then
+	#				echo $j
+					id=${j#"q"}
+			#		echo $id","
+				fi
+				
+#			if [[ $j == "stats" ]]
+			
+	}
+	echo $id","| cat - stats > temp 
+#	mv temp stats
+	sed 's/\(.*\)./\1/' temp >stats
+	rm temp
+	
 	cd ..
 }
 

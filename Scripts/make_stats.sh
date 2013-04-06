@@ -13,7 +13,7 @@ do
 #	if [[ `expr $count % 2` == 0]]; then
 	if [ `expr $count % 2` -eq 0 ]
 	then
-		echo $count
+	#	echo $count
 		echo $line >> c_stats
 	fi
 done < c_time
@@ -25,7 +25,7 @@ do
 #	if [[ `expr $count % 2` == 0]]; then
 	if [ `expr $count % 2` -eq 0 ]
 	then
-		echo $count
+	#	echo $count
 		echo $line >> cpp_stats
 	fi
 done < cpp_time
@@ -37,7 +37,7 @@ do
 #	if [[ `expr $count % 2` == 0]]; then
 	if [ `expr $count % 2` -eq 0 ]
 	then
-		echo $count
+	#	echo $count
 		echo $line >> hs_stats
 	fi
 done < hs_time

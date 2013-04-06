@@ -34,6 +34,8 @@ for i in *
 	}
 	cd ..
 }
+
+
 #input directory
 cd /home/Rahul/Desktop/Thesis/Problem-Set/Graph_Algorithms
 
@@ -58,7 +60,7 @@ for i in *
 		
 		#echo $file
 		#if [ "$j" == "$file" ]
-		if [[ $j == *.c ]] || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+		if ([[ $j == *.c ]] && [[ $j != qq* ]]) || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ $j == "stats" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
 			then
 				echo $j	
 		else
@@ -67,6 +69,7 @@ for i in *
 	}
 	cd ..
 }
+
 #input directory
 cd /home/Rahul/Desktop/Thesis/Problem-Set/Misc
 
@@ -91,7 +94,7 @@ for i in *
 		
 		#echo $file
 		#if [ "$j" == "$file" ]
-		if [[ $j == *.c ]] || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+		if ([[ $j == *.c ]] && [[ $j != qq* ]]) || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ $j == "stats" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
 			then
 				echo $j	
 		else
@@ -100,6 +103,7 @@ for i in *
 	}
 	cd ..
 }
+
 #input directory
 cd /home/Rahul/Desktop/Thesis/Problem-Set/NP-Hard
 
@@ -124,7 +128,7 @@ for i in *
 		
 		#echo $file
 		#if [ "$j" == "$file" ]
-		if [[ $j == *.c ]] || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+		if ([[ $j == *.c ]] && [[ $j != qq* ]]) || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ $j == "stats" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
 			then
 				echo $j	
 		else
@@ -158,7 +162,7 @@ for i in *
 		
 		#echo $file
 		#if [ "$j" == "$file" ]
-		if [[ $j == *.c ]] || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+		if ([[ $j == *.c ]] && [[ $j != qq* ]]) || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ $j == "stats" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
 			then
 				echo $j	
 		else
@@ -192,7 +196,76 @@ for i in *
 		
 		#echo $file
 		#if [ "$j" == "$file" ]
-		if [[ $j == *.c ]] || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+		if ([[ $j == *.c ]] && [[ $j != qq* ]]) || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ $j == "stats" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+			then
+				echo $j	
+		else
+			rm $j
+		fi	
+	}
+	cd ..
+}
+
+#input directory
+cd /home/Rahul/Desktop/Thesis/Scripts/Sample
+
+for i in *
+{
+	echo $i
+	cd $i
+#	rm -rf build
+	rm c_op
+	for j in *
+	{
+		
+		#echo $j
+#		if [[ $j == *_tim.c ]]; 
+#			then
+#				file=${j%%_tim.c}
+				#echo $file
+#		elif [[ $j == *_tim.cpp ]];
+#			then
+#				file=${j%%_tim.cpp}
+				#echo $file
+#		fi
+		
+		#echo $file
+		#if [ "$j" == "$file" ]
+		if ([[ $j == *.c ]] && [[ $j != qq* ]]) || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ $j == "stats" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+			then
+				echo $j	
+		else
+			rm $j
+		fi	
+	}
+	cd ..
+}
+
+cd /home/Rahul/Desktop/Thesis/Scripts/Sample1
+
+for i in *
+{
+	echo $i
+	cd $i
+#	rm -rf build
+	rm c_op
+	for j in *
+	{
+		
+		#echo $j
+#		if [[ $j == *_tim.c ]]; 
+#			then
+#				file=${j%%_tim.c}
+				#echo $file
+#		elif [[ $j == *_tim.cpp ]];
+#			then
+#				file=${j%%_tim.cpp}
+				#echo $file
+#		fi
+		
+		#echo $file
+		#if [ "$j" == "$file" ]
+		if ([[ $j == *.c ]] && [[ $j != qq* ]]) || [[ $j == *.hs ]] || [[ $j == *.py ]] || [[ $j == *.pyx ]] || [[ $j == *.cpp ]] || [[ $j == *.java ]] || [[ $j == "ip" ]] || [[ $j == "stats" ]] || [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
 			then
 				echo $j	
 		else

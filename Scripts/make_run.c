@@ -13,7 +13,7 @@ int make(char *argv)
 	fprintf(op,"%s","import ");
 	fprintf(op,"%s",argv);
 	fprintf(op,"%s","\nf.write(str(time.time() - start))\n");
-	fprintf(op,"%s","f.write(' ')\n");
+//	fprintf(op,"%s","f.write(' ')\n");
 	fprintf(op,"%s","f.close");
 	fclose(op);
 	return 1;

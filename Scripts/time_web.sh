@@ -19,64 +19,11 @@ for i in *
 {
 	echo $i
 	cd $i
-	for j in *.c
-	{
-	if [[ -f $j ]]; then
-		#compile 'C' program
-		  /usr/bin/time -f "%e\t%M " -o output gcc -lcurl $j 2>/dev/null 
-		  cat output >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp
-	#If there were no compilation errors, run the program
-	if [[ $? -eq 0 ]]; then
-		if [[ $i == "MIME2" ]]; then
-			/usr/bin/time -f "%M" -o output ./a.out <ip >c_op
-        	cat output >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp
-         (time ./a.out <ip >c_op ) 2>op
-        	cat op >> /home/Rahul/Desktop/Thesis/Scripts/c_run
-		else
-			/usr/bin/time -f "%M" -o output ./a.out >c_op
-        	cat output >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp
-         (time ./a.out >c_op ) 2>op
-        	cat op >> /home/Rahul/Desktop/Thesis/Scripts/c_run
-	fi
-	else 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp 
-		echo 0 >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp 
-	fi
-	#else
-	#echo $?
-	}
+	rm stats
+	rm run.py
+	rm setup.py
 	cd ..
 }
-
-
-for i in *
-{
-	#echo $i
-	cd $i
-	for j in *.cpp
-	{
-	if [[ -f $j ]]; then
-		#compile 'C' program
-		   /usr/bin/time -f "%e\t%M " -o output g++ $j 2>/dev/null 
-		  cat output >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
-	#If there were no compilation errors, run the program
-	if [[ $? -eq 0 ]]; then
-			/usr/bin/time -f "%M" -o output ./a.out <ip >cpp_op
-        cat output >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
-         (time ./a.out <ip >cpp_op ) 2>op
-        cat op >> /home/Rahul/Desktop/Thesis/Scripts/cpp_run
-	fi
-	else 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp 
-		echo 0 >> /home/Rahul/Desktop/Thesis/Scripts/cpp_cmp
-		#cat '0' >> /home/Rahul/Desktop/Thesis/Scripts/cpp_run
-	fi
-	#else
-	#echo $?
-	}
-	cd ..
-}
-
 
 for i in *
 {
@@ -88,16 +35,21 @@ for i in *
 	if [[ -f $j ]]; then
 	rm -r *.o
 	rm -r *.hi
-	#echo $j.o
+	echo $j
 		#compile 'Haskell' program
-		   /usr/bin/time -f "%e\t%M " -o output  ghc --make -O2 $j -o a.out 2>/dev/null 
-		  cat output >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
+		ghc $j
+		
+	#  cat output >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
 	#If there were no compilation errors, run the program
 		if [[ $? -eq 0 ]]; then
-			/usr/bin/time -f "%M" -o output ./a.out <ip >hs_op
-        cat output >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
-         (time ./a.out <ip >hs_op ) 2>op
-        cat op >> /home/Rahul/Desktop/Thesis/Scripts/hs_run
+				if [[ $i == "MIME2" ]]; then
+					/usr/bin/time -f "%e\t%M" ./a.out <ip >c_op
+				else
+					/usr/bin/time -f "%e\t%M" ./a.out >c_op
+				fi
+      # cat output >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
+      #   (time ./a.out <ip >hs_op ) 2>op
+      #  cat op >> /home/Rahul/Desktop/Thesis/Scripts/hs_run
 		fi
 	else 
 		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp 
@@ -106,41 +58,117 @@ for i in *
 	fi
 	#else
 	#echo $?
+	#fi
+	}
+	cd ..
+}
+
+
+for i in *
+{
+	echo $i
+	cd $i
+	for j in *.cpp
+	{
+	if [[ -f $j ]]; then
+	
+ 			echo $j	
+ 			#compile 'CPP' program
+ 			if [[ $j == "Web_Scraping" ]]; then
+ 				/usr/bin/time -f "%e\t%M " g++ -lboost_regex -lboost_system -lboost_thread $j
+ 			else
+ 				/usr/bin/time -f "%e\t%M " g++ -lcurl $j
+ 			fi
+ 				
+		 #cat output >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp
+	#If there were no compilation errors, run the program
+	if [[ $? -eq 0 ]]; then
+		if [[ $i == "MIME2" ]]; then
+					/usr/bin/time -f "%e\t%M" ./a.out <ip >java_op
+				else
+					/usr/bin/time -f "%e\t%M" ./a.out >java_op
+       # cat op >> /home/Rahul/Desktop/Thesis/Scripts/c_run
+       fi
+	fi
+	else 
+		echo 0 0 #>> /home/Rahul/Desktop/Thesis/Scripts/c_cmp 
+		echo 0 #>> /home/Rahul/Desktop/Thesis/Scripts/c_cmp
+		#cat '0' >> /home/Rahul/Desktop/Thesis/Scripts/c_run
+	fi
+	#else
+	#echo $?
+	}
+	cd ..
+}
+
+for i in *
+{
+	echo $i
+	cd $i
+	for j in *.hs
+	{
+	
+	if [[ -f $j ]]; then
+	rm -r *.o
+	rm -r *.hi
+	echo $j
+		#compile 'Haskell' program
+		ghc $j
+		
+	#  cat output >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
+	#If there were no compilation errors, run the program
+		if [[ $? -eq 0 ]]; then
+				if [[ $i == "MIME2" ]]; then
+					/usr/bin/time -f "%e\t%M" ./a.out <ip >c_op
+				else
+					/usr/bin/time -f "%e\t%M" ./a.out >c_op
+				fi
+      # cat output >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
+      #   (time ./a.out <ip >hs_op ) 2>op
+      #  cat op >> /home/Rahul/Desktop/Thesis/Scripts/hs_run
+		fi
+	else 
+		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp 
+		echo 0 >> /home/Rahul/Desktop/Thesis/Scripts/hs_cmp
+		#cat '0' >> /home/Rahul/Desktop/Thesis/Scripts/hs_run
+	fi
+	#else
+	#echo $?
+	#fi
 	}
 	cd ..
 }
 
 cd /home/Rahul/Desktop/Thesis/Scripts
 bash runtime_script.sh
+bash make_stats.sh
 
 cd /home/Rahul/Desktop/Thesis/Problem-Set/NP-Hard
-
-for i in *
+bash /home/Rahul/Desktop/Thesis/Scripts/make_final_stats.sh
+for folder in *
 {
-	echo $i
-	cd $i
-	for j in *.java
+	echo $folder
+	cd $folder
+	for file in *.java
 	{
-	if [[ -f $j ]]; then
+		echo $file
+		if [[ -f $file ]]; then
 			#compile 'JAVA' program
-		  /usr/bin/time -f "%e\t%M " -o output javac $j 2>/dev/null 
-		  cat output >> /home/Rahul/Desktop/Thesis/Scripts/java_time
-		   
-		#If there were no compilation errors, run the program
-		if [[ $? -eq 0 ]]; then
-      	 /usr/bin/time -f "%e\t%M" -o output java ${j%%.java} <ip >java_op
-       	cat output >> /home/Rahul/Desktop/Thesis/Scripts/java_time 
+			/usr/bin/time -f "%e\t%M " javac $file 
+	
+			#If there were no compilation errors, run the program
+			if [[ $? -eq 0 ]]; then
+				if [[ $folder == "MIME2" ]]; then
+					/usr/bin/time -f "%e\t%M" java ${file%%.java} <ip >java_op
+				else
+					/usr/bin/time -f "%e\t%M" java ${file%%.java} >java_op
+				fi
+			fi
+		else
+			echo 0 0
+			echo 0 0
 		fi
-	#else./a.out $j
-	else 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/java_time  
-	fi
-
-	#echo $?
-	}
+	}	
 	cd ..
 }
 
@@ -150,27 +178,17 @@ for i in *
 	cd $i
 	for j in *.py
 	{
-	echo $j
-	if [[ -f $j ]]; then
-		if !([[ $j == "setup.py" ]] || [[ $j == "run.py" ]] ); then
-			#compile 'Python' program
-		 	echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
-		   
-		#If there were no compilation errors, run the program
-			if [[ $? -eq 0 ]]; then
-      		/usr/bin/time -f "%e\t%M " -o output python $j <ip >pyth_op
-       		cat output >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
+		echo $j
+		#interpret 'Python' program
+		if [[ -f $j ]]; then
+			if [[ $i == "MIME2" ]]; then
+				/usr/bin/time -f "%e\t%M " python $j <ip >pyth_op
+			elif [[ $i == "HTTP" ]] || [[ $i == "HTTPS" ]]; then
+				/usr/bin/time -f "%e\t%M " python3 $j >pyth_op
+			else
+				/usr/bin/time -f "%e\t%M " python $j >pyth_op
 			fi
-		fi
-	#else./a.out $j
-	else 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time 
-		echo 0 0 >> /home/Rahul/Desktop/Thesis/Scripts/pyth_time
-	fi
-
-	#echo $?
+		fi	
 	}
 	cd ..
 }
@@ -218,6 +236,40 @@ for i in *
 	fi
 	#echo $?
 	}
+	
+	
+	cd ..
+}
+
+for i in *
+{
+	echo $i
+	
+	cd $i
+#	rm temp
+	g++ /home/Rahul/Desktop/Thesis/Scripts/make_csv.cpp
+	./a.out
+	
+#	rm stats
+	mv temp stats
+#	rm temp
+	for j in *
+	{
+			if   [[ ${#j} == 4 ]] || [[ ${#j} == 3 ]];
+				then
+	#				echo $j
+					id=${j#"q"}
+		#			echo $id","
+				fi
+				
+#			if [[ $j == "stats" ]]
+			
+	}
+	echo $id","| cat - stats > temp 
+#	mv temp stats
+	sed 's/\(.*\)./\1/' temp >stats
+	rm temp
+	
 	cd ..
 }
 

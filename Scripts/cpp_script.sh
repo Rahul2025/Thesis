@@ -13,7 +13,11 @@ for i in *
 	
  			echo $j	
  			#compile 'CPP' program
- 			/usr/bin/time -f "%e\t%M " g++ -lcurl $j
+ 			if [[ $j == "Web_Scraping" ]]; then
+ 				/usr/bin/time -f "%e\t%M " g++ -lboost_regex -lboost_system -lboost_thread $j
+ 			else
+ 				/usr/bin/time -f "%e\t%M " g++ -lcurl $j
+ 			fi
  				
 		 #cat output >> /home/Rahul/Desktop/Thesis/Scripts/c_cmp
 	#If there were no compilation errors, run the program

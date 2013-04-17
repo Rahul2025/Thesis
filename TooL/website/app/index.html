@@ -11,6 +11,12 @@
         <meta name="viewport" content="width=device-width">
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
         <link rel="stylesheet" href="styles/main.css">
+	<style>
+	table, th, td
+	{
+		border: 1px solid black;
+	}
+	</style>
         <!-- build:js scripts/vendor/modernizr.js -->
         <script src="components/modernizr/modernizr.js"></script>
         <!-- endbuild -->
@@ -25,7 +31,26 @@
         <!--[if lt IE 7]>
             <p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
         <![endif]-->
-
+	<p>
+	<label>Compare statistics with </label>
+	<select id="primary">
+		<option value="attribute">Attributes of program</option>
+		<option value="domain">Problem Domains</option>
+		<option value="language">Language specific</option>
+	</select>
+	</p>
+	<p>
+	<label>Program Feature</label>
+	<select id="secondary">
+		<option value="compile_memory">Compile Memory</option>
+		<option value="compile_time">Compile Time</option>
+		<option value="LOC">Lines of Code</option>
+		<option value="run_memory">Runtime Memory</option>
+		<option value="run_time">Run Time</option>
+	</select>
+	</p>
+	<div id="result">
+	</div>
         <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
         <script>
             var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];

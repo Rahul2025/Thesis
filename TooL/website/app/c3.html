@@ -1,0 +1,147 @@
+<html>
+<head>
+  <title>BoPL</title>
+  <meta http-equiv="Content-Type"
+ content="text/html; charset=iso-8859-1">
+  <link rel="stylesheet" type="text/css" href="styles.css"></link>
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.css"></link>
+    <script type="text/javascript" src="components/jquery/jquery.js" ></script>
+  <script type="text/javascript" src="js/bootstrap.js" ></script>
+</head>
+<body>
+<div id="container">
+<table id="layout">
+  <tbody>
+  
+    <tr>
+      <td><img style="border: 1px solid ; width: 800px; height: 200px;"
+ src="image2.jpg" alt="BenchMarking of Programming Languages"></td>
+    </tr>
+    <tr>
+      <td id="nav_cont">
+      <table width="100%">
+        <tbody>
+        <tr><td>
+      <ul class="nav nav-tabs">
+              <li><a href="index.html">Overview</a></li> 
+              <li><a href="specification.html">Specifications</a></li>
+              <li class="active dropdown">
+                <a  class="dropdown-toggle" data-toggle="dropdown" href="#">Language Details <b class="caret"></b></a>
+                	<ul class="dropdown-menu">
+                			<li><a href="c.html">C</a></li>
+              	    		<li><a href="cpp.html">C++</a></li>
+								<li><a href="haskell.html">Haskell</a></li>
+								<li><a href="java.html">Java</a></li>
+								<li><a href="python.html">Python</a></li>
+								<li><a href="cython.html">Cython</a></li>
+                	</ul>
+              </li>
+              <li><a href="source.html">Source Programs</a></li>
+              <li><a href="results.html">Results</a></li>
+              <li><a href="references.html">Refrences</a></li> 
+            </ul>
+            </td>
+            </tr>
+            </tbody>
+           </table>
+      </td>
+    </tr>
+    <tr>
+      <td id="content"> <font color="#000000"><font
+ style="font-size: 16pt;" size="4"><b> </b></font></font> <br>
+      <h1>Language Details ::</h1>
+      <h3><u>C</u></h3>   
+      <h4>Working</h4> 
+Widely, a C program runs in two phases:
+<br>In the first phase, we have a source program in form of a text files. This source program contains the actual coding or instructions or the task to be performed.  But, we cannot execute this program directly.
+<br>In the second phase. The above written source program is compiled. This creates a new file containing the machine code translation of the source program. This translated file is the executable file.
+<br>So, basically C program is passed on to a compiler,which takes C source code as input and gives an executable file as output. Now, we'll look at this phase in more detail.
+<br>The work of the compiler can be broadly classified in two steps. In first step, the source program is scanned for errors etc. and an intermediate code is generated for further processing. This intermediate code is then converted to object code(but the file is still not executable file). In GNU C compiler, this step is run with the use of 'gcc -c *.c' command  and gives the output as '*.o' file. In the second step, Linker completes the code by adding standard library files to object files(*.o). Compiler can give error at this stage too, if it finds a reference to the function that does not exist. In GNU C compiler this step is run by using 'gcc -o '. Following are the file names and their suffixes of intermediate files that can be generated while running a c program.
+<br>
+Suffix
+File
+.a
+Static object library
+.c
+Initial C source code
+.h
+Header file included in C program
+.i
+
+.o
+
+.s
+
+.so
+
+<br>
+Let us take an simple example, to make the above things said more clearer.
+<br>
+// example.c
+<br>#include <stdio.h>
+<br>int main(int argc, char *argv[])
+<br>{
+<br>	printf(“This is a simple example...\n”);
+<br>	return 0;
+<br>}
+<br>
+<br>The direct and simplest of all methods of all is to compile this 'example.c' using gcc and then run the executable file thus made.
+<br>
+<br>$ gcc example.c
+<br>$ ./a.out 
+<br>This is a simple example...
+<br>$
+<br>
+<br>The default work of GCC compiler is to compile the source file to make an object file, convert this object file to an executable and then delete the initial made object file. The compiler finds out that the file name on the command line is a C source code with help of the suffix of the file as *.c. Here we have not specified the name of the executable file, so the compiler will by default take that as 'a.out' in the working directory. However , we can use the -o option to manually specify some name to the final executable file. For e.g.
+<br>
+<br>$ gcc example.c -o final
+<br>$ ./final 
+<br>This is a simple example...
+<br>$
+<br>
+We can also use -c option to see the intermediate object files. By using -c option the compiler compiles the source code but do not link them. Each source file has different object file and By default the name of each output file is the name of the source code file with suffix '.c' replaced with '.o'.
+<br>
+<span style="float:left">
+	<a href="c2.html">--<u>Prev</u></a>
+</span>
+
+<font color="#000000"><font
+ face="Times New Roman, serif"><font size="3"><span lang="en-US"> </span></font></font></font>
+      <br>
+      <font color="#000000"><font size="3"><br>
+      <br>
+      </font></font>
+      <tr>
+      <td id="nav_cont">
+      <table width="100%">
+        <tbody>
+        <tr><td>
+      <ul class="nav nav-tabs">
+              <li><a href="index.html">Overview</a></li> 
+              <li><a href="specification.html">Specifications</a></li>
+              <li  class="active dropup">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">Language Details <b class="caret"></b></a>
+                	<ul class="dropdown-menu">
+                			<li><a href="c.html">C</a></li>
+              	    		<li><a href="cpp.html">C++</a></li>
+								<li><a href="haskell.html">Haskell</a></li>
+								<li><a href="java.html">Java</a></li>
+								<li><a href="python.html">Python</a></li>
+								<li><a href="cython.html">Cython</a></li>
+                	</ul>
+              </li>
+              <li><a href="source.html">Source Programs</a></li>
+              <li><a href="results.html">Results</a></li>
+              <li><a href="references.html">Refrences</a></li> 
+            </ul>
+            </td>
+            </tr>
+            </tbody>
+           </table>
+      </td>
+    </tr>
+</tbody>
+</table>
+</div>
+</body>
+</html>

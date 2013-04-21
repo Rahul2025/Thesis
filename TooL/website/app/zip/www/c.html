@@ -1,0 +1,91 @@
+<html>
+<title> C </title>
+<body>
+<font face="Georgia" size="10">
+<marquee> Language Details </marquee> </font> 
+<br>
+<br>
+<font size="4">
+C
+Introduction:: 
+C is one of the most popular general purpose programming language which was initially developed by Dennis Ritchie in 1972 at AT&T Bell Labs. The newly developed language is simply called C as at that time there exists another programming language B. Before C, the other high level languages were not considered as good high level programming languages as they prevent machine code programmers from working in details of the system. C on the other hand, can gives access to almost all of machine details and thus is considered as most flexible high level language. We can even say that almost all of the programming languages that are being used in modern era are directly or indirectly derived from C.
+Initially, C was developed not for teaching purposes but as an implementation language. But, although it was designed for implementing system software, now-a-days it is also widely used for developing portable application software. Today, C is being used for writing anything from simple and small programs for learning and fun to large and complex applications.
+C is a high-level programming language and just like most of the other imperative languages, C has structured programming and allows lexical variable scope and recursion with static type checking systems[1].
+C is also called high-level-compiler language and just like other high-level languages, it focuses on providing an simple, easy and natural way of providing instructions to the computer in form of it's source code or program. C program or source code is a free-format, unlike Python or Haskell. Each of it's statements gets terminated by using a semicolon(';'). It uses curly brackets('{}') to distinguish one block(group of code statements which are executed together and are required to perform some task) from the other blocks of code. These blocks can be empty and can be nested too i.e. one block containing the other block.
+
+Features:: 
+C is a procedural programming language and not a Object-oriented language. Apart from having features of a good programming language, C also provides the basic features High-level programming languages. Earlier languages have both the positive and negative sides. C acquired the positive features of those languages. Some of them are:
+Bit-level Programming : C programming allows manipulation of bits. Using C, different operations at Bit-level can be performed. It has various bit operators to manage and/or store data at bit level.
+Module-level Programming : Modular Programming is a programming style that is used to write small modules and then combining them all to perform the task of a large program. This technique is very effective solution of the problem of writing, debugging and maintaining large programs. C program is a collection of small modules which are integrated to make large applications.
+Macros and Preprocessors : 
+Use of Pointers : Pointers have a direct access to the memory. C programming allows the efficient use of pointers.
+Readability : C programs are not that difficult to read due to it's similarity to English languages. 
+Portability : C programs are easily portable from one system to other. They can be run on any C compiler with no or little modification. This is compilers and pre-processor that is responsible for running the same  C program successfully on different systems. 
+Maintainability : C programs are easy to maintain and modify.
+Higher level of Abstraction : C allows meaningful variables names, arrays,very flexible loop construction (for,while,do), subroutines and functions, structures, threads, locks etc. and other abstract computer science objects. This provides an excellent base for  verification and testing of not only small programs but even for lengthy and complex programs to be organised in an easy and logical way.
+Storage classes : C has four types of storage classes viz. auto, extern, register and  static, which differs from each other in terms of their life and scope. Their function is to determine how, when and where the space is allocated to the variable in the memory.
+Dynamic Memory Allocation : C allows memory to be allocated directly at run  time. It reduces the wastage of memory
+as the user decides the size of memory to be allocated to the program at run time.
+Data Types : Apart from having simpler data types(such as int, float, char etc.), C also allows to have heterogeneous data types (such as structures, unions etc.)in your program. These data types allows related members or data elements to be combined as a unit. These elements or members can be of any type even pointers.
+//Table from http://www.iimchyderabad.com/Material/cnotes.pdf
+
+
+Apart from having the above said positive sides, there are few limitations of C language too.
+There is no automatic Garbage collection. It is done manually in C using delete and free.
+It does not support Object-Oriented Programming (particularly polymorphism and inheritence). 
+Exception Handling is not there. Errors are specified by standard library functions with global Errno.
+There is no standard library for Graphics.
+Vector Operations are not handled properly.
+ 
+Working:: 
+Widely, a C program runs in two phases:
+In the first phase, we have a source program in form of a text files. This source program contains the actual coding or instructions or the task to be performed.  But, we cannot execute this program directly.
+In the second phase. The above written source program is compiled. This creates a new file containing the machine code translation of the source program. This translated file is the executable file.
+So, basically C program is passed on to a compiler,which takes C source code as input and gives an executable file as output. Now, we'll look at this phase in more detail.
+The work of the compiler can be broadly classified in two steps. In first step, the source program is scanned for errors etc. and an intermediate code is generated for further processing. This intermediate code is then converted to object code(but the file is still not executable file). In GNU C compiler, this step is run with the use of 'gcc -c *.c' command  and gives the output as '*.o' file. In the second step, Linker completes the code by adding standard library files to object files(*.o). Compiler can give error at this stage too, if it finds a reference to the function that does not exist. In GNU C compiler this step is run by using 'gcc -o '. Following are the file names and their suffixes of intermediate files that can be generated while running a c program.
+
+Suffix
+File
+.a
+Static object library
+.c
+Initial C source code
+.h
+Header file included in C program
+.i
+
+.o
+
+.s
+
+.so
+
+
+Let us take an simple example, to make the above things said more clearer.
+
+// example.c
+#include <stdio.h>
+int main(int argc, char *argv[])
+{
+	printf(“This is a simple example...\n”);
+	return 0;
+}
+
+The direct and simplest of all methods of all is to compile this 'example.c' using gcc and then run the executable file thus made.
+
+$ gcc example.c
+$ ./a.out 
+This is a simple example...
+$
+
+The default work of GCC compiler is to compile the source file to make an object file, convert this object file to an executable and then delete the initial made object file. The compiler finds out that the file name on the command line is a C source code with help of the suffix of the file as *.c. Here we have not specified the name of the executable file, so the compiler will by default take that as 'a.out' in the working directory. However , we can use the -o option to manually specify some name to the final executable file. For e.g.
+
+$ gcc example.c -o final
+$ ./final 
+This is a simple example...
+$
+
+We can also use -c option to see the intermediate object files. By using -c option the compiler compiles the source code but do not link them. Each source file has different object file and By default the name of each output file is the name of the source code file with suffix '.c' replaced with '.o'.
+   </font>    
+</body>
+</html>

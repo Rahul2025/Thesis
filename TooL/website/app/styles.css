@@ -1,0 +1,49 @@
+/* CSS Document *//* ------------------------------ LAYOUT STYLES ------------------------------- */html * {	padding: 0px;	margin: 0px;}body {	background-color: #d1d1d1;	background-image:  url(../images/bg1.gif);	background-repeat: repeat-y;	background-position: center center;	font-family: Verdana, Arial, Helvetica, sans-serif;	font-size: 100%;	text-align: center;}#container {	margin: 0px auto;	width: 800px;	text-align: left;}#layout {	background-color: #f2f2f2;	width: 780px;	padding: 5px;	border-top: 1px solid #222;}#nav_cont {	padding: 10px 0px;}.nav {	text-align: center;}#content {	padding: 20px;	font-size: .95em;	line-height: 1.6em;}#footer {	background-color: #222;	color: #ccc;	font-size: .85em;	padding: 5px;	text-align: right;}/* -------------------------------- BASIC FORMATTING STYLES ----------------------------- */a {	color: #75715c;}a:hover {	text-decoration: none;}
+.nav a {	color: #666;	text-decoration: none;	font-size: .9em;
+	
+}.nav a:hover {	color: #222;	background-color: #d3d3c1;}
+#footer a {	color: #ccc;}p {	margin-bottom: 1em;}h1 {	font-size: 1.6em;	font-family: "Times New Roman", Times, serif;	font-style: italic;	color: #444;	border-bottom: 1px solid #444;	margin-bottom: 1.5em;}h2 {	font-family: "Times New Roman", Times, serif;	font-size: 1.3em;	font-style: italic;	margin: 2em 0em 1em;	color: #444;}h3 {	font-family: "Times New Roman", Times, serif;	font-size: 1.2em;	margin: 1.5em 0em .5em;	color: #444;
+	text-decoration:underline;}
+h4 {
+	font-family: "Times New Roman", Times, serif;	font-size: 1.1em;	margin: 1.5em 0em .5em;	color: #444;
+	}#content img {	padding: 7px;	margin: 0px 10px;	border: 1px solid #999;}#content .img_right {	float: right;	margin-right: 0px;}#content .img_left {	float: left;	margin-left: 0px;}
+
+.nav-tabs > .active > a, .nav-tabs > .active > a:hover, .nav-tabs > .active > a:focus 
+{
+	background-color: #aab8ae !important;
+}
+ul1 {
+    font-family: Arial, Verdana;
+    font-size: 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+ul1 li1 { display: block; position: relative; float: left; }
+li1 ul1 { display: none; }
+
+ul1 li1 a {
+    display: block;
+    text-decoration: none;
+    color: #ffffff;
+    border-top: 1px solid #ffffff;
+    padding: 5px 15px 5px 15px;
+    background: #d3d3c1;
+    margin-left: 1px;
+    white-space: nowrap;
+    font-size: 1em;
+}
+
+ul1 li1 a:hover { background: #d3d3c1; }
+li1:hover ul1 { display: block; position: absolute; }
+li1.submenu ul1 { display: none; }
+li1.submenu:hover ul1 { display: block; position: absolute; top: 0px; }
+li1.submenu ul1 li1 { position: relative; left: 105px; }
+li1.submenu ul1 li1 a { display: block; }
+
+li1:hover li1 { float: none; font-size: 11px; }
+li1:hover a { background: #d3d3c1; }
+li1:hover li1 a:hover { background: #d3d3c1; }​
+
+
